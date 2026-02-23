@@ -139,13 +139,28 @@ const LeadGate = ({ children }) => {
                 if (leadError) throw leadError;
                 localStorage.setItem('stonevo_lead_id', leadData.id);
 
-                // Success! No more role selection choice.
-                // The role is already handled by the database feed.
                 setRoleState(whitelistData.role || 'architect');
                 setStatus('approved');
             } else {
-                setDiagnostics(`NO MATCH for phone "${cleanPhone}" in our database.`);
-                setStep('FORM');
+                // FALLBACK: Check if they are already in the Leads table and approved
+                setDiagnostics(`Searching existing approved accounts for ${cleanPhone}...`);
+                const { data: existingLead } = await supabase
+                    .from('leads')
+                    .select('*')
+                    .eq('phone', cleanPhone)
+                    .eq('status', 'approved')
+                    .maybeSingle();
+
+                if (existingLead) {
+                    setDiagnostics(`RECOVERED: Approved account found for ${existingLead.full_name}!`);
+                    localStorage.setItem('stonevo_lead_id', existingLead.id);
+                    setRoleState(existingLead.role || 'architect');
+                    setFormData(existingLead);
+                    setStatus('approved');
+                } else {
+                    setDiagnostics(`NO MATCH for phone "${cleanPhone}" in any database.`);
+                    setStep('FORM');
+                }
             }
         } catch (err) {
             setError(err.message || 'Verification failed');

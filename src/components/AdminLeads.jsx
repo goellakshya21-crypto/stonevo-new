@@ -64,6 +64,20 @@ const AdminLeads = () => {
 
             if (error) throw error;
 
+            // Sync to professional whitelist if approved
+            if (newStatus === 'approved') {
+                const lead = leads.find(l => l.id === id);
+                if (lead) {
+                    await supabase
+                        .from('architect_whitelist')
+                        .upsert({
+                            phone_number: lead.phone,
+                            full_name: lead.full_name,
+                            role: role || lead.role || 'architect'
+                        }, { onConflict: 'phone_number' });
+                }
+            }
+
             setLeads(leads.map(lead =>
                 lead.id === id ? { ...lead, ...updateData } : lead
             ));

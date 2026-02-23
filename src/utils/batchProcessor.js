@@ -2,11 +2,11 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { compressImage } from "./imageOptimizer";
 
 export class BatchProcessor {
-    constructor(apiKey, onProgress, onError, globalType = 'Auto-detect') {
+    constructor(apiKey, onProgress, onError, globalApplication = 'Auto-detect') {
         this.apiKey = apiKey;
         this.onProgress = onProgress;
         this.onError = onError;
-        this.globalType = globalType;
+        this.globalApplication = globalApplication;
         this.isPaused = false;
         this.isStopped = false;
         this.delay = 4000;
@@ -75,9 +75,9 @@ export class BatchProcessor {
         const imagePart = await this.fileToGenerativePart(optimizedFile);
         const extractedName = this.cleanFileName(optimizedFile);
 
-        const typeInstruction = this.globalType === 'Auto-detect'
-            ? 'Geological type (Marble, Granite, Onyx, Quartzite, Travertine, Sandstone, or Limestone)'
-            : `THIS IS A ${this.globalType.toUpperCase()}. Set "type" to "${this.globalType}".`;
+        const appInstruction = this.globalApplication === 'Auto-detect'
+            ? 'Intended Application (Flooring, Bathroom, Countertop, Wall Cladding, or Exterior)'
+            : `THIS IS FOR ${this.globalApplication.toUpperCase()}. Set "application" to "${this.globalApplication}".`;
 
         const prompt = `Analyze this stone image (Name: ${extractedName}) for an architectural database.
     Return ONLY a raw JSON object (no markdown formatting) with the following structure:
@@ -86,7 +86,7 @@ export class BatchProcessor {
         "physical_properties": {
         "color": "ONLY the single most dominant base color (e.g. White, Black, Blue, Beige, Green, Yellow, Grey, Pink). Do NOT include secondary colors or veining colors.",
         "priceRange": "Pending",
-        "type": "${typeInstruction}",
+        "application": "${appInstruction}",
         "pattern": "CRITICAL: Set to 'Yes' ONLY if there are repetitive, rhythmic lines running through the entire stone (like parallel veins or linear stripes). If there are only random spots, irregular clouds, or scattered veining, set to 'No'. Focus on linear repetition.",
         "brightness": "Overall brightness based on the dominant color (Light or Dark)"
         },

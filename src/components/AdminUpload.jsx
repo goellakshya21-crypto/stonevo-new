@@ -42,7 +42,7 @@ const AdminUpload = ({ onCancel }) => {
     const [processor, setProcessor] = useState(null);
     const [saveLoading, setSaveLoading] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
-    const [globalType, setGlobalType] = useState('Auto-detect');
+    const [globalApplication, setGlobalApplication] = useState('Auto-detect');
 
     const fileInputRef = useRef(null);
 
@@ -142,9 +142,9 @@ const AdminUpload = ({ onCancel }) => {
         const imagePart = await fileToGenerativePart(image);
         const extractedName = cleanFileName(image);
 
-        const typeInstruction = globalType === 'Auto-detect'
-            ? 'Geological type (Marble, Granite, Onyx, Quartzite, Travertine, Sandstone, or Limestone)'
-            : `THIS IS A ${globalType.toUpperCase()}. Set "type" to "${globalType}".`;
+        const appInstruction = globalApplication === 'Auto-detect'
+            ? 'Intended Application (Flooring, Bathroom, Countertop, Wall Cladding, or Exterior)'
+            : `THIS IS FOR ${globalApplication.toUpperCase()}. Set "application" to "${globalApplication}".`;
 
         const prompt = `Analyze this stone image (Name: ${extractedName}) for an architectural database. 
         Return ONLY a raw JSON object (no markdown formatting) with the following structure:
@@ -156,7 +156,7 @@ const AdminUpload = ({ onCancel }) => {
             "physical_properties": {
             "color": "ONLY the single most dominant base color (e.g. White, Black, Blue, Beige, Green, Yellow, Grey, Pink). Do NOT include secondary colors or veining colors.",
             "priceRange": "Pending",
-            "type": "${typeInstruction}",
+            "application": "${appInstruction}",
             "pattern": "CRITICAL: Set to 'Yes' ONLY if there are repetitive, rhythmic lines running through the entire stone (like parallel veins or linear stripes). If there are only random spots, irregular clouds, or scattered veining, set to 'No'. Focus on linear repetition.",
             "brightness": "Overall brightness based on the dominant color (Light or Dark)"
             },
@@ -233,7 +233,7 @@ const AdminUpload = ({ onCancel }) => {
                     lot_type: stoneData.lot_type || 'premium',
                     lot_size_sqft: stoneData.lot_size_sqft || 0,
                     vendor_address: stoneData.vendor_address || '',
-                    type: stoneData.physical_properties.type,
+                    type: stoneData.physical_properties.application,
                     color: stoneData.physical_properties.color,
                     pattern: stoneData.physical_properties.pattern,
                     brightness: stoneData.physical_properties.brightness,
@@ -287,7 +287,7 @@ const AdminUpload = ({ onCancel }) => {
             (errorResult) => {
                 setBatchResults(prev => [...prev, errorResult]);
             },
-            globalType // Pass global type here
+            globalApplication // Pass global application here
         );
 
         setProcessor(batchProcessor);
@@ -371,27 +371,27 @@ const AdminUpload = ({ onCancel }) => {
                         <p className="text-xs text-stone-500 mt-1">Key is not saved and only used for this session.</p>
                     </div>
 
-                    {/* Global Type Selector */}
+                    {/* Global Application Selector */}
                     <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
-                        <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">Base Stone Type (Optional)</label>
+                        <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">Base Application (Optional)</label>
                         <div className="flex flex-wrap gap-2">
-                            {['Auto-detect', 'Granite', 'Limestone', 'Marble', 'Onyx', 'Quartzite', 'Sandstone', 'Travertine'].map((type) => (
+                            {['Auto-detect', 'Flooring', 'Bathroom', 'Countertop', 'Wall Cladding', 'Exterior'].map((app) => (
                                 <button
-                                    key={type}
-                                    onClick={() => setGlobalType(type)}
-                                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${globalType === type
+                                    key={app}
+                                    onClick={() => setGlobalApplication(app)}
+                                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${globalApplication === app
                                         ? 'bg-stone-900 text-white shadow-sm'
                                         : 'bg-white text-stone-600 border border-stone-200 hover:border-stone-400'
                                         }`}
                                 >
-                                    {type}
+                                    {app}
                                 </button>
                             ))}
                         </div>
                         <p className="text-[10px] text-stone-400 mt-2 italic">
-                            {globalType === 'Auto-detect'
-                                ? "AI will identify the stone type automatically."
-                                : `AI will be instructed that all images in this batch are ${globalType}.`}
+                            {globalApplication === 'Auto-detect'
+                                ? "AI will identify the application automatically."
+                                : `AI will be instructed that all images in this batch are for ${globalApplication}.`}
                         </p>
                     </div>
 
@@ -497,19 +497,17 @@ const AdminUpload = ({ onCancel }) => {
                                             />
                                         </div>
                                         <div className="p-3 bg-stone-50 rounded-md border border-stone-100">
-                                            <label className="text-[10px] text-stone-400 uppercase block font-bold mb-1">Type</label>
+                                            <label className="text-[10px] text-stone-400 uppercase block font-bold mb-1">Application</label>
                                             <select
-                                                value={result.physical_properties.type}
-                                                onChange={(e) => handleFieldChange('type', e.target.value, true)}
+                                                value={result.physical_properties.application}
+                                                onChange={(e) => handleFieldChange('application', e.target.value, true)}
                                                 className="w-full bg-transparent border-none p-0 focus:ring-0 font-medium text-stone-900 text-sm"
                                             >
-                                                <option value="Granite">Granite</option>
-                                                <option value="Limestone">Limestone</option>
-                                                <option value="Marble">Marble</option>
-                                                <option value="Onyx">Onyx</option>
-                                                <option value="Quartzite">Quartzite</option>
-                                                <option value="Sandstone">Sandstone</option>
-                                                <option value="Travertine">Travertine</option>
+                                                <option value="Flooring">Flooring</option>
+                                                <option value="Bathroom">Bathroom</option>
+                                                <option value="Countertop">Countertop</option>
+                                                <option value="Wall Cladding">Wall Cladding</option>
+                                                <option value="Exterior">Exterior</option>
                                             </select>
                                         </div>
                                         <div className="p-3 bg-stone-50 rounded-md border border-stone-100">
@@ -796,19 +794,17 @@ const AdminUpload = ({ onCancel }) => {
                                                                         </select>
                                                                     </div>
                                                                     <div className="flex flex-col">
-                                                                        <label className="text-[9px] text-stone-400 font-bold uppercase mb-0.5">Type</label>
+                                                                        <label className="text-[9px] text-stone-400 font-bold uppercase mb-0.5">Application</label>
                                                                         <select
-                                                                            value={result.data.physical_properties.type}
-                                                                            onChange={(e) => handleBatchFieldChange(idx, 'type', e.target.value, true)}
+                                                                            value={result.data.physical_properties.application}
+                                                                            onChange={(e) => handleBatchFieldChange(idx, 'application', e.target.value, true)}
                                                                             className="bg-white border border-stone-200 rounded px-1.5 py-0.5 text-xs text-stone-800 focus:ring-1 focus:ring-stone-400 focus:outline-none"
                                                                         >
-                                                                            <option value="Granite">Granite</option>
-                                                                            <option value="Limestone">Limestone</option>
-                                                                            <option value="Marble">Marble</option>
-                                                                            <option value="Onyx">Onyx</option>
-                                                                            <option value="Quartzite">Quartzite</option>
-                                                                            <option value="Sandstone">Sandstone</option>
-                                                                            <option value="Travertine">Travertine</option>
+                                                                            <option value="Flooring">Flooring</option>
+                                                                            <option value="Bathroom">Bathroom</option>
+                                                                            <option value="Countertop">Countertop</option>
+                                                                            <option value="Wall Cladding">Wall Cladding</option>
+                                                                            <option value="Exterior">Exterior</option>
                                                                         </select>
                                                                     </div>
                                                                     <div className="flex flex-col">
