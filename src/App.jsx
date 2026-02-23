@@ -16,7 +16,7 @@ function App() {
         } />
         <Route path="/builder" element={<BuilderPortal />} />
         {import.meta.env.VITE_ENABLE_ADMIN === 'true' && (
-          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/internal-management-stonevo-9921" element={<AdminPage />} />
         )}
       </Routes>
     </Router>
