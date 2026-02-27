@@ -177,7 +177,7 @@ const BuilderPortal = () => {
                         animate={{ opacity: 1, y: 0 }}
                         className="font-serif text-4xl md:text-5xl mb-12 italic text-[#181611] dark:text-white"
                     >
-                        The Selection
+                        The Exclusive Selection
                     </motion.h2>
                     <div className="flex items-center justify-center gap-8 md:gap-16 border-b border-[#897c61]/10 pb-4">
                         {filters.map(filter => (
