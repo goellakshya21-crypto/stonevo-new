@@ -104,8 +104,18 @@ const BuilderPortal = () => {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
+
+            // Transform live data to include application mapping
+            const transformedData = (data || []).map(item => ({
+                ...item,
+                application: item.application ||
+                    (['Flooring', 'Bathroom', 'Countertop', 'Wall Cladding', 'Exterior'].includes(item.type)
+                        ? item.type
+                        : (item.type === 'Marble' ? 'Flooring' : 'Wall Cladding'))
+            }));
+
             // Merge live data with synthetic data
-            setLots([...(data || []), ...SYNTHETIC_LOTS]);
+            setLots([...transformedData, ...SYNTHETIC_LOTS]);
         } catch (err) {
             console.error('Error fetching small lots:', err);
             // Fallback to only synthetic data if Supabase fails
@@ -175,8 +185,8 @@ const BuilderPortal = () => {
                                 key={filter}
                                 onClick={() => setActiveFilter(filter)}
                                 className={`relative text-[10px] uppercase tracking-[0.2em] font-bold transition-colors ${activeFilter === filter
-                                        ? 'text-[#181611] dark:text-white'
-                                        : 'text-[#897c61] hover:text-[#181611] dark:hover:text-white'
+                                    ? 'text-[#181611] dark:text-white'
+                                    : 'text-[#897c61] hover:text-[#181611] dark:hover:text-white'
                                     }`}
                             >
                                 {filter === 'All' ? 'Everything' : filter}

@@ -18,7 +18,7 @@ const ChatAssistant = ({ marbles, onStoneClick }) => {
     const stoneContext = marbles.map(m => ({
         id: m.id,
         name: m.name,
-        type: m.physical_properties?.type || 'Unknown',
+        application: m.physical_properties?.application || 'Unknown',
         color: m.physical_properties?.color || 'Unknown',
         pattern: m.physical_properties?.pattern || 'No',
         brightness: m.physical_properties?.brightness || 'N/A',
@@ -76,7 +76,7 @@ const ChatAssistant = ({ marbles, onStoneClick }) => {
             
             Instructions:
             1. Describe stones with architectural depth (veining, mineral composition, aesthetic mood).
-            2. Match the user's query against the "desc", "tags", "color", "type", "pattern", and "brightness" in the inventory.
+            2. Match the user's query against the "desc", "tags", "color", "application", "pattern", and "brightness" in the inventory.
             2. Never use sales language.
             3. KEEP IT CONCISE: 2 to 3 lines max (~40 words), unless the user explicitly asks for a paragraph.
             4. Use the Conversation History to understand follow-up questions (e.g., "Which of those...").
@@ -203,7 +203,7 @@ const ChatAssistant = ({ marbles, onStoneClick }) => {
                                                         />
                                                     </div>
                                                     <p className="text-[9px] font-bold text-stone-900 truncate tracking-wide uppercase group-hover:text-luxury-bronze transition-colors">{stone.name}</p>
-                                                    <p className="text-[8px] italic text-stone-400 font-serif">{stone.physical_properties?.type || 'Natural Stone'}</p>
+                                                    <p className="text-[8px] italic text-stone-400 font-serif">{stone.physical_properties?.application || 'Natural Stone'}</p>
                                                 </motion.div>
                                             ))}
                                         </div>

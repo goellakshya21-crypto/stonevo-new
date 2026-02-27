@@ -1,31 +1,54 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Home, Layers, ShoppingBag, ArrowRight, Save, X } from 'lucide-react';
+import { Plus, Trash2, Home, Layers, ShoppingBag, ArrowRight, Save, X, Search } from 'lucide-react';
 
-const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData }) => {
+const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory = [] }) => {
     const [isSaving, setIsSaving] = useState(false);
 
-    const [projectData, setProjectData] = useState(initialData || [
-        {
-            id: Date.now(),
-            floorNo: "Ground Floor",
-            description: "Main lobby and executive suites",
-            rooms: [
+    const [projectData, setProjectData] = useState([]);
+    const [flooringData, setFlooringData] = useState({
+        name: "",
+        colour: "",
+        price: "",
+        area: ""
+    });
+
+    const [activeSearch, setActiveSearch] = useState({ floorId: null, roomId: null, stoneId: null });
+    const [searchResults, setSearchResults] = useState([]);
+
+    // Initialize state
+    React.useEffect(() => {
+        if (!initialData || (Array.isArray(initialData) && initialData.length === 0)) {
+            setProjectData([
                 {
-                    id: Date.now() + 1,
-                    roomName: "Living Room",
-                    stones: [
-                        { id: Date.now() + 2, name: "Calacatta Oro Marble", colour: "Polished White", quantity: "12", area: "450" }
+                    id: Date.now(),
+                    floorNo: "Ground Floor",
+                    description: "Main lobby and executive suites",
+                    rooms: [
+                        {
+                            id: Date.now() + 1,
+                            roomName: "Living Room",
+                            stones: [
+                                { id: Date.now() + 2, name: "Calacatta Oro Marble", colour: "Polished White", quantity: "12", area: "450" }
+                            ]
+                        }
                     ]
                 }
-            ]
+            ]);
         }
-    ]);
+    }, []);
 
     // Update state if initialData changes (e.g., after a successful save)
     React.useEffect(() => {
         if (initialData) {
-            setProjectData(initialData);
+            if (initialData.floors) {
+                setProjectData(initialData.floors);
+                if (initialData.flooring) {
+                    setFlooringData(initialData.flooring);
+                }
+            } else if (Array.isArray(initialData)) {
+                setProjectData(initialData);
+            }
         }
     }, [initialData]);
 
@@ -38,7 +61,7 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                 return sAcc + (Number(stone.area) || 0);
             }, 0);
         }, 0);
-    }, 0);
+    }, 0) + (Number(flooringData.area) || 0);
 
     const addFloor = () => {
         setProjectData([...projectData, {
@@ -126,6 +149,21 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData }) => {
     };
 
     const updateInputValue = (floorId, roomId, stoneId, field, value) => {
+        if (field === 'name') {
+            setActiveSearch({ floorId, roomId, stoneId });
+            if (value.length > 1) {
+                const query = value.toLowerCase();
+                const matches = inventory.filter(item =>
+                    item.name.toLowerCase().includes(query) ||
+                    (item.type && item.type.toLowerCase().includes(query)) ||
+                    (item.color && item.color.toLowerCase().includes(query))
+                ).slice(0, 5);
+                setSearchResults(matches);
+            } else {
+                setSearchResults([]);
+            }
+        }
+
         setProjectData(projectData.map(floor => {
             if (floor.id === floorId) {
                 return {
@@ -148,6 +186,38 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData }) => {
             }
             return floor;
         }));
+    };
+
+    const selectInventoryItem = (floorId, roomId, stoneId, item) => {
+        setProjectData(projectData.map(floor => {
+            if (floor.id === floorId) {
+                return {
+                    ...floor,
+                    rooms: floor.rooms.map(room => {
+                        if (room.id === roomId) {
+                            return {
+                                ...room,
+                                stones: room.stones.map(stone => {
+                                    if (stone.id === stoneId) {
+                                        return {
+                                            ...stone,
+                                            name: item.name,
+                                            colour: `${item.color || ''} / ${item.type || ''}`,
+                                            price: item.price_range
+                                        };
+                                    }
+                                    return stone;
+                                })
+                            };
+                        }
+                        return room;
+                    })
+                };
+            }
+            return floor;
+        }));
+        setActiveSearch({ floorId: null, roomId: null, stoneId: null });
+        setSearchResults([]);
     };
 
     const updateFloorNo = (floorId, value) => {
@@ -184,17 +254,21 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData }) => {
 
     const handleSubmitLocal = async (e) => {
         e.preventDefault();
+        const finalData = {
+            flooring: flooringData,
+            floors: projectData
+        };
         if (onSubmit) {
             setIsSaving(true);
             try {
-                await onSubmit(projectData);
+                await onSubmit(finalData);
             } catch (err) {
                 console.error("Submit failed:", err);
             } finally {
                 setIsSaving(false);
             }
         } else {
-            console.log("Project Data Submitted:", projectData);
+            console.log("Project Data Submitted:", finalData);
             alert("Requirements saved successfully!");
             onClose();
         }
@@ -281,6 +355,72 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData }) => {
 
                         {/* Configuration Content */}
                         <div className="space-y-12 pb-12">
+                            {/* Flooring Requirements Section */}
+                            <motion.section
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="bg-white/[0.02] border border-[#eca413]/20 rounded-3xl p-8 mb-4"
+                            >
+                                <div className="flex items-center gap-4 mb-8">
+                                    <div className="w-12 h-12 rounded-full bg-[#eca413]/10 border border-[#eca413]/20 flex items-center justify-center text-[#eca413]">
+                                        <ShoppingBag size={24} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-serif text-slate-100">Overall Flooring Requirements</h2>
+                                        <p className="text-sm text-slate-500">Specify global flooring specifications for the project.</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500 ml-1">Flooring Stone Name</label>
+                                        <input
+                                            type="text"
+                                            value={flooringData.name}
+                                            onChange={(e) => setFlooringData({ ...flooringData, name: e.target.value })}
+                                            placeholder="e.g. Statuario Extra"
+                                            className="w-full custom-input px-4 py-4 rounded-lg text-sm text-slate-100"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500 ml-1">Colour / Finish</label>
+                                        <input
+                                            type="text"
+                                            value={flooringData.colour}
+                                            onChange={(e) => setFlooringData({ ...flooringData, colour: e.target.value })}
+                                            placeholder="e.g. Polished White"
+                                            className="w-full custom-input px-4 py-4 rounded-lg text-sm text-slate-100"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500 ml-1">Price / SF</label>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={flooringData.price}
+                                                onChange={(e) => setFlooringData({ ...flooringData, price: e.target.value })}
+                                                placeholder="0.00"
+                                                className="w-full custom-input px-4 py-4 rounded-lg text-sm text-slate-100 pl-8"
+                                            />
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-serif">₹</span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500 ml-1">Total Area</label>
+                                        <div className="relative">
+                                            <input
+                                                type="number"
+                                                value={flooringData.area}
+                                                onChange={(e) => setFlooringData({ ...flooringData, area: e.target.value })}
+                                                placeholder="0"
+                                                className="w-full custom-input px-4 py-4 rounded-lg text-sm text-slate-100 pr-12"
+                                            />
+                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-600 uppercase">ft²</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.section>
+
                             <AnimatePresence mode="popLayout">
                                 {projectData.map((floor, floorIndex) => (
                                     <motion.section
@@ -358,14 +498,45 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData }) => {
 
                                                         {room.stones.map((stone) => (
                                                             <div key={stone.id} className="grid grid-cols-12 gap-6 items-center">
-                                                                <div className="col-span-4">
-                                                                    <input
-                                                                        type="text"
-                                                                        value={stone.name}
-                                                                        onChange={(e) => updateInputValue(floor.id, room.id, stone.id, 'name', e.target.value)}
-                                                                        placeholder="e.g. Carrara Venato"
-                                                                        className="w-full custom-input px-4 py-4 rounded-lg text-sm text-slate-100"
-                                                                    />
+                                                                <div className="col-span-4 relative group">
+                                                                    <div className="relative">
+                                                                        <input
+                                                                            type="text"
+                                                                            value={stone.name}
+                                                                            onChange={(e) => updateInputValue(floor.id, room.id, stone.id, 'name', e.target.value)}
+                                                                            placeholder="Search Collection..."
+                                                                            className="w-full custom-input px-4 py-4 rounded-lg text-sm text-slate-100 pr-10"
+                                                                        />
+                                                                        <Search size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#eca413] transition-colors" />
+                                                                    </div>
+
+                                                                    <AnimatePresence>
+                                                                        {activeSearch.stoneId === stone.id && searchResults.length > 0 && (
+                                                                            <motion.div
+                                                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                                                animate={{ opacity: 1, scale: 1 }}
+                                                                                exit={{ opacity: 0, scale: 0.95 }}
+                                                                                className="absolute z-[100] top-full left-0 right-0 mt-2 bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl"
+                                                                            >
+                                                                                {searchResults.map(item => (
+                                                                                    <button
+                                                                                        key={item.id}
+                                                                                        onClick={() => selectInventoryItem(floor.id, room.id, stone.id, item)}
+                                                                                        className="w-full flex items-center gap-4 px-4 py-3 hover:bg-[#eca413] hover:text-black transition-all border-b border-white/5 last:border-0 group select-none cursor-pointer"
+                                                                                    >
+                                                                                        <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                                                                                            <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                                                                                        </div>
+                                                                                        <div className="text-left">
+                                                                                            <p className="text-sm font-serif italic">{item.name}</p>
+                                                                                            <p className="text-[10px] uppercase font-bold opacity-60 group-hover:opacity-100">{item.color} • {item.type}</p>
+                                                                                        </div>
+                                                                                        <div className="ml-auto text-xs font-mono opacity-60 group-hover:opacity-100">₹{item.price_range}</div>
+                                                                                    </button>
+                                                                                ))}
+                                                                            </motion.div>
+                                                                        )}
+                                                                    </AnimatePresence>
                                                                 </div>
                                                                 <div className="col-span-3">
                                                                     <input
@@ -438,18 +609,6 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData }) => {
                                                 </div>
                                             ))}
 
-                                            {/* Quick Add Room Placeholder */}
-                                            <div
-                                                onClick={() => addRoom(floor.id)}
-                                                className="rounded-xl border border-dashed border-white/10 p-10 flex flex-col items-center justify-center group cursor-pointer hover:bg-white/[0.02] hover:border-[#eca413]/30 transition-all duration-300"
-                                            >
-                                                <div className="w-14 h-14 rounded-full border border-dashed border-white/20 flex items-center justify-center mb-4 group-hover:border-[#eca413]/40 group-hover:bg-[#eca413]/5 transition-all text-slate-500 group-hover:text-[#eca413]">
-                                                    <Plus size={24} />
-                                                </div>
-                                                <p className="text-sm font-medium text-slate-500 group-hover:text-slate-300 transition-colors tracking-wide">
-                                                    Click to quick-add another room to Floor {floorIndex + 1}
-                                                </p>
-                                            </div>
                                         </div>
                                     </motion.section>
                                 ))}

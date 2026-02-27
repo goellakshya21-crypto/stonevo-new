@@ -52,14 +52,12 @@ const FilterBar = ({ filters, setFilters, onSearch, onReset }) => {
         { value: '4000+', label: '4000+' }
     ];
 
-    const typeOptions = [
-        { value: 'Granite', label: 'Granite' },
-        { value: 'Limestone', label: 'Limestone' },
-        { value: 'Marble', label: 'Marble' },
-        { value: 'Onyx', label: 'Onyx' },
-        { value: 'Quartzite', label: 'Quartzite' },
-        { value: 'Sandstone', label: 'Sandstone' },
-        { value: 'Travertine', label: 'Travertine' }
+    const applicationOptions = [
+        { value: 'Flooring', label: 'Flooring' },
+        { value: 'Bathroom', label: 'Bathroom' },
+        { value: 'Countertop', label: 'Countertop' },
+        { value: 'Wall Cladding', label: 'Wall Cladding' },
+        { value: 'Exterior', label: 'Exterior' }
     ];
 
     const patternOptions = [
@@ -118,10 +116,10 @@ const FilterBar = ({ filters, setFilters, onSearch, onReset }) => {
                     />
 
                     <MultiSelect
-                        label="Type"
-                        name="type"
-                        options={typeOptions}
-                        selectedValues={filters.type}
+                        label="Application"
+                        name="application"
+                        options={applicationOptions}
+                        selectedValues={filters.application}
                         onChange={handleMultiChange}
                         variant="premium"
                     />
