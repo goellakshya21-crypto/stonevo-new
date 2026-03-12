@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import AdminUpload from '../components/AdminUpload';
+import AdminWhitelist from '../components/AdminWhitelist';
 
 function AdminPage() {
+    const [activeTab, setActiveTab] = useState('inventory'); // 'inventory' or 'whitelist'
+
     return (
         <div className="min-h-screen bg-stone-100 font-sans selection:bg-stone-200">
             {/* Admin Header */}
@@ -21,12 +24,34 @@ function AdminPage() {
 
             {/* Management Content */}
             <main className="max-w-6xl mx-auto px-4 py-12">
-                <div className="mb-8 border-l-4 border-stone-900 pl-4">
-                    <h2 className="text-3xl font-serif font-bold text-stone-800">Operational Management</h2>
-                    <p className="text-stone-500 text-sm mt-1">High-accuracy stone analysis and inventory ingestion pipeline.</p>
+                <div className="mb-8 border-l-4 border-stone-900 pl-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h2 className="text-3xl font-serif font-bold text-stone-800">Operational Management</h2>
+                        <p className="text-stone-500 text-sm mt-1">High-accuracy stone analysis and inventory ingestion pipeline.</p>
+                    </div>
+
+                    {/* Tabs */}
+                    <div className="flex items-center space-x-2 bg-stone-200/50 p-1 rounded-lg">
+                        <button
+                            onClick={() => setActiveTab('inventory')}
+                            className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-md ${activeTab === 'inventory' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+                        >
+                            Stone Inventory
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('whitelist')}
+                            className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-md ${activeTab === 'whitelist' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+                        >
+                            Whitelist Registry
+                        </button>
+                    </div>
                 </div>
 
-                <AdminUpload onCancel={() => { }} />
+                {activeTab === 'inventory' ? (
+                    <AdminUpload onCancel={() => { }} />
+                ) : (
+                    <AdminWhitelist />
+                )}
             </main>
 
             <footer className="py-8 bg-stone-200 text-stone-500 text-[10px] text-center uppercase tracking-[0.2em]">

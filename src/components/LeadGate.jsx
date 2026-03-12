@@ -4,9 +4,10 @@ import { supabase } from '../lib/supabaseClient';
 import { Phone, Mail, Building, Globe, User, ShieldCheck, Compass, Hammer } from 'lucide-react';
 
 const LeadGate = ({ children }) => {
-    const [status, setStatus] = useState('loading'); // 'loading', 'unregistered', 'otp_sent', 'whitelist_check', 'registration', 'pending', 'approved'
+    const [status, setStatus] = useState('loading'); // 'loading', 'unregistered', 'otp_sent', 'whitelist_check', 'registration', 'pending', 'welcome', 'approved'
     const [step, setStep] = useState('PHONE'); // 'PHONE', 'OTP', 'FORM', 'ROLE_SELECTION'
     const [role, setRoleState] = useState(null);
+    const [welcomeName, setWelcomeName] = useState('');
     const [formData, setFormData] = useState({
         full_name: '',
         email: '',
@@ -140,7 +141,9 @@ const LeadGate = ({ children }) => {
                 localStorage.setItem('stonevo_lead_id', leadData.id);
 
                 setRoleState(whitelistData.role || 'architect');
-                setStatus('approved');
+                setWelcomeName(finalName);
+                setStatus('welcome');
+                setTimeout(() => setStatus('approved'), 2500);
             } else {
                 // FALLBACK: Check if they are already in the Leads table and approved
                 setDiagnostics(`Searching existing approved accounts for ${cleanPhone}...`);
@@ -156,7 +159,9 @@ const LeadGate = ({ children }) => {
                     localStorage.setItem('stonevo_lead_id', existingLead.id);
                     setRoleState(existingLead.role || 'architect');
                     setFormData(existingLead);
-                    setStatus('approved');
+                    setWelcomeName(existingLead.full_name);
+                    setStatus('welcome');
+                    setTimeout(() => setStatus('approved'), 2500);
                 } else {
                     setDiagnostics(`NO MATCH for phone "${cleanPhone}" in any database.`);
                     setStep('FORM');
@@ -217,13 +222,82 @@ const LeadGate = ({ children }) => {
         );
     }
 
-    if (status === 'approved') {
+    if (status === 'approved' || status === 'welcome') {
         return (
             <>
-                {typeof children === 'function' ? children(role) : children}
+                <div className={`transition-all duration-1000 ${status === 'welcome' ? 'blur-xl scale-[1.02] pointer-events-none' : 'blur-0 scale-100'}`}>
+                    {typeof children === 'function' ? children(role) : children}
+                </div>
+
+                <AnimatePresence>
+                    {status === 'welcome' && (
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-stone-950/20 backdrop-blur-sm">
+                            <motion.div
+                                key="welcome"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 1.05 }}
+                                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                                className="relative z-10 w-full max-w-lg mx-4 text-center"
+                            >
+                                <div className="glass-panel p-16 rounded-3xl border border-bronze/50 shadow-[0_0_60px_rgba(182,141,64,0.25)] backdrop-blur-3xl space-y-10 relative overflow-hidden group">
+                                    {/* Decorative background glow */}
+                                    <div className="absolute -top-24 -left-24 w-64 h-64 bg-bronze/20 blur-[100px] rounded-full group-hover:bg-bronze/30 transition-all duration-1000" />
+                                    <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-bronze/20 blur-[100px] rounded-full group-hover:bg-bronze/30 transition-all duration-1000" />
+                                    
+                                    <motion.div 
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: 0.2, duration: 0.8 }}
+                                        className="relative"
+                                    >
+                                        <div className="w-24 h-24 bg-gradient-to-br from-bronze/30 to-bronze/10 rounded-full flex items-center justify-center mx-auto mb-8 relative border border-bronze/40">
+                                            <div className="absolute inset-0 rounded-full bg-bronze/10 animate-pulse" />
+                                            <ShieldCheck size={48} className="text-bronze relative z-10" />
+                                        </div>
+                                    </motion.div>
+
+                                    <div className="space-y-4 relative z-10">
+                                        <motion.h2 
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.4, duration: 0.8 }}
+                                            className="text-5xl md:text-6xl font-serif text-white italic drop-shadow-sm"
+                                        >
+                                            Welcome
+                                        </motion.h2>
+                                        <motion.p 
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ delay: 0.7, duration: 1 }}
+                                            className="text-3xl md:text-4xl font-light text-luxury-cream tracking-tight drop-shadow-md"
+                                        >
+                                            {welcomeName}
+                                        </motion.p>
+                                    </div>
+
+                                    <motion.div 
+                                        initial={{ opacity: 0, width: 0 }}
+                                        animate={{ opacity: 1, width: '100%' }}
+                                        transition={{ delay: 1, duration: 1.2 }}
+                                        className="pt-10 space-y-4"
+                                    >
+                                        <div className="flex flex-col items-center gap-3">
+                                            <p className="text-bronze/80 font-display text-[11px] uppercase tracking-[0.6em] font-semibold leading-none">
+                                                Access Granted
+                                            </p>
+                                            <div className="w-48 h-[1px] bg-gradient-to-r from-transparent via-bronze/60 to-transparent"></div>
+                                        </div>
+                                    </motion.div>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
                 <button
                     onClick={resetSession}
-                    className="fixed bottom-4 right-4 z-[200] px-4 py-2 bg-black/80 border border-white/10 rounded-full text-[10px] text-stone-400 hover:text-bronze uppercase tracking-widest transition-all backdrop-blur-md opacity-50 hover:opacity-100 shadow-2xl"
+                    className="fixed bottom-4 right-4 z-[300] px-4 py-2 bg-black/80 border border-white/10 rounded-full text-[10px] text-stone-400 hover:text-bronze uppercase tracking-widest transition-all backdrop-blur-md opacity-50 hover:opacity-100 shadow-2xl"
                 >
                     Reset Verification (Testing)
                 </button>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Home, Layers, ShoppingBag, ArrowRight, Save, X, Search } from 'lucide-react';
+import { Plus, Trash2, Home, Layers, ShoppingBag, ArrowRight, Save, X, Search, Sparkles } from 'lucide-react';
+import AIVisualizationModal from './AIVisualizationModal';
 
 const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory = [] }) => {
     const [isSaving, setIsSaving] = useState(false);
@@ -15,6 +16,9 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
 
     const [activeSearch, setActiveSearch] = useState({ floorId: null, roomId: null, stoneId: null });
     const [searchResults, setSearchResults] = useState([]);
+
+    const [visualizingStone, setVisualizingStone] = useState(null);
+    const [visualizingRoom, setVisualizingRoom] = useState("");
 
     // Initialize state
     React.useEffect(() => {
@@ -203,7 +207,9 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
                                             ...stone,
                                             name: item.name,
                                             colour: `${item.color || ''} / ${item.type || ''}`,
-                                            price: item.price_range
+                                            application: item.application || item.type, // Added to track intended use
+                                            price: item.price_range,
+                                            image_url: item.image_url // CRITICAL: Save the image URL for visualization
                                         };
                                     }
                                     return stone;
@@ -568,7 +574,19 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
                                                                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-600 uppercase">ft²</span>
                                                                     </div>
                                                                 </div>
-                                                                <div className="col-span-1 flex justify-center">
+                                                                <div className="col-span-1 flex justify-center gap-2">
+                                                                    {stone.name && (
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setVisualizingStone(stone);
+                                                                                setVisualizingRoom(room.roomName);
+                                                                            }}
+                                                                            title="AI Visualise"
+                                                                            className="w-10 h-10 flex items-center justify-center text-[#eca413] hover:bg-[#eca413]/10 rounded-lg transition-all"
+                                                                        >
+                                                                            <Sparkles size={18} />
+                                                                        </button>
+                                                                    )}
                                                                     <button
                                                                         onClick={() => removeStone(floor.id, room.id, stone.id)}
                                                                         className="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
@@ -643,6 +661,13 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
                     </main>
                 </motion.div>
             </motion.div>
+
+            <AIVisualizationModal
+                isOpen={!!visualizingStone}
+                onClose={() => setVisualizingStone(null)}
+                stone={visualizingStone}
+                roomName={visualizingRoom}
+            />
         </AnimatePresence>
     );
 };
