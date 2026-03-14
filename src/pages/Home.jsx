@@ -185,7 +185,6 @@ function Home() {
                             marbles={marbles} 
                             onStoneClick={handleStoneClick} 
                             onVisualizeRequest={(data) => {
-                                console.log("[Home] Received visualization request:", data);
                                 setVisualizationData(data);
                             }}
                         />

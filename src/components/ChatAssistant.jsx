@@ -120,7 +120,6 @@ const ChatAssistant = ({ marbles, onStoneClick, onVisualizeRequest }) => {
 
             // Handle Visualization Intent
             if (data.visualization?.request && onVisualizeRequest) {
-                console.log("[Chatbot] Visualization request detected:", data.visualization);
                 
                 // More robust stone matching: check name, then check if stoneName is IN the name
                 let stone = marbles.find(m => 
@@ -133,7 +132,6 @@ const ChatAssistant = ({ marbles, onStoneClick, onVisualizeRequest }) => {
                 }
 
                 if (stone) {
-                    console.log("[Chatbot] Stone matched:", stone.name);
                     onVisualizeRequest({
                         stone: {
                             name: stone.name,
