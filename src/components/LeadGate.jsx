@@ -225,7 +225,7 @@ const LeadGate = ({ children }) => {
     if (status === 'approved' || status === 'welcome') {
         return (
             <>
-                <div className={`transition-all duration-1000 ${status === 'welcome' ? 'blur-xl scale-[1.02] pointer-events-none' : 'blur-0 scale-100'}`}>
+                <div className={`transition-all duration-1000 ${status === 'welcome' ? 'blur-xl scale-[1.02] pointer-events-none' : 'blur-0'}`}>
                     {typeof children === 'function' ? children(role) : children}
                 </div>
 

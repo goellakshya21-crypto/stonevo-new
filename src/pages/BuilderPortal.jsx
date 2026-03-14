@@ -280,8 +280,8 @@ const BuilderPortal = () => {
 
             <ImageModal
                 isOpen={!!selectedSlot}
-                onClose={() => setSelectedSlot(null)}
-                marble={selectedSlot ? {
+                stone={selectedSlot ? {
+                    id: selectedSlot.id,
                     name: selectedSlot.name,
                     imageUrl: selectedSlot.image_url,
                     description: selectedSlot.description,
@@ -293,6 +293,7 @@ const BuilderPortal = () => {
                         brightness: selectedSlot.brightness
                     }
                 } : null}
+                onClose={() => setSelectedSlot(null)}
             />
         </div >
     );

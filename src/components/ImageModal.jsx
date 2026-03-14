@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import AIVisualizationModal from './AIVisualizationModal';
 
 /**
  * Premium Image Modal for full-screen stone viewing.
  */
-function ImageModal({ stone, allStones = [], onClose, onNavigate }) {
+function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true }) {
     const [isVisualizing, setIsVisualizing] = useState(false);
 
-    if (!stone) return null;
+    if (!stone || !isOpen) return null;
 
     const currentIndex = allStones.findIndex(s => s.id === stone.id);
     const hasMultiple = allStones.length > 1;
@@ -63,7 +64,7 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate }) {
         }
     };
 
-    return (
+    return createPortal(
         <>
             <div
                 className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-900/95 backdrop-blur-md transition-opacity duration-300 animate-fade-in"
@@ -130,8 +131,8 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate }) {
                             <span className="text-[10px] font-bold tracking-[0.2em] text-stone-400 uppercase mb-2 block">Stonevo Archive</span>
                             <h2 className="text-3xl font-serif font-bold text-stone-900 mb-2">{stone.name}</h2>
                             <div className="flex items-center gap-2 mb-4">
-                                <span className="px-2 py-0.5 bg-stone-100 text-[10px] font-bold text-stone-500 uppercase rounded">{stone.physical_properties.type || 'Natural Stone'}</span>
-                                <span className="px-2 py-0.5 bg-stone-900 text-[10px] font-bold text-white uppercase rounded">{stone.physical_properties.color}</span>
+                                <span className="px-2 py-0.5 bg-stone-100 text-[10px] font-bold text-stone-500 uppercase rounded">{stone.physical_properties?.type || 'Natural Stone'}</span>
+                                <span className="px-2 py-0.5 bg-stone-900 text-[10px] font-bold text-white uppercase rounded">{stone.physical_properties?.color}</span>
                             </div>
                         </div>
 
@@ -182,14 +183,15 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate }) {
                     isOpen={true}
                     stone={{
                         name: stone.name,
-                        type: stone?.physical_properties?.type || 'Natural Stone',
-                        image_url: stone.imageUrl
+                        type: stone?.physical_properties?.type || stone?.type || 'Natural Stone',
+                        image_url: stone.imageUrl || stone.image_url
                     }}
-                    roomContext={`Luxury ${stone?.physical_properties?.application || 'Room'}`}
+                    roomName={`Luxury ${stone?.physical_properties?.application || stone?.application || 'Room'}`}
                     onClose={() => setIsVisualizing(false)}
                 />
             )}
-        </>
+        </>,
+        document.body
     );
 }
 

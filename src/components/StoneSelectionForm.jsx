@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, Home, Layers, ShoppingBag, ArrowRight, Save, X, Search, Sparkles } from 'lucide-react';
 import AIVisualizationModal from './AIVisualizationModal';
 
 const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory = [] }) => {
+    const scrollContainerRef = useRef(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [lastAddedId, setLastAddedId] = useState(null);
 
     const [projectData, setProjectData] = useState([]);
     const [flooringData, setFlooringData] = useState({
@@ -56,6 +59,16 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
         }
     }, [initialData]);
 
+    useEffect(() => {
+        if (lastAddedId) {
+            const element = document.getElementById(`scroll-target-${lastAddedId}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setLastAddedId(null);
+            }
+        }
+    }, [lastAddedId]);
+
     if (!isOpen) return null;
 
     // Calculate live total area
@@ -68,8 +81,9 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
     }, 0) + (Number(flooringData.area) || 0);
 
     const addFloor = () => {
+        const newId = Date.now();
         setProjectData([...projectData, {
-            id: Date.now(),
+            id: newId,
             floorNo: `Floor ${projectData.length + 1}`,
             description: "New level configuration",
             rooms: [{
@@ -78,6 +92,8 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
                 stones: [{ id: Date.now() + 2, name: "", colour: "", quantity: "", area: "" }]
             }]
         }]);
+
+        setLastAddedId(newId);
     };
 
     const removeFloor = (floorId) => {
@@ -87,12 +103,13 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
     };
 
     const addRoom = (floorId) => {
+        const newId = Date.now();
         setProjectData(projectData.map(floor => {
             if (floor.id === floorId) {
                 return {
                     ...floor,
                     rooms: [...floor.rooms, {
-                        id: Date.now(),
+                        id: newId,
                         roomName: "New Room",
                         stones: [{ id: Date.now() + 1, name: "", colour: "", quantity: "", area: "" }]
                     }]
@@ -100,6 +117,8 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
             }
             return floor;
         }));
+
+        setLastAddedId(newId);
     };
 
     const removeRoom = (floorId, roomId) => {
@@ -238,11 +257,12 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
     };
 
     const duplicateRoom = (floorId, roomToDuplicate) => {
+        const newId = Date.now();
         setProjectData(projectData.map(floor => {
             if (floor.id === floorId) {
                 const newRoom = {
                     ...roomToDuplicate,
-                    id: Date.now(),
+                    id: newId,
                     roomName: `${roomToDuplicate.roomName} (Copy)`,
                     stones: roomToDuplicate.stones.map(stone => ({
                         ...stone,
@@ -256,6 +276,8 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
             }
             return floor;
         }));
+
+        setLastAddedId(newId);
     };
 
     const handleSubmitLocal = async (e) => {
@@ -280,7 +302,7 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
         }
     };
 
-    return (
+    return createPortal(
         <AnimatePresence>
             <motion.div
                 initial={{ opacity: 0 }}
@@ -289,6 +311,7 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
                 className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 md:p-12 overflow-hidden"
             >
                 <motion.div
+                    ref={scrollContainerRef}
                     initial={{ scale: 0.95, opacity: 0, y: 20 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -431,6 +454,7 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
                                 {projectData.map((floor, floorIndex) => (
                                     <motion.section
                                         key={floor.id}
+                                        id={`scroll-target-${floor.id}`}
                                         initial={{ opacity: 0, y: 30 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, scale: 0.95 }}
@@ -466,7 +490,7 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
                                         {/* Rooms in Floor */}
                                         <div className="space-y-8">
                                             {floor.rooms.map((room) => (
-                                                <div key={room.id} className="rounded-xl border border-white/5 bg-white/[0.01] p-8 space-y-8 relative group">
+                                                <div key={room.id} id={`scroll-target-${room.id}`} className="rounded-xl border border-white/5 bg-white/[0.01] p-8 space-y-8 relative group">
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-4">
                                                             <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
@@ -668,7 +692,8 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
                 stone={visualizingStone}
                 roomName={visualizingRoom}
             />
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 };
 

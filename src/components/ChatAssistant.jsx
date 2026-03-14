@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { logActivity } from '../utils/activityTracker';
 
-const ChatAssistant = ({ marbles, onStoneClick }) => {
+const ChatAssistant = ({ marbles, onStoneClick, onVisualizeRequest }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -80,14 +80,22 @@ const ChatAssistant = ({ marbles, onStoneClick }) => {
             2. Never use sales language.
             3. KEEP IT CONCISE: 2 to 3 lines max (~40 words), unless the user explicitly asks for a paragraph.
             4. Use the Conversation History to understand follow-up questions (e.g., "Which of those...").
-            5. Return your response in this EXACT JSON format:
-               {
-                 "text": "Your concise architectural description here...",
-                 "suggestedStoneNames": ["Exact Name 1", "Exact Name 2"] 
-               }
-            6. If no specific stone matches, leave the array empty.
-            
-            Current User Query: "${userMsg}"`;
+             5. Return your response in this EXACT JSON format:
+                {
+                  "text": "Your concise architectural description here...",
+                  "suggestedStoneNames": ["Exact Name 1", "Exact Name 2"],
+                  "visualization": {
+                    "request": true, 
+                    "stoneName": "Exact Name", 
+                    "roomType": "Kitchen/Bathroom/Living Room/Bedroom/Lobby",
+                    "roomStyle": "Classical/Modern/Contemporary/Minimalist/Neo Classical/Modern Classical/Industrial/Scandinavian/Mediterranean/Art Deco/Sustainable / Green"
+                  }
+                }
+             6. Set "visualization.request" to true ONLY if the user explicitly asks to see, visualize, or show a stone in a room. 
+             7. Map the roomStyle to one of the exact architectural styles listed above. Use "Modern" as default if style is unclear.
+             8. Map the roomType to one of the exact types listed above. Use "Kitchen" as default if type is unclear.
+             
+             Current User Query: "${userMsg}"`;
 
             const result = await model.generateContent(prompt);
             const responseText = await result.response.text();
@@ -109,6 +117,36 @@ const ChatAssistant = ({ marbles, onStoneClick }) => {
                     marbles.find(m => m.name.toLowerCase().trim() === name.toLowerCase().trim())
                 ).filter(Boolean)
             }]);
+
+            // Handle Visualization Intent
+            if (data.visualization?.request && onVisualizeRequest) {
+                console.log("[Chatbot] Visualization request detected:", data.visualization);
+                
+                // More robust stone matching: check name, then check if stoneName is IN the name
+                let stone = marbles.find(m => 
+                    m.name.toLowerCase().trim() === data.visualization.stoneName?.toLowerCase().trim()
+                );
+                
+                if (!stone && data.visualization.stoneName) {
+                    const searchName = data.visualization.stoneName.toLowerCase().trim();
+                    stone = marbles.find(m => m.name.toLowerCase().includes(searchName));
+                }
+
+                if (stone) {
+                    console.log("[Chatbot] Stone matched:", stone.name);
+                    onVisualizeRequest({
+                        stone: {
+                            name: stone.name,
+                            type: stone.physical_properties?.type || stone.type || 'Natural Stone',
+                            image_url: stone.imageUrl || stone.image_url
+                        },
+                        roomType: data.visualization.roomType,
+                        roomStyle: data.visualization.roomStyle
+                    });
+                } else {
+                    console.warn("[Chatbot] Stone NOT matched in inventory:", data.visualization.stoneName);
+                }
+            }
         } catch (error) {
             console.error("Chatbot AI Error:", error);
             let errorMessage = "I'm having trouble retrieving the archives at the moment. Please explore the gallery below.";

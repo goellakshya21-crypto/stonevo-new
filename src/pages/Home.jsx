@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import FilterBar from '../components/FilterBar';
 import MarbleGrid from '../components/MarbleGrid';
 import ImageModal from '../components/ImageModal';
+import AIVisualizationModal from '../components/AIVisualizationModal';
 import { supabase } from '../lib/supabaseClient';
 import Fuse from 'fuse.js';
 import ChatAssistant from '../components/ChatAssistant';
@@ -27,6 +28,7 @@ function Home() {
     const [marbles, setMarbles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedStone, setSelectedStone] = useState(null);
+    const [visualizationData, setVisualizationData] = useState(null);
     const [stoneContextList, setStoneContextList] = useState([]);
     const [filters, setFilters] = useState({
         name: '',
@@ -179,7 +181,14 @@ function Home() {
                     </motion.div>
 
                     <div className="max-w-4xl mx-auto w-full">
-                        <ChatAssistant marbles={marbles} onStoneClick={handleStoneClick} />
+                        <ChatAssistant 
+                            marbles={marbles} 
+                            onStoneClick={handleStoneClick} 
+                            onVisualizeRequest={(data) => {
+                                console.log("[Home] Received visualization request:", data);
+                                setVisualizationData(data);
+                            }}
+                        />
                     </div>
 
                     {/* Integrated Premium Filter Bar */}
@@ -222,6 +231,17 @@ function Home() {
                     allStones={stoneContextList}
                     onClose={() => { setSelectedStone(null); setStoneContextList([]); }}
                     onNavigate={setSelectedStone}
+                />
+            )}
+
+            {/* Direct AI Visualization (triggered from Chat) */}
+            {visualizationData && (
+                <AIVisualizationModal
+                    isOpen={true}
+                    stone={visualizationData.stone}
+                    roomName={visualizationData.roomType}
+                    initialStyle={visualizationData.roomStyle}
+                    onClose={() => setVisualizationData(null)}
                 />
             )}
 
