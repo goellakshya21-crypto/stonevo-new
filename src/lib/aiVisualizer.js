@@ -20,7 +20,7 @@ export const aiVisualizer = {
         if (!genAI) return fallback;
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
             const prompt = `You are a high-end luxury interior architect specialized in ${roomStyle} design. 
             Describe how a ${roomStyle} style ${roomType} would look if we used ${stoneName} (${stoneType}) specifically for the ${application}.
             Focus on the interplay of light, the shadows on the stone surface, and the overall atmospheric "vibe" (e.g., quiet luxury, dramatic brutalism, organic modernism).

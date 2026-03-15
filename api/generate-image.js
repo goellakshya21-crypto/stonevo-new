@@ -10,9 +10,10 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Stone image URL is required.' });
         }
 
-        const apiKey = process.env.VITE_GEMINI_API_KEY;
+        const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
         if (!apiKey) {
-            return res.status(500).json({ error: 'Gemini API Key missing.' });
+            const keys = Object.keys(process.env).filter(k => k.includes('GEMINI')).join(', ');
+            return res.status(500).json({ error: `Gemini API Key missing. Found keys: [${keys}]` });
         }
 
         // DEFINITIVE MODEL: Gemini 2.5 Flash Image (Nano Banana)
