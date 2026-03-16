@@ -10,7 +10,7 @@ import ChatAssistant from '../components/ChatAssistant';
 import { Menu } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-// Deploy sync: 2026-03-16T18:45:00
+// Deploy sync: 2026-03-16T19:10:00
 const SYNTHETIC_MARBLES = [];
 
 function Home() {
