@@ -5,17 +5,7 @@ import { Tag, ArrowRight, FileText, Plus } from 'lucide-react';
 import ImageModal from '../components/ImageModal';
 import StoneSelectionForm from '../components/StoneSelectionForm';
 
-const SYNTHETIC_LOTS = [
-    { id: 'syn-1', name: 'Statuario Extra Premium', image_url: 'https://images.unsplash.com/photo-1628595351029-c2bf17511435?auto=format&fit=crop&q=80&w=800', price_range: '1250', lot_size_sqft: 1850, vendor_address: 'Kishangarh, Rajasthan', description: 'Rare extra-white Statuario with bold dramatic veining.', color: 'White', application: 'Flooring', variation: 'High', brightness: 95, luminous_grade: 98, quarry: 'Carrara, Italy', status: 'In Stock' },
-    { id: 'syn-2', name: 'Calacatta Gold Select', image_url: 'https://images.unsplash.com/photo-1615529328331-f8917597711f?auto=format&fit=crop&q=80&w=800', price_range: '950', lot_size_sqft: 1200, vendor_address: 'Makrana Heritage Block', description: 'Classic Calacatta with warm gold undertones.', color: 'Golden White', application: 'Bathroom', variation: 'Medium', brightness: 90, luminous_grade: 92, quarry: 'Vagli, Italy', status: 'In Stock' },
-    { id: 'syn-3', name: 'Armani Grey Luxury', image_url: 'https://images.unsplash.com/photo-1600585152220-90363fe7e115?auto=format&fit=crop&q=80&w=800', price_range: '450', lot_size_sqft: 2400, vendor_address: 'Silvassa Processing Unit', description: 'Sophisticated grey marble with a velvet finish.', color: 'Grey', application: 'Flooring', variation: 'Low', brightness: 80, luminous_grade: 75, quarry: 'Iran Premium', status: '4 Week Lead' },
-    { id: 'syn-4', name: 'Michaelangelo White', image_url: 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&q=80&w=800', price_range: '850', lot_size_sqft: 950, vendor_address: 'Bangalore Export Hub', description: 'Artistic white marble with painterly grey swirls.', color: 'White/Grey', application: 'Wall Cladding', variation: 'High', brightness: 88, luminous_grade: 85, quarry: 'Makrana, India', status: 'In Stock' },
-    { id: 'syn-5', name: 'Nero Marquina Classic', image_url: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=800', price_range: '380', lot_size_sqft: 3100, vendor_address: 'Spain Imported Stock', description: 'Deep black marble with striking white lightning veins.', color: 'Black', application: 'Exterior', variation: 'Medium', brightness: 10, luminous_grade: 15, quarry: 'Spain', status: 'Limited' },
-    { id: 'syn-6', name: 'Botoccino Royal', image_url: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?auto=format&fit=crop&q=80&w=800', price_range: '320', lot_size_sqft: 4500, vendor_address: 'Italy Direct Import', description: 'Creamy beige marble with subtle earth tones.', color: 'Beige', application: 'Flooring', variation: 'Low', brightness: 85, luminous_grade: 80, quarry: 'Italy', status: 'In Stock' },
-    { id: 'syn-7', name: 'Blue Pearl Granite', image_url: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&q=80&w=800', price_range: '550', lot_size_sqft: 1500, vendor_address: 'Norway Premium Quarries', description: 'Stunning blue crystals embedded in a dark matrix.', color: 'Blue/Grey', application: 'Countertop', variation: 'Medium', brightness: 60, luminous_grade: 65, quarry: 'Norway', status: '4 Week Lead' },
-    { id: 'syn-8', name: 'Alaska White Granite', image_url: 'https://images.unsplash.com/photo-1517581177682-a085bb7ffb15?auto=format&fit=crop&q=80&w=800', price_range: '280', lot_size_sqft: 2800, vendor_address: 'Brazil Sourced Lot', description: 'Frosty white background with translucent quartz fragments.', color: 'White/Silver', application: 'Exterior', variation: 'High', brightness: 82, luminous_grade: 80, quarry: 'Brazil', status: 'In Stock' },
-    { id: 'syn-9', name: 'Rosso Verona', image_url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800', price_range: '420', lot_size_sqft: 1100, vendor_address: 'Verona, Italy', description: 'Warm reddish-orange marble with historical charm.', color: 'Red', application: 'Wall Cladding', variation: 'Medium', brightness: 40, luminous_grade: 35, quarry: 'Italy', status: 'In Stock' }
-];
+const SYNTHETIC_LOTS = [];
 
 const BuilderPortal = () => {
     const [lots, setLots] = useState([]);
@@ -108,10 +98,7 @@ const BuilderPortal = () => {
             // Transform live data to include application mapping
             const transformedData = (data || []).map(item => ({
                 ...item,
-                application: item.application ||
-                    (['Flooring', 'Bathroom', 'Countertop', 'Wall Cladding', 'Exterior'].includes(item.type)
-                        ? item.type
-                        : (item.type === 'Marble' ? 'Flooring' : 'Wall Cladding'))
+                application: item.application || (item.type === 'Marble' ? 'Flooring' : item.type)
             }));
 
             // Merge live data with synthetic data
@@ -127,7 +114,7 @@ const BuilderPortal = () => {
 
 
     const [activeFilter, setActiveFilter] = useState('All');
-    const filters = ['All', 'Flooring', 'Bathroom', 'Countertop', 'Wall Cladding', 'Exterior'];
+    const filters = ['All', 'Flooring', 'Washroom', 'Feature Wall', 'Counter Top', 'Outdoor', 'Façade'];
 
     const filteredLots = activeFilter === 'All'
         ? lots
@@ -286,11 +273,13 @@ const BuilderPortal = () => {
                     imageUrl: selectedSlot.image_url,
                     description: selectedSlot.description,
                     physical_properties: {
+                        marble: selectedSlot.type,
                         color: selectedSlot.color,
+                        finish: selectedSlot.finish,
                         priceRange: selectedSlot.price_range,
                         application: selectedSlot.application || selectedSlot.type,
-                        pattern: selectedSlot.variation,
-                        brightness: selectedSlot.brightness
+                        pattern: selectedSlot.pattern || selectedSlot.variation,
+                        temperature: selectedSlot.temperature
                     }
                 } : null}
                 onClose={() => setSelectedSlot(null)}

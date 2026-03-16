@@ -10,19 +10,8 @@ import ChatAssistant from '../components/ChatAssistant';
 import { Menu } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-// Deploy sync: 2026-02-14T23:18:00
-const SYNTHETIC_MARBLES = [
-    { id: 'syn-1', name: 'Statuario Extra Premium', imageUrl: 'https://images.unsplash.com/photo-1628595351029-c2bf17511435?auto=format&fit=crop&q=80&w=800', description: 'Rare extra-white Statuario with bold dramatic veining.', physical_properties: { color: 'White', priceRange: 'Premium', application: 'Flooring', pattern: 'High', brightness: 'High' } },
-    { id: 'syn-2', name: 'Calacatta Gold Select', imageUrl: 'https://images.unsplash.com/photo-1615529328331-f8917597711f?auto=format&fit=crop&q=80&w=800', description: 'Classic Calacatta with warm gold undertones.', physical_properties: { color: 'Golden White', priceRange: 'Premium', application: 'Bathroom', pattern: 'Medium', brightness: 'High' } },
-    { id: 'syn-3', name: 'Armani Grey Luxury', imageUrl: 'https://images.unsplash.com/photo-1600585152220-90363fe7e115?auto=format&fit=crop&q=80&w=800', description: 'Sophisticated grey marble with a velvet finish.', physical_properties: { color: 'Grey', priceRange: 'Standard', application: 'Flooring', pattern: 'Low', brightness: 'Sober' } },
-    { id: 'syn-4', name: 'Nero Marquina Classic', imageUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=800', description: 'Deep black marble with striking white veins.', physical_properties: { color: 'Black', priceRange: 'Standard', application: 'Exterior', pattern: 'Medium', brightness: 'Sober' } },
-    { id: 'syn-5', name: 'Amazonite Quartzite', imageUrl: 'https://images.unsplash.com/photo-1599619351208-3e6c839d6828?auto=format&fit=crop&q=80&w=800', description: 'Exotic turquoise quartzite with intense visual drama.', physical_properties: { color: 'Turquoise', priceRange: 'Ultra-Luxe', application: 'Wall Cladding', pattern: 'Extreme', brightness: 'High' } },
-    { id: 'syn-6', name: 'Bianco Lasa Vena Oro', imageUrl: 'https://images.unsplash.com/photo-1628595351029-c2bf17511435?auto=format&fit=crop&q=80&w=800', description: 'Pristine white alpine marble with gold threads.', physical_properties: { color: 'White', priceRange: 'Premium', application: 'Countertop', pattern: 'Medium', brightness: 'High' } },
-    { id: 'syn-7', name: 'Emerald Quartzite', imageUrl: 'https://images.unsplash.com/photo-1618219908412-a29a1bb7b86e?auto=format&fit=crop&q=80&w=800', description: 'Deep green quartzite with translucent floral patterns.', physical_properties: { color: 'Green', priceRange: 'Premium', application: 'Bathroom', pattern: 'High', brightness: 'Sober' } },
-    { id: 'syn-8', name: 'Ocean Blue Onyx', imageUrl: 'https://images.unsplash.com/photo-1599619351208-3e6c839d6828?auto=format&fit=crop&q=80&w=800', description: 'Highly translucent blue onyx with circular banding.', physical_properties: { color: 'Blue/Gold', priceRange: 'Ultra-Luxe', application: 'Wall Cladding', pattern: 'Extreme', brightness: 'High' } },
-    { id: 'syn-9', name: 'Panda White Marble', imageUrl: 'https://images.unsplash.com/photo-1628595351029-c2bf17511435?auto=format&fit=crop&q=80&w=800', description: 'High contrast black ink-like veins on snow white marble.', physical_properties: { color: 'Black & White', priceRange: 'Premium', application: 'Flooring', pattern: 'Extreme', brightness: 'High' } },
-    { id: 'syn-10', name: 'Palissandro Blue', imageUrl: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&q=80&w=800', description: 'Unique shimmering blue-grey marble with metallic mica.', physical_properties: { color: 'Blue/Beige', priceRange: 'Premium', application: 'Bathroom', pattern: 'High', brightness: 'Sober' } }
-];
+// Deploy sync: 2026-03-16T12:15:00
+const SYNTHETIC_MARBLES = [];
 
 function Home() {
     const [marbles, setMarbles] = useState([]);
@@ -32,30 +21,36 @@ function Home() {
     const [stoneContextList, setStoneContextList] = useState([]);
     const [filters, setFilters] = useState({
         name: '',
+        marble: [],
         color: [],
+        finish: [],
         priceRange: [],
         application: [],
         pattern: [],
-        brightness: []
+        temperature: []
     });
     const [appliedFilters, setAppliedFilters] = useState({
         name: '',
+        marble: [],
         color: [],
+        finish: [],
         priceRange: [],
         application: [],
         pattern: [],
-        brightness: []
+        temperature: []
     });
 
     // Lead Activity Tracking: Explicit search logging
     const handleSearch = () => {
         setAppliedFilters(filters);
         const hasActiveFilters = filters.name ||
+            filters.marble.length > 0 ||
             filters.color.length > 0 ||
+            filters.finish.length > 0 ||
+            filters.priceRange.length > 0 ||
             filters.application.length > 0 ||
             filters.pattern.length > 0 ||
-            filters.brightness.length > 0 ||
-            filters.priceRange.length > 0;
+            filters.temperature.length > 0;
 
         if (hasActiveFilters) {
             import('../utils/activityTracker').then(({ logActivity }) => {
@@ -79,14 +74,13 @@ function Home() {
                 name: item.name,
                 imageUrl: item.image_url,
                 physical_properties: {
+                    marble: item.type || 'Marble',
                     color: item.color,
+                    finish: item.finish || 'Polished',
                     priceRange: item.price_range,
-                    application: item.application ||
-                        (['Flooring', 'Bathroom', 'Countertop', 'Wall Cladding', 'Exterior'].includes(item.type)
-                            ? item.type
-                            : (item.type === 'Marble' ? 'Flooring' : 'Wall Cladding')),
-                    pattern: item.pattern || item.variation,
-                    brightness: item.brightness
+                    application: item.application || 'Flooring',
+                    pattern: item.pattern,
+                    temperature: item.temperature || 'Neutral'
                 },
                 description: item.description,
                 tags: item.tags
@@ -124,11 +118,13 @@ function Home() {
         }
 
         return result.filter(marble => {
+            if (appliedFilters.marble.length > 0 && !appliedFilters.marble.includes(marble.physical_properties.marble)) return false;
             if (appliedFilters.color.length > 0 && !appliedFilters.color.includes(marble.physical_properties.color)) return false;
+            if (appliedFilters.finish.length > 0 && !appliedFilters.finish.includes(marble.physical_properties.finish)) return false;
             if (appliedFilters.priceRange.length > 0 && !appliedFilters.priceRange.includes(marble.physical_properties.priceRange)) return false;
             if (appliedFilters.application.length > 0 && !appliedFilters.application.includes(marble.physical_properties.application)) return false;
-            if (appliedFilters.pattern.length > 0 && !appliedFilters.pattern.includes('Both') && !appliedFilters.pattern.includes(marble.physical_properties.pattern)) return false;
-            if (appliedFilters.brightness.length > 0 && !appliedFilters.brightness.includes(marble.physical_properties.brightness)) return false;
+            if (appliedFilters.pattern.length > 0 && !appliedFilters.pattern.includes(marble.physical_properties.pattern)) return false;
+            if (appliedFilters.temperature.length > 0 && !appliedFilters.temperature.includes(marble.physical_properties.temperature)) return false;
             return true;
         });
     }, [appliedFilters, marbles]);
@@ -136,11 +132,13 @@ function Home() {
     const handleReset = () => {
         const emptyFilters = {
             name: '',
+            marble: [],
             color: [],
+            finish: [],
             priceRange: [],
             application: [],
             pattern: [],
-            brightness: []
+            temperature: []
         };
         setFilters(emptyFilters);
         setAppliedFilters(emptyFilters);
