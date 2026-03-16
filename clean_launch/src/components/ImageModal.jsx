@@ -7,7 +7,6 @@ import AIVisualizationModal from './AIVisualizationModal';
  */
 function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true }) {
     const [isVisualizing, setIsVisualizing] = useState(false);
-    const [isBookmatched, setIsBookmatched] = useState(false);
 
     if (!stone || !isOpen) return null;
 
@@ -68,11 +67,11 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true 
     return createPortal(
         <>
             <div
-                className="fixed inset-0 z-[100] bg-stone-900 transition-opacity duration-300 animate-fade-in"
+                className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-900/95 backdrop-blur-md transition-opacity duration-300 animate-fade-in"
                 onClick={onClose}
             >
                 <div
-                    className="fixed inset-0 bg-white flex flex-col md:flex-row animate-scale-up"
+                    className="relative max-w-6xl w-full max-h-[90vh] bg-white rounded-none shadow-2xl overflow-hidden flex flex-col md:flex-row animate-scale-up border border-stone-800/10"
                     onClick={e => e.stopPropagation()}
                 >
                     {/* Close Button */}
@@ -101,7 +100,7 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true 
                     {hasMultiple && !isVisualizing && (
                         <button
                             onClick={handleNext}
-                            className="absolute right-[320px] top-1/2 -translate-y-1/2 z-20 p-3 bg-white/20 hover:bg-white text-stone-900 rounded-full transition-all shadow-xl backdrop-blur-sm border border-stone-200 group invisible md:visible mr-4"
+                            className="absolute right-[330px] top-1/2 -translate-y-1/2 z-20 p-3 bg-white/20 hover:bg-white text-stone-900 rounded-full transition-all shadow-xl backdrop-blur-sm border border-stone-200 group invisible md:visible"
                         >
                             <svg className="w-6 h-6 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
@@ -111,31 +110,12 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true 
 
                     {/* Image Container */}
                     <div className="flex-1 bg-stone-50 flex items-center justify-center overflow-hidden relative min-h-[400px]">
-                        {!isBookmatched ? (
-                            <img
-                                key={stone.id}
-                                src={stone.imageUrl}
-                                alt={stone.name}
-                                className="w-full h-full object-contain animate-fade-in"
-                            />
-                        ) : (
-                            <div className="flex w-full h-full animate-fade-in">
-                                <div className="flex-1 h-full overflow-hidden border-r border-white/10">
-                                    <img
-                                        src={stone.imageUrl}
-                                        alt={`${stone.name} - Left`}
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
-                                <div className="flex-1 h-full overflow-hidden">
-                                    <img
-                                        src={stone.imageUrl}
-                                        alt={`${stone.name} - Mirror`}
-                                        className="w-full h-full object-cover scale-x-[-1]"
-                                    />
-                                </div>
-                            </div>
-                        )}
+                        <img
+                            key={stone.id}
+                            src={stone.imageUrl}
+                            alt={stone.name}
+                            className="w-full h-full object-contain animate-fade-in"
+                        />
 
                         {/* Counter for context */}
                         {hasMultiple && (
@@ -171,20 +151,6 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true 
                                     Next Recommended Stone
                                 </button>
                             )}
-
-                            <button
-                                onClick={(e) => { e.stopPropagation(); setIsBookmatched(!isBookmatched); }}
-                                className={`w-full py-4 px-6 text-[10px] font-bold uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 border relative overflow-hidden ${
-                                    isBookmatched 
-                                    ? 'bg-stone-900 text-white border-stone-800' 
-                                    : 'bg-white text-stone-900 border-stone-200 hover:bg-stone-50'
-                                }`}
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h2m0-16h2a2 2 0 012 2v12a2 2 0 01-2 2h-2m-6-16l6 6m0 0l6-6m-6 6v12" />
-                                </svg>
-                                {isBookmatched ? 'Disable Bookmatch' : 'Bookmatch View'}
-                            </button>
 
                             <button
                                 onClick={(e) => { e.stopPropagation(); setIsVisualizing(true); }}
