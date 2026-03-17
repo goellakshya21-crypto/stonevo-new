@@ -4,10 +4,12 @@ import AdminUpload from '../components/AdminUpload';
 import AdminWhitelist from '../components/AdminWhitelist';
 
 function AdminPage() {
+    console.log('AdminPage rendering...');
     const [activeTab, setActiveTab] = useState('inventory'); // 'inventory' or 'whitelist'
 
     return (
-        <div className="min-h-screen bg-stone-100 font-sans selection:bg-stone-200">
+        <div className="min-h-screen bg-stone-100 font-sans selection:bg-stone-200 relative">
+            <div className="absolute top-0 left-0 bg-red-500 text-white text-[8px] z-[999] px-1 pointer-events-none">ADMIN_LOADED_BOOTSTRAP</div>
             {/* Admin Header */}
             <header className="bg-stone-900 text-white shadow-md">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -48,9 +50,13 @@ function AdminPage() {
                 </div>
 
                 {activeTab === 'inventory' ? (
-                    <AdminUpload onCancel={() => { }} />
+                    <div className="border-2 border-dashed border-stone-200 p-4 min-h-[400px]">
+                        <AdminUpload onCancel={() => { }} />
+                    </div>
                 ) : (
-                    <AdminWhitelist />
+                    <div className="border-2 border-dashed border-bronze/20 p-4 min-h-[400px]">
+                        <AdminWhitelist />
+                    </div>
                 )}
             </main>
 

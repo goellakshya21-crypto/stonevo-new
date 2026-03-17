@@ -39,7 +39,7 @@ const MarbleCard = ({ marble, onEnlarge }) => {
 
                 {/* Glassmorphic Price Badge */}
                 <div className="absolute top-4 left-4 glass-panel backdrop-blur-xl px-3 py-1.5 rounded-lg border border-white/10 text-[10px] font-bold text-luxury-cream tracking-widest uppercase z-10 shadow-2xl">
-                    {marble.physical_properties.priceRange}
+                    {[].concat(marble.physical_properties.priceRange || []).join(' · ') || '—'}
                 </div>
 
                 {/* Hover Action Overlay */}
@@ -54,7 +54,7 @@ const MarbleCard = ({ marble, onEnlarge }) => {
                 <div className="absolute inset-0 bg-white/[0.03] border-t border-white/10 z-0" />
 
                 <div className="relative z-10 space-y-1 mb-4">
-                    <p className="text-[10px] font-bold text-bronze uppercase tracking-[0.3em] font-display">{marble.physical_properties.type}</p>
+                    <p className="text-[10px] font-bold text-bronze uppercase tracking-[0.3em] font-display">{[].concat(marble.physical_properties.marble || []).join(', ') || 'Stone'}</p>
                     <h3 className="text-2xl font-serif text-luxury-cream leading-tight">
                         {marble.name}
                     </h3>
@@ -68,11 +68,11 @@ const MarbleCard = ({ marble, onEnlarge }) => {
                     <div className="flex gap-6">
                         <div className="flex flex-col">
                             <span className="text-[8px] font-bold text-bronze/40 uppercase tracking-widest font-display">Palette</span>
-                            <span className="text-[10px] font-medium text-sand">{marble.physical_properties.color}</span>
+                            <span className="text-[10px] font-medium text-sand">{[].concat(marble.physical_properties.color || []).join(', ') || '—'}</span>
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[8px] font-bold text-bronze/40 uppercase tracking-widest font-display">Pattern</span>
-                            <span className="text-[10px] font-medium text-sand italic">{marble.physical_properties.pattern === 'Yes' ? 'Veined' : 'Uniform'}</span>
+                            <span className="text-[10px] font-medium text-sand italic">{[].concat(marble.physical_properties.pattern || []).filter(Boolean).join(' · ') || 'Uniform'}</span>
                         </div>
                     </div>
 

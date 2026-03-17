@@ -6,6 +6,7 @@ import AdminPage from './pages/AdminPage';
 import LeadGate from './components/LeadGate';
 
 function App() {
+  console.log('VITE_ENABLE_ADMIN:', import.meta.env.VITE_ENABLE_ADMIN);
   return (
     <Router>
       <Routes>
@@ -15,9 +16,8 @@ function App() {
           </LeadGate>
         } />
         <Route path="/builder" element={<BuilderPortal />} />
-        {import.meta.env.VITE_ENABLE_ADMIN === 'true' && (
-          <Route path="/internal-management-stonevo-9921" element={<AdminPage />} />
-        )}
+        <Route path="/internal-management-stonevo-9921" element={<AdminPage />} />
+        <Route path="*" element={<div className="min-h-screen bg-black text-white p-10">404 - Page not found</div>} />
       </Routes>
     </Router>
   );

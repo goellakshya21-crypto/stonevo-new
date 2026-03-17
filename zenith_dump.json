@@ -1,0 +1,54 @@
+[
+  {
+    "id": "3717cf5a-12a6-4188-8735-63432de4437c",
+    "name": "Zenith Blue",
+    "type": [
+      "Stone"
+    ],
+    "color": [
+      ""
+    ],
+    "pattern": [
+      ""
+    ],
+    "price_range": [
+      ""
+    ],
+    "description": "This striking stone features a dynamic interplay of deep sapphire blues and lighter steel-grey tones, marbled with dark charcoal. Its surface is characterized by sweeping, irregular veins of white and electric blue that evoke celestial grandeur and profound depth.",
+    "tags": [
+      "blue",
+      "sapphire blue",
+      "grey",
+      "charcoal",
+      "white",
+      "light grey",
+      "swirling",
+      "cloudy pattern",
+      "dynamic veining",
+      "irregular veining",
+      "granular texture",
+      "modern",
+      "contemporary",
+      "luxurious",
+      "dramatic",
+      "bold",
+      "elegant"
+    ],
+    "image_url": "https://qxxuxlenxixpwbmuzbow.supabase.co/storage/v1/object/public/marble-images/06tqbkm7js1q-1773679066713.jpg",
+    "created_at": "2026-03-16T16:37:52.406182+00:00",
+    "original_filename": "Zenith Blue.jpg",
+    "lot_type": "premium",
+    "lot_size_sqft": 0,
+    "vendor_address": "",
+    "application": [
+      "Counter Top"
+    ],
+    "finish": [
+      ""
+    ],
+    "temperature": [
+      ""
+    ],
+    "marble": null
+  }
+]

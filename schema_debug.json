@@ -1,0 +1,22 @@
+{
+  "columns": [
+    "id",
+    "name",
+    "type",
+    "color",
+    "pattern",
+    "brightness",
+    "price_range",
+    "description",
+    "tags",
+    "image_url",
+    "created_at",
+    "original_filename",
+    "lot_type",
+    "lot_size_sqft",
+    "vendor_address",
+    "application",
+    "finish",
+    "temperature"
+  ]
+}

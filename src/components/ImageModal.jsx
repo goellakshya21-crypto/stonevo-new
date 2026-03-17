@@ -110,7 +110,7 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true 
                     )}
 
                     {/* Image Container */}
-                    <div className="flex-1 bg-stone-50 flex items-center justify-center overflow-hidden relative min-h-[400px]">
+                    <div className="flex-1 bg-stone-900 flex items-center justify-center overflow-hidden relative min-h-[400px]">
                         {!isBookmatched ? (
                             <img
                                 key={stone.id}
@@ -120,14 +120,14 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true 
                             />
                         ) : (
                             <div className="flex w-full h-full animate-fade-in">
-                                <div className="flex-1 h-full overflow-hidden border-r border-white/10">
+                                <div className="flex-1 h-full overflow-hidden mr-[-1px] relative z-10">
                                     <img
                                         src={stone.imageUrl}
                                         alt={`${stone.name} - Left`}
                                         className="w-full h-full object-cover"
                                     />
                                 </div>
-                                <div className="flex-1 h-full overflow-hidden">
+                                <div className="flex-1 h-full overflow-hidden relative z-0">
                                     <img
                                         src={stone.imageUrl}
                                         alt={`${stone.name} - Mirror`}

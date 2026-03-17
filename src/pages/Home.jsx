@@ -74,13 +74,13 @@ function Home() {
                 name: item.name,
                 imageUrl: item.image_url,
                 physical_properties: {
-                    marble: item.type || 'Marble',
-                    color: item.color,
-                    finish: item.finish || 'Polished',
-                    priceRange: item.price_range,
-                    application: item.application || 'Flooring',
-                    pattern: item.pattern,
-                    temperature: item.temperature || 'Neutral'
+                    marble: item.type || [],
+                    color: item.color || [],
+                    finish: item.finish || [],
+                    priceRange: item.price_range || [],
+                    application: item.application || [],
+                    pattern: item.pattern || [],
+                    temperature: item.temperature || []
                 },
                 description: item.description,
                 tags: item.tags
@@ -118,13 +118,16 @@ function Home() {
         }
 
         return result.filter(marble => {
-            if (appliedFilters.marble.length > 0 && !appliedFilters.marble.includes(marble.physical_properties.marble)) return false;
-            if (appliedFilters.color.length > 0 && !appliedFilters.color.includes(marble.physical_properties.color)) return false;
-            if (appliedFilters.finish.length > 0 && !appliedFilters.finish.includes(marble.physical_properties.finish)) return false;
-            if (appliedFilters.priceRange.length > 0 && !appliedFilters.priceRange.includes(marble.physical_properties.priceRange)) return false;
-            if (appliedFilters.application.length > 0 && !appliedFilters.application.includes(marble.physical_properties.application)) return false;
-            if (appliedFilters.pattern.length > 0 && !appliedFilters.pattern.includes(marble.physical_properties.pattern)) return false;
-            if (appliedFilters.temperature.length > 0 && !appliedFilters.temperature.includes(marble.physical_properties.temperature)) return false;
+            const p = marble.physical_properties;
+            const hasOverlap = (filterArr, stoneArr) =>
+                filterArr.length === 0 || filterArr.some(v => [].concat(stoneArr || []).includes(v));
+            if (!hasOverlap(appliedFilters.marble, p.marble)) return false;
+            if (!hasOverlap(appliedFilters.color, p.color)) return false;
+            if (!hasOverlap(appliedFilters.finish, p.finish)) return false;
+            if (!hasOverlap(appliedFilters.priceRange, p.priceRange)) return false;
+            if (!hasOverlap(appliedFilters.application, p.application)) return false;
+            if (!hasOverlap(appliedFilters.pattern, p.pattern)) return false;
+            if (!hasOverlap(appliedFilters.temperature, p.temperature)) return false;
             return true;
         });
     }, [appliedFilters, marbles]);
@@ -260,6 +263,7 @@ function Home() {
                             <ul className="text-sm space-y-4 text-stone-300">
                                 <li className="hover:text-luxury-bronze cursor-pointer transition-colors">Origins</li>
                                 <li className="hover:text-luxury-bronze cursor-pointer transition-colors">Specimens</li>
+                                <Link to="/internal-management-stonevo-9921" className="block hover:text-luxury-bronze cursor-pointer transition-colors">Admin Management</Link>
                                 <li className="hover:text-luxury-bronze cursor-pointer transition-colors">Legal Archives</li>
                             </ul>
                         </div>
@@ -274,7 +278,7 @@ function Home() {
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-[10px] uppercase tracking-widest font-bold">
                         <p>© 2026 Stonevo Architectural. Artifact of Nature.</p>
                         {import.meta.env.VITE_ENABLE_ADMIN === 'true' && (
-                            <Link to="/admin" className="text-stone-700 hover:text-luxury-bronze transition-colors py-2 px-4 border border-stone-800/50">Admin Interface</Link>
+                            <Link to="/internal-management-stonevo-9921" className="text-stone-700 hover:text-luxury-bronze transition-colors py-2 px-4 border border-stone-800/50">Admin Interface</Link>
                         )}
                     </div>
                 </div>

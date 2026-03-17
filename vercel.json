@@ -7,5 +7,15 @@
       "maxDuration": 10
     }
   },
-  "trailingSlash": false
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/((?!api/|node_modules/|src/|@vite/|@react-refresh|@fs/|public/|.*\\..*).*)",
+      "destination": "/index.html"
+    }
+  ]
 }

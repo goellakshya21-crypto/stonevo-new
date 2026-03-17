@@ -225,10 +225,10 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
                                         return {
                                             ...stone,
                                             name: item.name,
-                                            colour: `${item.color || ''} / ${item.type || ''}`,
-                                            application: item.application || item.type, // Added to track intended use
+                                            colour: `${item.color || ''} / ${item.finish || ''}`, // Showing Finish instead of type
+                                            application: item.application || 'Flooring',
                                             price: item.price_range,
-                                            image_url: item.image_url // CRITICAL: Save the image URL for visualization
+                                            image_url: item.image_url
                                         };
                                     }
                                     return stone;

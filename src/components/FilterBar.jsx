@@ -18,74 +18,101 @@ const FilterBar = ({ filters, setFilters, onSearch, onReset }) => {
     };
 
     const colorOptions = [
-        { value: 'White', label: 'White' },
+        { value: 'Beige', label: 'Beige' },
         { value: 'Black', label: 'Black' },
         { value: 'Blue', label: 'Blue' },
+        { value: 'Brown', label: 'Brown' },
+        { value: 'Cream', label: 'Cream' },
+        { value: 'Golden', label: 'Golden' },
         { value: 'Green', label: 'Green' },
-        { value: 'Yellow', label: 'Yellow' },
-        { value: 'Beige', label: 'Beige' },
         { value: 'Grey', label: 'Grey' },
-        { value: 'Pink', label: 'Pink' }
+        { value: 'Multi tone', label: 'Multi tone' },
+        { value: 'Peach', label: 'Peach' },
+        { value: 'Pink', label: 'Pink' },
+        { value: 'Purple', label: 'Purple' },
+        { value: 'Red', label: 'Red' },
+        { value: 'White', label: 'White' },
+        { value: 'Yellow', label: 'Yellow' }
     ];
 
-    const brightnessOptions = [
-        { value: 'Light', label: 'Light' },
-        { value: 'Dark', label: 'Dark' }
+    const marbleOptions = [
+        { value: 'Dolomite', label: 'Dolomite' },
+        { value: 'Marble', label: 'Marble' },
+        { value: 'Sandstones & Limestone', label: 'Sandstones & Limestone' },
+        { value: 'Semi-Precious', label: 'Semi-Precious' },
+        { value: 'Granite & Quartzite', label: 'Granite & Quartzite' }
+    ];
+
+    const finishOptions = [
+        { value: 'Polished', label: 'Polished' },
+        { value: 'Leather', label: 'Leather' },
+        { value: 'Honed', label: 'Honed' },
+        { value: 'Flamed', label: 'Flamed' },
+        { value: 'Backlit', label: 'Backlit' }
     ];
 
     const priceOptions = [
-        { value: '250-500', label: '250 - 500' },
-        { value: '500-750', label: '500 - 750' },
-        { value: '750-1000', label: '750 - 1000' },
-        { value: '1000-1250', label: '1000 - 1250' },
-        { value: '1250-1500', label: '1250 - 1500' },
-        { value: '1500-1750', label: '1500 - 1750' },
-        { value: '1750-2000', label: '1750 - 2000' },
-        { value: '2000-2250', label: '2000 - 2250' },
-        { value: '2250-2500', label: '2250 - 2500' },
-        { value: '2500-2750', label: '2500 - 2750' },
-        { value: '2750-3000', label: '2750 - 3000' },
-        { value: '3000-3250', label: '3000 - 3250' },
-        { value: '3250-3500', label: '3250 - 3500' },
-        { value: '3500-3750', label: '3500 - 3750' },
-        { value: '3750-4000', label: '3750 - 4000' },
-        { value: '4000+', label: '4000+' }
+        { value: 'Value', label: 'Value' },
+        { value: 'Core', label: 'Core' },
+        { value: 'Premium', label: 'Premium' },
+        { value: 'Elite', label: 'Elite' }
     ];
 
     const applicationOptions = [
         { value: 'Flooring', label: 'Flooring' },
-        { value: 'Bathroom', label: 'Bathroom' },
-        { value: 'Countertop', label: 'Countertop' },
-        { value: 'Wall Cladding', label: 'Wall Cladding' },
-        { value: 'Exterior', label: 'Exterior' }
+        { value: 'Washroom', label: 'Washroom' },
+        { value: 'Feature Wall', label: 'Feature Wall' },
+        { value: 'Counter Top', label: 'Counter Top' },
+        { value: 'Outdoor', label: 'Outdoor' },
+        { value: 'Façade', label: 'Façade' }
     ];
 
     const patternOptions = [
-        { value: 'Yes', label: 'Yes' },
-        { value: 'No', label: 'No' },
-        { value: 'Both', label: 'Both' }
+        { value: 'Linear Vien', label: 'Linear Vien' },
+        { value: 'Cloudy', label: 'Cloudy' },
+        { value: 'Fossil', label: 'Fossil' },
+        { value: 'Mosiac', label: 'Mosiac' },
+        { value: 'Concentric', label: 'Concentric' },
+        { value: 'Dramatic', label: 'Dramatic' },
+        { value: 'Minimal Vien', label: 'Minimal Vien' },
+        { value: 'Mettalic Vien', label: 'Mettalic Vien' }
+    ];
+
+    const temperatureOptions = [
+        { value: 'Warm', label: 'Warm' },
+        { value: 'Cool', label: 'Cool' },
+        { value: 'Neutral', label: 'Neutral' }
     ];
 
     return (
         <div className="w-full animate-fade-in">
             <div className="glass-panel rounded-lg py-4 px-8 flex flex-wrap lg:flex-nowrap items-center justify-between gap-0 shadow-xl overflow-visible">
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-x-12 gap-y-10 w-full lg:w-auto">
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-x-4 gap-y-4 w-full lg:w-auto">
                     {/* Name Search */}
                     <div className="flex flex-col group">
-                        <label className="text-[10px] uppercase font-semibold tracking-[0.15em] text-bronze mb-1 font-display transition-colors">
+                        <label className="text-[9px] uppercase font-semibold tracking-[0.15em] text-bronze mb-1 font-display transition-colors">
                             Name
                         </label>
-                        <div className="flex items-center border-b border-luxury-cream/20 pb-2 h-10 transition-all focus-within:border-bronze w-fit min-w-[110px]">
-                            <span className="material-icons text-sm text-luxury-cream/50 mr-2 opacity-50">search</span>
+                        <div className="flex items-center border-b border-luxury-cream/20 pb-1 h-8 transition-all focus-within:border-bronze w-full min-w-[80px]">
+                            <span className="material-icons text-xs text-luxury-cream/50 mr-1 opacity-50">search</span>
                             <input
                                 type="text"
-                                placeholder="Find slabs..."
+                                placeholder="Find..."
                                 value={filters.name}
                                 onChange={handleNameChange}
-                                className="bg-transparent border-none p-0 focus:ring-0 text-sm text-luxury-cream placeholder:text-stone-500 font-serif italic outline-none w-24"
+                                className="bg-transparent border-none p-0 focus:ring-0 text-xs text-luxury-cream placeholder:text-stone-500 font-serif italic outline-none w-full"
                             />
                         </div>
                     </div>
+
+                    <MultiSelect
+                        label="Marble"
+                        name="marble"
+                        options={marbleOptions}
+                        selectedValues={filters.marble}
+                        onChange={handleMultiChange}
+                        variant="premium"
+                    />
 
                     <MultiSelect
                         label="Color"
@@ -94,14 +121,13 @@ const FilterBar = ({ filters, setFilters, onSearch, onReset }) => {
                         selectedValues={filters.color}
                         onChange={handleMultiChange}
                         variant="premium"
-                        displayType="swatch"
                     />
 
                     <MultiSelect
-                        label="Brightness"
-                        name="brightness"
-                        options={brightnessOptions}
-                        selectedValues={filters.brightness}
+                        label="Finish"
+                        name="finish"
+                        options={finishOptions}
+                        selectedValues={filters.finish}
                         onChange={handleMultiChange}
                         variant="premium"
                     />
@@ -132,12 +158,21 @@ const FilterBar = ({ filters, setFilters, onSearch, onReset }) => {
                         onChange={handleMultiChange}
                         variant="premium"
                     />
+
+                    <MultiSelect
+                        label="Temp"
+                        name="temperature"
+                        options={temperatureOptions}
+                        selectedValues={filters.temperature}
+                        onChange={handleMultiChange}
+                        variant="premium"
+                    />
                 </div>
 
-                <div className="flex items-center gap-4 pl-6 border-l border-luxury-cream/10 ml-4">
+                <div className="flex items-center gap-4 pl-4 border-l border-luxury-cream/10 ml-4">
                     <button
                         onClick={onSearch}
-                        className="px-6 py-2 bg-bronze/90 hover:bg-bronze text-stone-900 text-[10px] font-bold uppercase tracking-[0.2em] rounded transition-all active:scale-95 shadow-lg shadow-bronze/10"
+                        className="px-4 py-2 bg-bronze/90 hover:bg-bronze text-stone-900 text-[9px] font-bold uppercase tracking-[0.2em] rounded transition-all active:scale-95 shadow-lg shadow-bronze/10"
                     >
                         Search
                     </button>

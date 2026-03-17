@@ -113,14 +113,33 @@ const BuilderPortal = () => {
     };
 
 
+    const [activeCategory, setActiveCategory] = useState('application');
+    const categories = [
+        { id: 'application', label: 'Applications' },
+        { id: 'type', label: 'Stone Type' },
+        { id: 'color', label: 'Color' },
+        { id: 'finish', label: 'Finish' },
+        { id: 'temperature', label: 'Temperature' },
+        { id: 'pattern', label: 'Veining' }
+    ];
+
     const [activeFilter, setActiveFilter] = useState('All');
-    const filters = ['All', 'Flooring', 'Washroom', 'Feature Wall', 'Counter Top', 'Outdoor', 'Façade'];
+
+    const getFilterOptions = () => {
+        const uniqueValues = [...new Set(lots.flatMap(lot => {
+            const val = activeCategory === 'type' ? lot.type : lot[activeCategory];
+            return Array.isArray(val) ? val : (val ? [val] : []);
+        }))].filter(Boolean);
+        return ['All', ...uniqueValues];
+    };
+
+    const filters = getFilterOptions();
 
     const filteredLots = activeFilter === 'All'
         ? lots
         : lots.filter(lot => {
-            const app = lot.application || lot.type;
-            return app === activeFilter;
+            const val = activeCategory === 'type' ? lot.type : lot[activeCategory];
+            return Array.isArray(val) ? val.includes(activeFilter) : val === activeFilter;
         });
 
     return (
@@ -137,8 +156,8 @@ const BuilderPortal = () => {
                         <h1 className="font-serif text-xl font-semibold tracking-tight">Stonevo</h1>
                     </div>
                     <nav className="hidden md:flex items-center gap-10">
-                        <a className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#181611]/60 hover:text-[#181611] dark:text-slate-400 dark:hover:text-white transition-colors" href="#">Gallery</a>
-                        <a className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#181611]/60 hover:text-[#181611] dark:text-slate-400 dark:hover:text-white transition-colors" href="#">Projects</a>
+                        <a className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#181611]/60 hover:text-[#181611] dark:text-slate-400 dark:hover:text-white transition-colors" href="/">Gallery</a>
+                        <a className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#181611]/60 hover:text-[#181611] dark:text-slate-400 dark:hover:text-white transition-colors" href="/internal-management-stonevo-9921">Admin</a>
                         <a className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#181611]/60 hover:text-[#181611] dark:text-slate-400 dark:hover:text-white transition-colors" href="#">About</a>
                     </nav>
                     <div className="flex items-center gap-6">
@@ -166,7 +185,22 @@ const BuilderPortal = () => {
                     >
                         The Exclusive Selection
                     </motion.h2>
-                    <div className="flex items-center justify-center gap-8 md:gap-16 border-b border-[#897c61]/10 pb-4">
+                    <div className="flex flex-wrap items-center justify-center gap-4 mb-10">
+                        {categories.map(cat => (
+                            <button
+                                key={cat.id}
+                                onClick={() => { setActiveCategory(cat.id); setActiveFilter('All'); }}
+                                className={`px-4 py-1.5 rounded-full text-[9px] uppercase tracking-widest font-bold transition-all border ${activeCategory === cat.id
+                                    ? 'bg-[#181611] text-white border-transparent shadow-lg'
+                                    : 'bg-white/50 text-[#897c61] border-[#897c61]/20 hover:border-[#897c61]/40'
+                                    }`}
+                            >
+                                {cat.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12 border-b border-[#897c61]/10 pb-4 min-h-[40px]">
                         {filters.map(filter => (
                             <button
                                 key={filter}

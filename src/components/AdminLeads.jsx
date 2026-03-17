@@ -111,11 +111,13 @@ const AdminLeads = () => {
             const summary = [];
 
             if (f.name) summary.push(`Name: "${f.name}"`);
-            if (f.type?.length) summary.push(`Type: ${f.type.join(', ')}`);
+            if (f.marble?.length) summary.push(`Marble: ${f.marble.join(', ')}`);
+            if (f.finish?.length) summary.push(`Finish: ${f.finish.join(', ')}`);
             if (f.color?.length) summary.push(`Color: ${f.color.join(', ')}`);
             if (f.priceRange?.length) summary.push(`Price: ${f.priceRange.join(', ')}`);
             if (f.pattern?.length) summary.push(`Pattern: ${f.pattern.join(', ')}`);
-            if (f.brightness?.length) summary.push(`Brightness: ${f.brightness.join(', ')}`);
+            if (f.temperature?.length) summary.push(`Temp: ${f.temperature.join(', ')}`);
+            if (f.application?.length) summary.push(`App: ${f.application.join(', ')}`);
 
             return summary.join(' | ') || 'Default collection view';
         }
