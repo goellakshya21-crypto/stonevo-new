@@ -5,7 +5,7 @@ import { exportToJSON, exportToCSV, exportRawData } from '../utils/exportHelpers
 import { supabase } from '../lib/supabaseClient';
 import { compressImage } from '../utils/imageOptimizer';
 import AdminLeads from './AdminLeads';
-import { Users, Package, Shield } from 'lucide-react';
+import { Users, Package, Shield, FolderOpen } from 'lucide-react';
 
 const AdminUpload = ({ onCancel }) => {
     const [apiKey, setApiKey] = useState(import.meta.env.VITE_GEMINI_API_KEY || '');
@@ -42,9 +42,66 @@ const AdminUpload = ({ onCancel }) => {
     const [processor, setProcessor] = useState(null);
     const [saveLoading, setSaveLoading] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
-    const [globalApplication, setGlobalApplication] = useState('Auto-detect');
+    const [mappingMode, setMappingMode] = useState(true);
+    const [activeMapping, setActiveMapping] = useState({ category: 'application', value: 'Flooring' });
 
     const fileInputRef = useRef(null);
+
+    const getOptionsForCategory = (category) => {
+        const unspecified = { value: '', label: '— Unspecified —' };
+        switch (category) {
+            case 'marble': return [
+                unspecified,
+                { value: 'Dolomite', label: 'Dolomite' },
+                { value: 'Marble', label: 'Marble' },
+                { value: 'Sandstones & Limestone', label: 'Sandstones & Limestone' },
+                { value: 'Semi-Precious', label: 'Semi-Precious' },
+                { value: 'Granite & Quartzite', label: 'Granite & Quartzite' }
+            ];
+            case 'color': return [
+                unspecified,
+                { value: 'Beige', label: 'Beige' }, { value: 'Black', label: 'Black' }, { value: 'Blue', label: 'Blue' },
+                { value: 'Brown', label: 'Brown' }, { value: 'Cream', label: 'Cream' }, { value: 'Golden', label: 'Golden' },
+                { value: 'Green', label: 'Green' }, { value: 'Grey', label: 'Grey' }, { value: 'Multi tone', label: 'Multi tone' },
+                { value: 'Peach', label: 'Peach' }, { value: 'Pink', label: 'Pink' }, { value: 'Purple', label: 'Purple' },
+                { value: 'Red', label: 'Red' }, { value: 'White', label: 'White' }, { value: 'Yellow', label: 'Yellow' }
+            ];
+            case 'finish': return [
+                unspecified,
+                { value: 'Polished', label: 'Polished' }, { value: 'Leather', label: 'Leather' },
+                { value: 'Honed', label: 'Honed' }, { value: 'Flamed', label: 'Flamed' }, { value: 'Backlit', label: 'Backlit' }
+            ];
+            case 'price_range':
+            case 'priceRange': return [
+                unspecified,
+                { value: 'Value', label: 'Value' }, { value: 'Core', label: 'Core' },
+                { value: 'Premium', label: 'Premium' }, { value: 'Elite', label: 'Elite' }
+            ];
+            case 'application': return [
+                unspecified,
+                { value: 'Flooring', label: 'Flooring' }, { value: 'Washroom', label: 'Washroom' },
+                { value: 'Feature Wall', label: 'Feature Wall' }, { value: 'Counter Top', label: 'Counter Top' },
+                { value: 'Outdoor', label: 'Outdoor' }, { value: 'Façade', label: 'Façade' }
+            ];
+            case 'pattern': return [
+                unspecified,
+                { value: 'Linear Vien', label: 'Linear Vien' }, { value: 'Cloudy', label: 'Cloudy' },
+                { value: 'Fossil', label: 'Fossil' }, { value: 'Mosiac', label: 'Mosiac' },
+                { value: 'Concentric', label: 'Concentric' }, { value: 'Dramatic', label: 'Dramatic' },
+                { value: 'Minimal Vien', label: 'Minimal Vien' }, { value: 'Mettalic Vien', label: 'Mettalic Vien' }
+            ];
+            case 'temperature': return [
+                unspecified,
+                { value: 'Warm', label: 'Warm' }, { value: 'Cool', label: 'Cool' }, { value: 'Neutral', label: 'Neutral' }
+            ];
+            default: return [];
+        }
+    };
+
+    const getFirstOption = (category) => {
+        const options = getOptionsForCategory(category);
+        return options.length > 0 ? options[0].value : '';
+    };
 
     const cleanFileName = (file) => {
         if (!file) return "";
@@ -86,21 +143,51 @@ const AdminUpload = ({ onCancel }) => {
         };
     };
 
+    // --- Array helpers for multi-value fields ---
+    const toArr = (v) => Array.isArray(v) ? v.filter(Boolean) : (v ? [v] : []);
+    const mergeArr = (a, b) => [...new Set([...toArr(a), ...toArr(b)])].filter(Boolean);
+
+    // Pill-style multi-select for physical property fields
+    const FieldPills = ({ category, values, onChange, compact = false }) => {
+        const arr = toArr(values);
+        return (
+            <div className="flex flex-wrap gap-1 mt-0.5">
+                {getOptionsForCategory(category).filter(o => o.value).map(opt => {
+                    const active = arr.includes(opt.value);
+                    return (
+                        <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => onChange(opt.value)}
+                            className={`px-2 py-0.5 rounded border transition-all ${
+                                compact ? 'text-[9px]' : 'text-[10px]'
+                            } font-medium ${
+                                active
+                                    ? 'bg-stone-900 text-white border-stone-900'
+                                    : 'bg-white text-stone-500 border-stone-200 hover:border-stone-400'
+                            }`}
+                        >
+                            {opt.label}
+                        </button>
+                    );
+                })}
+            </div>
+        );
+    };
+
     const handleFieldChange = (field, value, isPhysical = false) => {
         setResult(prev => {
             if (isPhysical) {
+                const current = toArr(prev.physical_properties[field]);
+                const updated = current.includes(value)
+                    ? current.filter(v => v !== value)
+                    : [...current, value];
                 return {
                     ...prev,
-                    physical_properties: {
-                        ...prev.physical_properties,
-                        [field]: value
-                    }
+                    physical_properties: { ...prev.physical_properties, [field]: updated }
                 };
             }
-            return {
-                ...prev,
-                [field]: value
-            };
+            return { ...prev, [field]: value };
         });
     };
 
@@ -111,10 +198,11 @@ const AdminUpload = ({ onCancel }) => {
             const data = { ...item.data };
 
             if (isPhysical) {
-                data.physical_properties = {
-                    ...data.physical_properties,
-                    [field]: value
-                };
+                const current = toArr(data.physical_properties?.[field]);
+                const updated = current.includes(value)
+                    ? current.filter(v => v !== value)
+                    : [...current, value];
+                data.physical_properties = { ...data.physical_properties, [field]: updated };
             } else {
                 data[field] = value;
             }
@@ -138,33 +226,52 @@ const AdminUpload = ({ onCancel }) => {
         setLoading(true);
         setError(null);
 
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const imagePart = await fileToGenerativePart(image);
         const extractedName = cleanFileName(image);
 
-        const appInstruction = globalApplication === 'Auto-detect'
-            ? 'Intended Application (Flooring, Bathroom, Countertop, Wall Cladding, or Exterior)'
-            : `THIS IS FOR ${globalApplication.toUpperCase()}. Set "application" to "${globalApplication}".`;
-
-        const prompt = `Analyze this stone image (Name: ${extractedName}) for an architectural database. 
-        Return ONLY a raw JSON object (no markdown formatting) with the following structure:
-        {
-            "name": "${extractedName}",
-            "lot_type": "premium",
-            "lot_size_sqft": 0,
-            "vendor_address": "",
-            "physical_properties": {
-            "color": "ONLY the single most dominant base color (e.g. White, Black, Blue, Beige, Green, Yellow, Grey, Pink). Do NOT include secondary colors or veining colors.",
-            "priceRange": "Pending",
-            "application": "${appInstruction}",
-            "pattern": "CRITICAL: Set to 'Yes' ONLY if there are repetitive, rhythmic lines running through the entire stone (like parallel veins or linear stripes). If there are only random spots, irregular clouds, or scattered veining, set to 'No'. Focus on linear repetition.",
-            "brightness": "Overall brightness based on the dominant color (Light or Dark)"
-            },
-            "description": "A short, elegant architectural description of the stone's appearance, veining, and character (max 2 sentences). It should match the name ${extractedName}.",
-            "tags": ["tag1", "tag2", "tag3", "etc"] // Include all secondary colors, veining colors, and architectural style keywords here.
-        }`;
-
         try {
+            // Check if stone exists first to save tokens
+            const { data: existingStone } = await supabase
+                .from('stones')
+                .select('*')
+                .eq('name', extractedName)
+                .maybeSingle();
+
+            if (existingStone) {
+                setResult({
+                    name: extractedName,
+                    description: existingStone.description,
+                    tags: existingStone.tags,
+                    physical_properties: {
+                        marble: toArr(existingStone.type),
+                        finish: toArr(existingStone.finish),
+                        color: toArr(existingStone.color),
+                        temperature: toArr(existingStone.temperature),
+                        application: toArr(existingStone.application),
+                        pattern: toArr(existingStone.pattern),
+                        priceRange: toArr(existingStone.price_range),
+                        ...(mappingMode ? { [activeMapping.category]: mergeArr(existingStone[activeMapping.category === 'marble' ? 'type' : activeMapping.category === 'priceRange' ? 'price_range' : activeMapping.category], [activeMapping.value]) } : {})
+                    },
+                    isExisting: true
+                });
+                setLoading(false);
+                return;
+            }
+
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const imagePart = await fileToGenerativePart(image);
+
+            const appInstruction = mappingMode
+                ? `THIS IS FOR ${activeMapping.value.toUpperCase()}.`
+                : 'Intended Application (Flooring, Bathroom, Countertop, Wall Cladding, or Exterior)';
+
+            const prompt = `Analyze this stone image (Name: ${extractedName}) for an architectural database. 
+            ${appInstruction}
+            Return ONLY a raw JSON object (no markdown formatting) with the following structure:
+            {
+                "description": "A short, elegant architectural description of the stone's appearance, veining, and character (max 2 sentences). It should match the character of a stone named ${extractedName}.",
+                "tags": ["tag1", "tag2", "tag3", "etc"] 
+            }`;
+
             const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
             const result = await model.generateContent([prompt, imagePart]);
             const response = await result.response;
@@ -173,7 +280,24 @@ const AdminUpload = ({ onCancel }) => {
             const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
             const jsonResult = JSON.parse(cleanedText);
 
-            setResult(jsonResult);
+            // Merge with Mapping Mode context if enabled
+            const finalResult = {
+                name: extractedName,
+                ...jsonResult,
+                physical_properties: {
+                    marble: [],
+                    finish: [],
+                    color: [],
+                    temperature: [],
+                    application: [],
+                    pattern: [],
+                    priceRange: [],
+                    ...(mappingMode ? { [activeMapping.category]: [activeMapping.value] } : {})
+                },
+                isExisting: false
+            };
+
+            setResult(finalResult);
         } catch (err) {
             console.error("AI Error:", err);
             let errorMessage = err.message;
@@ -192,68 +316,189 @@ const AdminUpload = ({ onCancel }) => {
         }
     };
 
-    const handleSaveToSupabase = async (stoneData, imageFile) => {
-        setSaveLoading(true);
-        setSaveSuccess(false);
-        setError(null);
-        setIsCompressing(true);
+    const performStoneSave = async (stoneData, imageFile, skipStatusUpdate = false) => {
+        if (!stoneData.name) throw new Error("Stone name is required.");
+        
+        if (!skipStatusUpdate) {
+            setSaveLoading(true);
+            setSaveSuccess(false);
+            setError(null);
+            setIsCompressing(false);
+        }
 
         try {
-            // 0. Compress Image
-            const optimizedFile = await compressImage(imageFile);
-            setIsCompressing(false);
-
-            // 1. Upload image to Supabase Storage
-            const fileExt = optimizedFile.name.split('.').pop();
-            const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-            const filePath = `${fileName}`;
-
-            console.log(`🚀 Uploading to Supabase: ${filePath} (${(optimizedFile.size / 1024).toFixed(2)} KB)`);
-
-            const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('marble-images')
-                .upload(filePath, optimizedFile, {
-                    contentType: optimizedFile.type,
-                    cacheControl: '3600',
-                    upsert: false
-                });
-
-            if (uploadError) throw uploadError;
-
-            // 2. Get public URL
-            const { data: { publicUrl } } = supabase.storage
-                .from('marble-images')
-                .getPublicUrl(filePath);
-
-            // 3. Save metadata to Database
-            const { error: dbError } = await supabase
+            // 1. Check if stone already exists in database by name
+            const { data: existingStone, error: checkError } = await supabase
                 .from('stones')
-                .insert([{
-                    name: stoneData.name,
-                    lot_type: stoneData.lot_type || 'premium',
-                    lot_size_sqft: stoneData.lot_size_sqft || 0,
-                    vendor_address: stoneData.vendor_address || '',
-                    type: stoneData.physical_properties.application,
-                    color: stoneData.physical_properties.color,
-                    pattern: stoneData.physical_properties.pattern,
-                    brightness: stoneData.physical_properties.brightness,
-                    price_range: stoneData.physical_properties.priceRange,
-                    description: stoneData.description,
-                    tags: stoneData.tags,
-                    image_url: publicUrl,
-                    original_filename: imageFile.name
-                }]);
+                .select('*')
+                .eq('name', stoneData.name)
+                .maybeSingle();
 
-            if (dbError) throw dbError;
+            if (checkError) throw checkError;
 
-            setSaveSuccess(true);
-            setTimeout(() => setSaveSuccess(false), 3000);
+            let publicUrl = existingStone?.image_url;
+
+            // 2. If it's a new stone, upload image to Storage
+            if (!existingStone) {
+                if (!skipStatusUpdate) setIsCompressing(true);
+                const optimizedFile = await compressImage(imageFile);
+                if (!skipStatusUpdate) setIsCompressing(false);
+
+                const fileExt = optimizedFile.name.split('.').pop();
+                const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+                const filePath = `${fileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('marble-images')
+                    .upload(filePath, optimizedFile, {
+                        contentType: optimizedFile.type,
+                        cacheControl: '3600',
+                        upsert: false
+                    });
+
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl: url } } = supabase.storage
+                    .from('marble-images')
+                    .getPublicUrl(filePath);
+
+                publicUrl = url;
+            }
+
+            // 3. Prepare payload for UPSERT — merge arrays, never overwrite
+            const getMappingArr = (uiField) =>
+                mappingMode && activeMapping.category === uiField ? [activeMapping.value] : [];
+
+            const payload = {
+                name: stoneData.name,
+                lot_type: stoneData.lot_type || existingStone?.lot_type || 'premium',
+                lot_size_sqft: stoneData.lot_size_sqft || existingStone?.lot_size_sqft || 0,
+                vendor_address: stoneData.vendor_address || existingStone?.vendor_address || '',
+                type: mergeArr(mergeArr(stoneData.physical_properties?.marble, existingStone?.type), getMappingArr('marble')),
+                application: mergeArr(mergeArr(stoneData.physical_properties?.application, existingStone?.application), getMappingArr('application')),
+                finish: mergeArr(mergeArr(stoneData.physical_properties?.finish, existingStone?.finish), getMappingArr('finish')),
+                color: mergeArr(mergeArr(stoneData.physical_properties?.color, existingStone?.color), getMappingArr('color')),
+                pattern: mergeArr(mergeArr(stoneData.physical_properties?.pattern, existingStone?.pattern), getMappingArr('pattern')),
+                temperature: mergeArr(mergeArr(stoneData.physical_properties?.temperature, existingStone?.temperature), getMappingArr('temperature')),
+                price_range: mergeArr(mergeArr(stoneData.physical_properties?.priceRange, existingStone?.price_range), getMappingArr('priceRange')),
+                description: existingStone?.description || stoneData.description || '',
+                tags: existingStone?.tags || stoneData.tags || [],
+                image_url: publicUrl || '',
+                original_filename: imageFile.name
+            };
+
+            let dbResponse;
+            if (existingStone) {
+                dbResponse = await supabase
+                    .from('stones')
+                    .update(payload)
+                    .eq('id', existingStone.id);
+            } else {
+                dbResponse = await supabase
+                    .from('stones')
+                    .insert([payload]);
+            }
+
+            if (dbResponse.error) throw dbResponse.error;
+
+            if (!skipStatusUpdate) {
+                setSaveSuccess(true);
+                setTimeout(() => setSaveSuccess(false), 3000);
+            }
+            return { success: true };
         } catch (err) {
             console.error("Save Error:", err);
-            setError(`Save failed: ${err.message}`);
+            if (!skipStatusUpdate) setError(`Save failed: ${err.message}`);
+            throw err;
+        } finally {
+            if (!skipStatusUpdate) {
+                setSaveLoading(false);
+                setIsCompressing(false);
+            }
+        }
+    };
+
+    const handleSaveToSupabase = async (stoneData, imageFile) => {
+        try {
+            await performStoneSave(stoneData, imageFile);
+        } catch (err) {
+            // Error is handled in performStoneSave
+        }
+    };
+
+    const handleSaveBatchItem = async (idx) => {
+        const result = batchResults[idx];
+        if (!result.success || result.isSorted) return;
+
+        setBatchResults(prev => {
+            const next = [...prev];
+            next[idx] = { ...next[idx], isSaving: true, saveError: null };
+            return next;
+        });
+
+        try {
+            await performStoneSave(result.data, result.image, true);
+            setBatchResults(prev => {
+                const next = [...prev];
+                next[idx] = { ...next[idx], isSaving: false, isSorted: true };
+                return next;
+            });
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false),3000);
+        } catch (err) {
+            setBatchResults(prev => {
+                const next = [...prev];
+                next[idx] = { ...next[idx], isSaving: false, saveError: err.message };
+                return next;
+            });
+        }
+    };
+
+    const handleSaveAllBatch = async () => {
+        setSaveLoading(true);
+        setError(null);
+        let completed = 0;
+        const total = batchResults.filter(r => r.success).length;
+
+        try {
+            for (let i = 0; i < batchResults.length; i++) {
+                const result = batchResults[i];
+                if (!result.success || result.isSorted) continue;
+
+                // Update individual item status to 'saving'
+                setBatchResults(prev => {
+                    const next = [...prev];
+                    next[i] = { ...next[i], isSaving: true };
+                    return next;
+                });
+
+                try {
+                    await performStoneSave(result.data, result.image, true);
+                    
+                    // Update individual item status to 'saved'
+                    setBatchResults(prev => {
+                        const next = [...prev];
+                        next[i] = { ...next[i], isSaving: false, isSorted: true };
+                        return next;
+                    });
+                    completed++;
+                } catch (err) {
+                    setBatchResults(prev => {
+                        const next = [...prev];
+                        next[i] = { ...next[i], isSaving: false, saveError: err.message };
+                        return next;
+                    });
+                }
+            }
+            
+            if (completed > 0) {
+                setSaveSuccess(true);
+                setTimeout(() => setSaveSuccess(false), 3000);
+            }
+        } catch (err) {
+            setError(`Bulk save failed: ${err.message}`);
         } finally {
             setSaveLoading(false);
-            setIsCompressing(false);
         }
     };
 
@@ -273,21 +518,56 @@ const AdminUpload = ({ onCancel }) => {
 
         const batchProcessor = new BatchProcessor(
             apiKey,
+            supabase, // Pass supabase client
             (progress) => {
                 setBatchProgress(progress);
                 if (progress.result) {
-                    setBatchResults(prev => [...prev, {
+                    // Enrich result with current mapping context before showing to user
+                    const existingProps = progress.result.data.physical_properties || {};
+                    const enrichedResult = {
+                        ...progress.result.data,
+                        name: cleanFileName(progress.result.optimizedFile), // Force name from filename
+                        physical_properties: {
+                            marble: toArr(existingProps.marble),
+                            finish: toArr(existingProps.finish),
+                            color: toArr(existingProps.color),
+                            temperature: toArr(existingProps.temperature),
+                            application: toArr(existingProps.application),
+                            pattern: toArr(existingProps.pattern),
+                            priceRange: toArr(existingProps.priceRange),
+                            [activeMapping.category]: mergeArr(existingProps[activeMapping.category], [activeMapping.value])
+                        }
+                    };
+                    const newItem = {
                         success: true,
-                        data: progress.result.data,
+                        data: enrichedResult,
                         image: progress.result.optimizedFile,
-                        fileName: progress.currentFile
-                    }]);
+                        fileName: progress.currentFile,
+                        isExisting: progress.result.isExisting
+                    };
+
+                    setBatchResults(prev => [...prev, newItem]);
+
+                    // AUTO-SAVE: Push to Supabase immediately after AI processing
+                    performStoneSave(enrichedResult, progress.result.optimizedFile, true)
+                        .then(() => {
+                            setBatchResults(prev => prev.map(item => 
+                                item.fileName === progress.currentFile ? { ...item, isSaving: false, isSorted: true } : item
+                            ));
+                            setSaveSuccess(true);
+                        })
+                        .catch(err => {
+                            console.error(`Auto-save failed for ${progress.currentFile}:`, err);
+                            setBatchResults(prev => prev.map(item => 
+                                item.fileName === progress.currentFile ? { ...item, isSaving: false, saveError: err.message } : item
+                            ));
+                        });
                 }
             },
             (errorResult) => {
                 setBatchResults(prev => [...prev, errorResult]);
             },
-            globalApplication // Pass global application here
+            activeMapping.value // Use current mapping value as hint
         );
 
         setProcessor(batchProcessor);
@@ -314,6 +594,10 @@ const AdminUpload = ({ onCancel }) => {
     const handleStop = () => {
         if (processor) processor.stop();
         setBatchProgress(prev => ({ ...prev, status: 'stopped' }));
+    };
+
+    const dismissFailure = (fileName) => {
+        setBatchResults(prev => prev.filter(r => r.success || r.fileName !== fileName));
     };
 
     return (
@@ -371,28 +655,74 @@ const AdminUpload = ({ onCancel }) => {
                         <p className="text-xs text-stone-500 mt-1">Key is not saved and only used for this session.</p>
                     </div>
 
-                    {/* Global Application Selector */}
-                    <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
-                        <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">Base Application (Optional)</label>
-                        <div className="flex flex-wrap gap-2">
-                            {['Auto-detect', 'Flooring', 'Bathroom', 'Countertop', 'Wall Cladding', 'Exterior'].map((app) => (
-                                <button
-                                    key={app}
-                                    onClick={() => setGlobalApplication(app)}
-                                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${globalApplication === app
-                                        ? 'bg-stone-900 text-white shadow-sm'
-                                        : 'bg-white text-stone-600 border border-stone-200 hover:border-stone-400'
-                                        }`}
-                                >
-                                    {app}
-                                </button>
-                            ))}
+                    {/* Mapping Mode / Folder Workspace */}
+                    <div className="bg-stone-900 border border-stone-800 p-6 rounded-xl shadow-2xl overflow-hidden relative group">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
+                            <FolderOpen size={120} className="text-white" />
                         </div>
-                        <p className="text-[10px] text-stone-400 mt-2 italic">
-                            {globalApplication === 'Auto-detect'
-                                ? "AI will identify the application automatically."
-                                : `AI will be instructed that all images in this batch are for ${globalApplication}.`}
-                        </p>
+                        
+                        <div className="relative z-10">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 className="text-white font-serif text-lg tracking-wide flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 bg-bronze rounded-full animate-pulse" />
+                                        Smart Folder Mapping
+                                    </h3>
+                                    <p className="text-stone-400 text-[10px] uppercase tracking-[0.2em] font-bold mt-1">Pass-through Data Workplace</p>
+                                </div>
+                                <div className="flex bg-stone-800 p-1 rounded-md">
+                                    <button 
+                                        onClick={() => setMappingMode(true)}
+                                        className={`px-3 py-1 rounded text-[9px] font-bold uppercase tracking-widest transition-all ${mappingMode ? 'bg-bronze text-stone-900' : 'text-stone-400'}`}
+                                    >Enabled</button>
+                                    <button 
+                                        onClick={() => setMappingMode(false)}
+                                        className={`px-3 py-1 rounded text-[9px] font-bold uppercase tracking-widest transition-all ${!mappingMode ? 'bg-stone-700 text-white' : 'text-stone-500'}`}
+                                    >Manual</button>
+                                </div>
+                            </div>
+
+                            {mappingMode && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest block pl-1">Primary Category</label>
+                                        <select 
+                                            value={activeMapping.category}
+                                            onChange={(e) => setActiveMapping({ ...activeMapping, category: e.target.value, value: getFirstOption(e.target.value) })}
+                                            className="w-full bg-stone-800 border border-stone-700 text-white rounded-lg px-4 py-2.5 text-xs font-medium focus:ring-1 focus:ring-bronze outline-none cursor-pointer"
+                                        >
+                                            <option value="application">Application (Folder Category)</option>
+                                            <option value="marble">Stone Type (e.g. Marble)</option>
+                                            <option value="color">Base Color</option>
+                                            <option value="finish">Surface Finish</option>
+                                            <option value="temperature">Thermal Temperature</option>
+                                            <option value="pattern">Veining Pattern</option>
+                                            <option value="price_range">Price Tier</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest block pl-1">Target Value</label>
+                                        <select 
+                                            value={activeMapping.value}
+                                            onChange={(e) => setActiveMapping({ ...activeMapping, value: e.target.value })}
+                                            className="w-full bg-bronze/10 border border-bronze/20 text-bronze rounded-lg px-4 py-2.5 text-xs font-bold focus:ring-1 focus:ring-bronze outline-none cursor-pointer"
+                                        >
+                                            {getOptionsForCategory(activeMapping.category).map(opt => (
+                                                <option key={opt.value} value={opt.value} className="bg-stone-900 text-white">{opt.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    
+                                    <div className="md:col-span-2 pt-2 border-t border-stone-800 mt-2">
+                                        <p className="text-[10px] text-stone-500 italic">
+                                            <span className="text-bronze font-bold not-italic mr-1">NOTE:</span>
+                                            Images will be mapped to <span className="text-stone-300">"{activeMapping.value}"</span>. If a stone already exists, it will only update this field. AI will only run once to save tokens.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Mode Toggle */}
@@ -449,7 +779,14 @@ const AdminUpload = ({ onCancel }) => {
                             {result && (
                                 <div className="mt-6 border-t border-stone-200 pt-6">
                                     <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-lg font-serif font-bold text-stone-800">AI Detection Result</h3>
+                                        <div className="flex items-center gap-3">
+                                            <h3 className="text-lg font-serif font-bold text-stone-800">AI Detection Result</h3>
+                                            {result.isExisting && (
+                                                <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-wider border border-blue-200">
+                                                    Already in Database
+                                                </span>
+                                            )}
+                                        </div>
                                         <span className="text-xs bg-stone-100 text-stone-500 px-2 py-1 rounded font-medium uppercase tracking-wider">Manual Editing Enabled</span>
                                     </div>
 
@@ -497,83 +834,32 @@ const AdminUpload = ({ onCancel }) => {
                                             />
                                         </div>
                                         <div className="p-3 bg-stone-50 rounded-md border border-stone-100">
-                                            <label className="text-[10px] text-stone-400 uppercase block font-bold mb-1">Application</label>
-                                            <select
-                                                value={result.physical_properties.application}
-                                                onChange={(e) => handleFieldChange('application', e.target.value, true)}
-                                                className="w-full bg-transparent border-none p-0 focus:ring-0 font-medium text-stone-900 text-sm"
-                                            >
-                                                <option value="Flooring">Flooring</option>
-                                                <option value="Bathroom">Bathroom</option>
-                                                <option value="Countertop">Countertop</option>
-                                                <option value="Wall Cladding">Wall Cladding</option>
-                                                <option value="Exterior">Exterior</option>
-                                            </select>
+                                            <label className="text-[10px] text-stone-400 uppercase block font-bold mb-1">Marble Type <span className="text-bronze normal-case font-normal">(multi)</span></label>
+                                            <FieldPills category="marble" values={result.physical_properties.marble} onChange={v => handleFieldChange('marble', v, true)} />
                                         </div>
                                         <div className="p-3 bg-stone-50 rounded-md border border-stone-100">
-                                            <label className="text-[10px] text-stone-400 uppercase block font-bold mb-1">Color</label>
-                                            <select
-                                                value={result.physical_properties.color}
-                                                onChange={(e) => handleFieldChange('color', e.target.value, true)}
-                                                className="w-full bg-transparent border-none p-0 focus:ring-0 font-medium text-stone-900 text-sm"
-                                            >
-                                                <option value="White">White</option>
-                                                <option value="Black">Black</option>
-                                                <option value="Blue">Blue</option>
-                                                <option value="Green">Green</option>
-                                                <option value="Yellow">Yellow</option>
-                                                <option value="Beige">Beige</option>
-                                                <option value="Grey">Grey</option>
-                                                <option value="Pink">Pink</option>
-                                            </select>
+                                            <label className="text-[10px] text-stone-400 uppercase block font-bold mb-1">Finish <span className="text-bronze normal-case font-normal">(multi)</span></label>
+                                            <FieldPills category="finish" values={result.physical_properties.finish} onChange={v => handleFieldChange('finish', v, true)} />
                                         </div>
                                         <div className="p-3 bg-stone-50 rounded-md border border-stone-100">
-                                            <label className="text-[10px] text-stone-400 uppercase block font-bold mb-1">Brightness</label>
-                                            <select
-                                                value={result.physical_properties.brightness}
-                                                onChange={(e) => handleFieldChange('brightness', e.target.value, true)}
-                                                className="w-full bg-transparent border-none p-0 focus:ring-0 font-medium text-stone-900 text-sm"
-                                            >
-                                                <option value="Light">Light</option>
-                                                <option value="Dark">Dark</option>
-                                            </select>
+                                            <label className="text-[10px] text-stone-400 uppercase block font-bold mb-1">Application <span className="text-bronze normal-case font-normal">(multi)</span></label>
+                                            <FieldPills category="application" values={result.physical_properties.application} onChange={v => handleFieldChange('application', v, true)} />
                                         </div>
                                         <div className="p-3 bg-stone-50 rounded-md border border-stone-100">
-                                            <label className="text-[10px] text-stone-400 uppercase block font-bold mb-1">Pattern</label>
-                                            <select
-                                                value={result.physical_properties.pattern}
-                                                onChange={(e) => handleFieldChange('pattern', e.target.value, true)}
-                                                className="w-full bg-transparent border-none p-0 focus:ring-0 font-medium text-stone-900 text-sm"
-                                            >
-                                                <option value="Yes">Yes</option>
-                                                <option value="No">No</option>
-                                            </select>
+                                            <label className="text-[10px] text-stone-400 uppercase block font-bold mb-1">Color <span className="text-bronze normal-case font-normal">(multi)</span></label>
+                                            <FieldPills category="color" values={result.physical_properties.color} onChange={v => handleFieldChange('color', v, true)} />
                                         </div>
                                         <div className="p-3 bg-stone-50 rounded-md border border-stone-100">
-                                            <label className="text-[10px] text-stone-400 uppercase block font-bold mb-1">Price Range</label>
-                                            <select
-                                                value={result.physical_properties.priceRange}
-                                                onChange={(e) => handleFieldChange('priceRange', e.target.value, true)}
-                                                className="w-full bg-transparent border-none p-0 focus:ring-0 font-medium text-stone-900 text-sm"
-                                            >
-                                                <option value="Pending">Pending (Excel Data)</option>
-                                                <option value="250-500">250 - 500</option>
-                                                <option value="500-750">500 - 750</option>
-                                                <option value="750-1000">750 - 1000</option>
-                                                <option value="1000-1250">1000 - 1250</option>
-                                                <option value="1250-1500">1250 - 1500</option>
-                                                <option value="1500-1750">1500 - 1750</option>
-                                                <option value="1750-2000">1750 - 2000</option>
-                                                <option value="2000-2250">2000 - 2250</option>
-                                                <option value="2250-2500">2250 - 2500</option>
-                                                <option value="2500-2750">2500 - 2750</option>
-                                                <option value="2750-3000">2750 - 3000</option>
-                                                <option value="3000-3250">3000 - 3250</option>
-                                                <option value="3250-3500">3250 - 3500</option>
-                                                <option value="3500-3750">3500 - 3750</option>
-                                                <option value="3750-4000">3750 - 4000</option>
-                                                <option value="4000+">4000+</option>
-                                            </select>
+                                            <label className="text-[10px] text-stone-400 uppercase block font-bold mb-1">Temperature <span className="text-bronze normal-case font-normal">(multi)</span></label>
+                                            <FieldPills category="temperature" values={result.physical_properties.temperature} onChange={v => handleFieldChange('temperature', v, true)} />
+                                        </div>
+                                        <div className="p-3 bg-stone-50 rounded-md border border-stone-100">
+                                            <label className="text-[10px] text-stone-400 uppercase block font-bold mb-1">Pattern <span className="text-bronze normal-case font-normal">(multi)</span></label>
+                                            <FieldPills category="pattern" values={result.physical_properties.pattern} onChange={v => handleFieldChange('pattern', v, true)} />
+                                        </div>
+                                        <div className="p-3 bg-stone-50 rounded-md border border-stone-100">
+                                            <label className="text-[10px] text-stone-400 uppercase block font-bold mb-1">Price Range <span className="text-bronze normal-case font-normal">(multi)</span></label>
+                                            <FieldPills category="priceRange" values={result.physical_properties.priceRange} onChange={v => handleFieldChange('priceRange', v, true)} />
                                         </div>
                                     </div>
                                     <div className="mb-4 text-left">
@@ -728,20 +1014,73 @@ const AdminUpload = ({ onCancel }) => {
                             {/* Batch Results */}
                             {batchResults.length > 0 && (
                                 <div className="mt-6 border-t border-stone-200 pt-6">
+
+                                    {/* ⚠️ FAILED IMAGES BANNER */}
+                                    {batchResults.filter(r => !r.success).length > 0 && (
+                                        <div className="mb-5 rounded-xl border border-red-300 bg-red-50 p-4 shadow-sm">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <span className="text-xl">⚠️</span>
+                                                <h4 className="font-bold text-red-800 text-sm uppercase tracking-widest">
+                                                    {batchResults.filter(r => !r.success).length} Image{batchResults.filter(r => !r.success).length > 1 ? 's' : ''} Failed to Process
+                                                </h4>
+                                            </div>
+                                            <ul className="space-y-2">
+                                                {batchResults.filter(r => !r.success).map((r, i) => (
+                                                    <li key={i} className="flex items-start justify-between gap-2 bg-white border border-red-200 rounded-lg px-3 py-2">
+                                                        <div>
+                                                            <p className="text-xs font-bold text-stone-800">{r.fileName}</p>
+                                                            <p className="text-[10px] text-red-500 mt-0.5">{r.error || 'Unknown processing error'}</p>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => dismissFailure(r.fileName)}
+                                                            className="text-red-300 hover:text-red-600 transition-colors text-sm shrink-0 mt-0.5 font-bold leading-none"
+                                                            title="Dismiss"
+                                                        >✕</button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+
                                     <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-lg font-serif font-bold text-stone-800">
+                                        <h3 className="text-lg font-serif font-bold text-stone-800 flex items-center gap-2">
                                             Results ({batchResults.length})
+                                            {batchResults.filter(r => !r.success).length > 0 && (
+                                                <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold border border-red-300">
+                                                    🔴 {batchResults.filter(r => !r.success).length} Failed
+                                                </span>
+                                            )}
                                         </h3>
                                         <div className="flex gap-2">
+                                            {batchResults.some(r => r.success && !r.isSorted) && (
+                                                <button
+                                                    onClick={handleSaveAllBatch}
+                                                    disabled={saveLoading}
+                                                    className={`px-4 py-1 text-sm font-bold rounded shadow-sm flex items-center gap-2 ${
+                                                        saveLoading 
+                                                        ? 'bg-stone-100 text-stone-400 cursor-not-allowed' 
+                                                        : 'bg-stone-900 text-white hover:bg-stone-800'
+                                                    }`}
+                                                >
+                                                    {saveLoading ? (
+                                                        <>
+                                                            <div className="w-3 h-3 border-2 border-stone-400 border-t-transparent rounded-full animate-spin" />
+                                                            Saving...
+                                                        </>
+                                                    ) : (
+                                                        <>🚀 Push All to Database</>
+                                                    )}
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => exportToJSON(batchResults)}
-                                                className="px-3 py-1 text-sm bg-stone-100 text-stone-700 rounded hover:bg-stone-200"
+                                                className="px-3 py-1 text-sm bg-stone-100 text-stone-700 rounded hover:bg-stone-200 transition-colors"
                                             >
                                                 Export JSON
                                             </button>
                                             <button
                                                 onClick={() => exportToCSV(batchResults)}
-                                                className="px-3 py-1 text-sm bg-stone-100 text-stone-700 rounded hover:bg-stone-200"
+                                                className="px-3 py-1 text-sm bg-stone-100 text-stone-700 rounded hover:bg-stone-200 transition-colors"
                                             >
                                                 Export CSV
                                             </button>
@@ -753,96 +1092,64 @@ const AdminUpload = ({ onCancel }) => {
                                             <div key={idx} className={`p-4 rounded-md border ${result.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
                                                 }`}>
                                                 <div className="flex justify-between items-start">
-                                                    <div className="flex-1">
-                                                        <p className="font-medium text-sm text-stone-800">{result.fileName}</p>
-                                                        {result.success ? (
+                                                     <div className="flex-1">
+                                                         <div className="flex items-center gap-2">
+                                                             <p className="font-medium text-sm text-stone-800">{result.fileName}</p>
+                                                             {result.isExisting && (
+                                                                 <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-bold uppercase">
+                                                                     In Database
+                                                                 </span>
+                                                             )}
+                                                             {result.isSorted && (
+                                                                 <span className="px-1.5 py-0.5 rounded bg-green-100 text-green-700 text-[10px] font-bold uppercase">
+                                                                     ✓ Saved
+                                                                 </span>
+                                                             )}
+                                                             {result.isSaving && (
+                                                                 <span className="px-1.5 py-0.5 rounded bg-stone-100 text-stone-500 text-[10px] font-bold uppercase animate-pulse">
+                                                                     ⏳ Saving...
+                                                                 </span>
+                                                             )}
+                                                             {result.saveError && (
+                                                                 <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[10px] font-bold uppercase">
+                                                                     ⚠ Error: {result.saveError}
+                                                                 </span>
+                                                             )}
+                                                         </div>
+                                                         {result.success ? (
                                                             <div className="flex-1 text-left">
-                                                                <div className="mt-2 grid grid-cols-3 gap-3">
-                                                                    <div className="flex flex-col">
+                                                                <div className="mt-2 grid grid-cols-2 gap-2">
+                                                                    <div className="flex flex-col col-span-2">
                                                                         <label className="text-[9px] text-stone-400 font-bold uppercase mb-0.5">Name</label>
-                                                                        <input
-                                                                            type="text"
-                                                                            value={result.data.name}
-                                                                            onChange={(e) => handleBatchFieldChange(idx, 'name', e.target.value)}
-                                                                            className="bg-white border border-stone-200 rounded px-1.5 py-0.5 text-xs text-stone-800 focus:ring-1 focus:ring-stone-400 focus:outline-none"
-                                                                        />
+                                                                        <input type="text" value={result.data.name} onChange={(e) => handleBatchFieldChange(idx, 'name', e.target.value)} className="bg-white border border-stone-200 rounded px-1.5 py-0.5 text-xs text-stone-800 focus:ring-1 focus:ring-stone-400 focus:outline-none" />
+                                                                    </div>
+                                                                    <div className="flex flex-col">
+                                                                        <label className="text-[9px] text-stone-400 font-bold uppercase mb-0.5">Marble Type</label>
+                                                                        <FieldPills compact category="marble" values={result.data.physical_properties.marble} onChange={v => handleBatchFieldChange(idx, 'marble', v, true)} />
+                                                                    </div>
+                                                                    <div className="flex flex-col">
+                                                                        <label className="text-[9px] text-stone-400 font-bold uppercase mb-0.5">Finish</label>
+                                                                        <FieldPills compact category="finish" values={result.data.physical_properties.finish} onChange={v => handleBatchFieldChange(idx, 'finish', v, true)} />
                                                                     </div>
                                                                     <div className="flex flex-col">
                                                                         <label className="text-[9px] text-stone-400 font-bold uppercase mb-0.5">Color</label>
-                                                                        <select
-                                                                            value={result.data.physical_properties.color}
-                                                                            onChange={(e) => handleBatchFieldChange(idx, 'color', e.target.value, true)}
-                                                                            className="bg-white border border-stone-200 rounded px-1.5 py-0.5 text-xs text-stone-800 focus:ring-1 focus:ring-stone-400 focus:outline-none"
-                                                                        >
-                                                                            <option value="White">White</option>
-                                                                            <option value="Black">Black</option>
-                                                                            <option value="Blue">Blue</option>
-                                                                            <option value="Beige">Beige</option>
-                                                                            <option value="Grey">Grey</option>
-                                                                            <option value="Pink">Pink</option>
-                                                                        </select>
+                                                                        <FieldPills compact category="color" values={result.data.physical_properties.color} onChange={v => handleBatchFieldChange(idx, 'color', v, true)} />
                                                                     </div>
                                                                     <div className="flex flex-col">
-                                                                        <label className="text-[9px] text-stone-400 font-bold uppercase mb-0.5">Brightness</label>
-                                                                        <select
-                                                                            value={result.data.physical_properties.brightness}
-                                                                            onChange={(e) => handleBatchFieldChange(idx, 'brightness', e.target.value, true)}
-                                                                            className="bg-white border border-stone-200 rounded px-1.5 py-0.5 text-xs text-stone-800 focus:ring-1 focus:ring-stone-400 focus:outline-none"
-                                                                        >
-                                                                            <option value="Light">Light</option>
-                                                                            <option value="Dark">Dark</option>
-                                                                        </select>
+                                                                        <label className="text-[9px] text-stone-400 font-bold uppercase mb-0.5">Temp</label>
+                                                                        <FieldPills compact category="temperature" values={result.data.physical_properties.temperature} onChange={v => handleBatchFieldChange(idx, 'temperature', v, true)} />
                                                                     </div>
                                                                     <div className="flex flex-col">
                                                                         <label className="text-[9px] text-stone-400 font-bold uppercase mb-0.5">Application</label>
-                                                                        <select
-                                                                            value={result.data.physical_properties.application}
-                                                                            onChange={(e) => handleBatchFieldChange(idx, 'application', e.target.value, true)}
-                                                                            className="bg-white border border-stone-200 rounded px-1.5 py-0.5 text-xs text-stone-800 focus:ring-1 focus:ring-stone-400 focus:outline-none"
-                                                                        >
-                                                                            <option value="Flooring">Flooring</option>
-                                                                            <option value="Bathroom">Bathroom</option>
-                                                                            <option value="Countertop">Countertop</option>
-                                                                            <option value="Wall Cladding">Wall Cladding</option>
-                                                                            <option value="Exterior">Exterior</option>
-                                                                        </select>
+                                                                        <FieldPills compact category="application" values={result.data.physical_properties.application} onChange={v => handleBatchFieldChange(idx, 'application', v, true)} />
                                                                     </div>
                                                                     <div className="flex flex-col">
                                                                         <label className="text-[9px] text-stone-400 font-bold uppercase mb-0.5">Pattern</label>
-                                                                        <select
-                                                                            value={result.data.physical_properties.pattern || result.data.physical_properties.variation}
-                                                                            onChange={(e) => handleBatchFieldChange(idx, 'pattern', e.target.value, true)}
-                                                                            className="w-full bg-stone-50 border border-stone-200 rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-stone-400"
-                                                                        >
-                                                                            <option value="Yes">Yes</option>
-                                                                            <option value="No">No</option>
-                                                                        </select>
+                                                                        <FieldPills compact category="pattern" values={result.data.physical_properties.pattern} onChange={v => handleBatchFieldChange(idx, 'pattern', v, true)} />
                                                                     </div>
-                                                                    <div className="flex flex-col">
-                                                                        <label className="text-[9px] text-stone-400 font-bold uppercase mb-0.5">Price</label>
-                                                                        <select
-                                                                            value={result.data.physical_properties.priceRange}
-                                                                            onChange={(e) => handleBatchFieldChange(idx, 'priceRange', e.target.value, true)}
-                                                                            className="bg-white border border-stone-200 rounded px-1.5 py-0.5 text-xs text-stone-800 focus:ring-1 focus:ring-stone-400 focus:outline-none"
-                                                                        >
-                                                                            <option value="Pending">Pending</option>
-                                                                            <option value="250-500">250-500</option>
-                                                                            <option value="500-750">500-750</option>
-                                                                            <option value="750-1000">750-1000</option>
-                                                                            <option value="1000-1250">1000-1250</option>
-                                                                            <option value="1250-1500">1250-1500</option>
-                                                                            <option value="1500-1750">1500-1750</option>
-                                                                            <option value="1750-2000">1750-2000</option>
-                                                                            <option value="2000-2250">2000-2250</option>
-                                                                            <option value="2250-2500">2250-2500</option>
-                                                                            <option value="2500-2750">2500-2750</option>
-                                                                            <option value="2750-3000">2750-3000</option>
-                                                                            <option value="3000-3250">3000-3250</option>
-                                                                            <option value="3250-3500">3250-3500</option>
-                                                                            <option value="3500-3750">3500-3750</option>
-                                                                            <option value="3750-4000">3750-4000</option>
-                                                                            <option value="4000+">4000+</option>
-                                                                        </select>
+                                                                    <div className="flex flex-col col-span-2">
+                                                                        <label className="text-[9px] text-stone-400 font-bold uppercase mb-0.5">Price Range</label>
+                                                                        <FieldPills compact category="priceRange" values={result.data.physical_properties.priceRange} onChange={v => handleBatchFieldChange(idx, 'priceRange', v, true)} />
                                                                     </div>
                                                                 </div>
                                                                 <div className="mt-3 space-y-2">
@@ -864,14 +1171,19 @@ const AdminUpload = ({ onCancel }) => {
                                                                             className="bg-white border border-stone-200 rounded px-1.5 py-1 text-[10px] text-stone-500 focus:ring-1 focus:ring-stone-400 focus:outline-none"
                                                                         />
                                                                     </div>
-                                                                </div>
-                                                                <div className="mt-3 flex justify-end">
-                                                                    <button
-                                                                        onClick={() => handleSaveToSupabase(result.data, result.image)}
-                                                                        className="px-3 py-1 bg-stone-900 text-white text-xs rounded hover:bg-stone-800 transition-colors"
-                                                                    >
-                                                                        Save to Database
-                                                                    </button>
+                                                                      <div className="mt-3 flex justify-end">
+                                                                     <button
+                                                                         onClick={() => handleSaveBatchItem(idx)}
+                                                                         disabled={result.isSaving || result.isSorted}
+                                                                         className={`px-3 py-1 text-xs rounded transition-colors ${
+                                                                            result.isSorted 
+                                                                            ? 'bg-green-100 text-green-700 cursor-default'
+                                                                            : 'bg-stone-900 text-white hover:bg-stone-800'
+                                                                         }`}
+                                                                     >
+                                                                         {result.isSaving ? 'Saving...' : result.isSorted ? '✓ Saved' : 'Save to Database'}
+                                                                     </button>
+                                                                 </div>
                                                                 </div>
                                                             </div>
                                                         ) : (

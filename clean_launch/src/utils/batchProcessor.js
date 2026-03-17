@@ -2,8 +2,9 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { compressImage } from "./imageOptimizer";
 
 export class BatchProcessor {
-    constructor(apiKey, onProgress, onError, globalApplication = 'Auto-detect') {
+    constructor(apiKey, supabase, onProgress, onError, globalApplication = 'Auto-detect') {
         this.apiKey = apiKey;
+        this.supabase = supabase;
         this.onProgress = onProgress;
         this.onError = onError;
         this.globalApplication = globalApplication;
@@ -25,12 +26,45 @@ export class BatchProcessor {
             }
 
             try {
-                const result = await this.analyzeImage(genAI, images[i]);
+                const extractedName = this.cleanFileName(images[i]);
+                let resultData;
+                let optimizedFile;
+
+                // Check Supabase first
+                const { data: existingStone } = await this.supabase
+                    .from('stones')
+                    .select('*')
+                    .eq('name', extractedName)
+                    .maybeSingle();
+
+                if (existingStone) {
+                    resultData = {
+                        description: existingStone.description,
+                        tags: existingStone.tags,
+                        physical_properties: {
+                            marble: existingStone.type,
+                            finish: existingStone.finish,
+                            color: existingStone.color,
+                            temperature: existingStone.temperature,
+                            application: existingStone.application,
+                            pattern: existingStone.pattern,
+                            priceRange: existingStone.price_range
+                        }
+                    };
+                    optimizedFile = images[i]; // Skip compression if we already have it? 
+                    // Actually, keep images[i] as is.
+                } else {
+                    const analysis = await this.analyzeImage(genAI, images[i]);
+                    resultData = analysis.data;
+                    optimizedFile = analysis.optimizedFile;
+                }
+
                 results.push({
                     success: true,
-                    data: result.data,
-                    image: result.optimizedFile,
-                    fileName: images[i].name
+                    data: resultData,
+                    image: optimizedFile,
+                    fileName: images[i].name,
+                    isExisting: !!existingStone
                 });
 
                 this.onProgress({
@@ -38,7 +72,7 @@ export class BatchProcessor {
                     total: images.length,
                     status: 'processing',
                     currentFile: images[i].name,
-                    result: result
+                    result: { data: resultData, optimizedFile: optimizedFile, isExisting: !!existingStone }
                 });
             } catch (error) {
                 const errorResult = {
@@ -75,23 +109,11 @@ export class BatchProcessor {
         const imagePart = await this.fileToGenerativePart(optimizedFile);
         const extractedName = this.cleanFileName(optimizedFile);
 
-        const appInstruction = this.globalApplication === 'Auto-detect'
-            ? 'Intended Application (Flooring, Bathroom, Countertop, Wall Cladding, or Exterior)'
-            : `THIS IS FOR ${this.globalApplication.toUpperCase()}. Set "application" to "${this.globalApplication}".`;
-
         const prompt = `Analyze this stone image (Name: ${extractedName}) for an architectural database.
     Return ONLY a raw JSON object (no markdown formatting) with the following structure:
     {
-        "name": "${extractedName}",
-        "physical_properties": {
-        "color": "ONLY the single most dominant base color (e.g. White, Black, Blue, Beige, Green, Yellow, Grey, Pink). Do NOT include secondary colors or veining colors.",
-        "priceRange": "Pending",
-        "application": "${appInstruction}",
-        "pattern": "CRITICAL: Set to 'Yes' ONLY if there are repetitive, rhythmic lines running through the entire stone (like parallel veins or linear stripes). If there are only random spots, irregular clouds, or scattered veining, set to 'No'. Focus on linear repetition.",
-        "brightness": "Overall brightness based on the dominant color (Light or Dark)"
-        },
-        "description": "A short, elegant architectural description of the stone's appearance, veining, and character (max 2 sentences). It should match the name ${extractedName}.",
-        "tags": ["tag1", "tag2", "tag3", "etc"] // Include all secondary colors, veining colors, and architectural style keywords here.
+        "description": "A short, elegant architectural description of the stone's appearance, veining, and character (max 2 sentences). It should match the character of a stone named ${extractedName}.",
+        "tags": ["tag1", "tag2", "tag3", "etc"] // Include visual colors, descriptive textures, and style keywords.
     }`;
 
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
