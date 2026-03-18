@@ -7,8 +7,10 @@ import AIVisualizationModal from '../components/AIVisualizationModal';
 import { supabase } from '../lib/supabaseClient';
 import Fuse from 'fuse.js';
 import ChatAssistant from '../components/ChatAssistant';
-import { Menu } from 'lucide-react';
+import { Menu, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+
+const ITEMS_PER_PAGE = 50;
 
 // Deploy sync: 2026-03-16T19:10:00
 const SYNTHETIC_MARBLES = [];
@@ -19,6 +21,7 @@ function Home() {
     const [selectedStone, setSelectedStone] = useState(null);
     const [visualizationData, setVisualizationData] = useState(null);
     const [stoneContextList, setStoneContextList] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
     const [filters, setFilters] = useState({
         name: '',
         marble: [],
@@ -132,6 +135,18 @@ function Home() {
         });
     }, [appliedFilters, marbles]);
 
+    // Pagination
+    const totalPages = Math.ceil(filteredMarbles.length / ITEMS_PER_PAGE);
+    const paginatedMarbles = filteredMarbles.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [appliedFilters]);
+
     const handleReset = () => {
         const emptyFilters = {
             name: '',
@@ -211,16 +226,69 @@ function Home() {
                 <div className="max-w-7xl mx-auto mb-16 flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-white/5 pb-12">
                     <div className="space-y-2">
                         <h3 className="text-[10px] font-bold text-bronze uppercase tracking-[0.4em] italic opacity-60">Archives</h3>
-                        <p className="text-luxury-cream font-serif text-3xl italic tracking-wide">{filteredMarbles.length} Curated Specimens Available</p>
+                        <p className="text-luxury-cream font-serif text-3xl italic tracking-wide">
+                            {filteredMarbles.length} Curated Specimens
+                            {totalPages > 1 && ` • Showing ${(currentPage - 1) * ITEMS_PER_PAGE + 1}-${Math.min(currentPage * ITEMS_PER_PAGE, filteredMarbles.length)}`}
+                        </p>
                     </div>
                 </div>
 
                 <div className="max-w-7xl mx-auto">
                     <MarbleGrid
-                        marbles={filteredMarbles}
+                        marbles={paginatedMarbles}
                         loading={loading}
-                        onEnlarge={(stone) => handleStoneClick(stone, filteredMarbles)}
+                        onEnlarge={(stone) => handleStoneClick(stone, paginatedMarbles)}
                     />
+
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-center gap-4 mt-16 pt-8 border-t border-white/5">
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            >
+                                <ChevronLeft className="w-5 h-5" />
+                            </button>
+                            <div className="flex items-center gap-2">
+                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                    let pageNum;
+                                    if (totalPages <= 5) {
+                                        pageNum = i + 1;
+                                    } else if (currentPage <= 3) {
+                                        pageNum = i + 1;
+                                    } else if (currentPage >= totalPages - 2) {
+                                        pageNum = totalPages - 4 + i;
+                                    } else {
+                                        pageNum = currentPage - 2 + i;
+                                    }
+                                    return (
+                                        <button
+                                            key={pageNum}
+                                            onClick={() => setCurrentPage(pageNum)}
+                                            className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
+                                                currentPage === pageNum
+                                                    ? 'bg-bronze text-stone-900'
+                                                    : 'border border-white/10 hover:bg-white/5'
+                                            }`}
+                                        >
+                                            {pageNum}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <button
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            >
+                                <ChevronRight className="w-5 h-5" />
+                            </button>
+                            <span className="text-sm text-stone-500 ml-4">
+                                Page {currentPage} of {totalPages}
+                            </span>
+                        </div>
+                    )}
                 </div>
             </main>
 
