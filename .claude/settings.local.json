@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git commit:*)",
+      "Bash(gh auth:*)",
+      "Bash(git:*)",
+      "Bash(vercel --version)",
+      "Bash(vercel:*)",
+      "Bash(node -e \":*)",
+      "Bash(curl -s -X POST https://qxxuxlenxixpwbmuzbow.supabase.co/rest/v1/ -H 'apikey: sb_publishable_jMkUVRxIaQRosEMjGnFiJQ_ikWQjXZU' -H 'Authorization: Bearer sb_publishable_jMkUVRxIaQRosEMjGnFiJQ_ikWQjXZU' -H 'Content-Type: application/json' --data-raw \"{\"\"method\"\": \"\"GET\"\", \"\"url\"\": \"\"/rest/v1/stones?select=name,price_range&limit=3\"\"}\")"
+    ]
+  }
+}

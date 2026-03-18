@@ -697,7 +697,7 @@ const AdminUpload = ({ onCancel }) => {
                                             <option value="finish">Surface Finish</option>
                                             <option value="temperature">Thermal Temperature</option>
                                             <option value="pattern">Veining Pattern</option>
-                                            <option value="price_range">Price Tier</option>
+                                            <option value="priceRange">Price Tier</option>
                                         </select>
                                     </div>
 
