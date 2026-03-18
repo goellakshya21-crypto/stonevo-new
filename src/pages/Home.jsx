@@ -230,6 +230,56 @@ function Home() {
                             {filteredMarbles.length} Curated Specimens
                             {totalPages > 1 && ` • Showing ${(currentPage - 1) * ITEMS_PER_PAGE + 1}-${Math.min(currentPage * ITEMS_PER_PAGE, filteredMarbles.length)}`}
                         </p>
+
+                        {/* Top Pagination */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-center gap-4 mt-6">
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1}
+                                    className="p-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                </button>
+                                <div className="flex items-center gap-1">
+                                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                        let pageNum;
+                                        if (totalPages <= 5) {
+                                            pageNum = i + 1;
+                                        } else if (currentPage <= 3) {
+                                            pageNum = i + 1;
+                                        } else if (currentPage >= totalPages - 2) {
+                                            pageNum = totalPages - 4 + i;
+                                        } else {
+                                            pageNum = currentPage - 2 + i;
+                                        }
+                                        return (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() => setCurrentPage(pageNum)}
+                                                className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${
+                                                    currentPage === pageNum
+                                                        ? 'bg-bronze text-stone-900'
+                                                        : 'border border-white/10 hover:bg-white/5'
+                                                }`}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="p-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                >
+                                    <ChevronRight className="w-4 h-4" />
+                                </button>
+                                <span className="text-xs text-stone-500 ml-2">
+                                    {currentPage}/{totalPages}
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
