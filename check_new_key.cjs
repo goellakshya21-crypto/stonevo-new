@@ -1,6 +1,6 @@
 
 async function checkNewKey() {
-    const apiKey = "AIzaSyBeFZIeqO6YHgeQLwe8TJYnLFJvPes__4s";
+    const apiKey = process.env.VITE_GEMINI_API_KEY;
 
     try {
         console.log("Testing new paid key...");
