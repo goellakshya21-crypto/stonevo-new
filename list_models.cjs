@@ -1,6 +1,6 @@
 
 async function listAllModels() {
-    const apiKey = "AIzaSyBBfoSHCthUnkdm1b3BLFkNIWVmXA_n6Rg";
+    const apiKey = process.env.VITE_GEMINI_API_KEY;
 
     try {
         console.log("Listing models via native fetch...");

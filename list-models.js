@@ -1,4 +1,4 @@
-const API_KEY = "AIzaSyBBfoSHCthUnkdm1b3BLFkNIWVmXA_n6Rg";
+const API_KEY = process.env.VITE_GEMINI_API_KEY;
 
 async function listModels() {
     try {

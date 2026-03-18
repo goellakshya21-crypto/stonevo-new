@@ -2,7 +2,7 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 async function checkModels() {
-    const apiKey = "AIzaSyBBfoSHCthUnkdm1b3BLFkNIWVmXA_n6Rg";
+    const apiKey = process.env.VITE_GEMINI_API_KEY;
     const genAI = new GoogleGenerativeAI(apiKey);
 
     try {
