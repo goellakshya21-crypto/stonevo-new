@@ -56,15 +56,24 @@ export const aiVisualizer = {
      * to composite the EXACT stone texture into the room scene.
      */
     async generateRoomImage(stoneName, roomType, stoneType, application, imageUrl, roomStyle = 'Modern') {
+        const isOutdoor = (roomType.toLowerCase().includes('exterior') || 
+                          roomType.toLowerCase().includes('facade') || 
+                          roomType.toLowerCase().includes('balcony') || 
+                          roomType.toLowerCase().includes('entrance'));
+
+        const contextShot = isOutdoor 
+            ? `photorealistic, wide-angle residential exterior shot — luxury home architecture, bright natural daylight, 8K resolution, architectural magazine style.`
+            : `photorealistic, wide-angle architectural interior shot — high-end design, soft ambient lighting, 8K resolution, architectural magazine style.`;
+
         const compositePrompt = `This is a photograph of a natural stone slab called "${stoneName}".
-Take this exact stone — with its real colors, veining patterns, translucency, and texture — and show it applied as the ${application} in a luxury ${roomType}.
+Take this exact stone — with its real colors, veining patterns, translucency, and texture — and show it applied as the ${application} in a ${roomStyle} ${roomType}.
 The stone must look IDENTICAL to the slab in the image: same hue, same vein patterns, same finish quality.
-The rest of the room should be a photorealistic, wide-angle architectural interior shot — high-end design, soft natural lighting, 8K resolution, architectural magazine style.
+The rest of the scene should be a ${contextShot}
 Do NOT change the stone's color or pattern. Do NOT re-interpret it. Use the actual stone from the image.`;
 
-        const fallbackPrompt = `A ultra-high-end, photorealistic wide-angle interior shot of a ${roomType}.
+        const fallbackPrompt = `A ultra-high-end, photorealistic wide-angle ${isOutdoor ? 'exterior' : 'interior'} shot of a ${roomType}.
 The centerpiece is a large-scale ${application} featuring ${stoneName} — a natural ${stoneType} with authentic veining and polished finish.
-Soft architectural lighting, 8k resolution, architectural magazine style, realistic natural stone texture.
+${isOutdoor ? 'Bright sunlight' : 'Soft architectural lighting'}, 8k resolution, architectural magazine style, realistic natural stone texture.
 Integrated naturally into high-end architecture.`;
 
         console.log(`[AI Visualizer] Sending stone image URL to server for compositing...`);

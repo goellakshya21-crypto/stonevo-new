@@ -26,21 +26,27 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
 
     // Mapping: Application Category -> Default AI Room Type
     const APP_ROOM_MAP = {
-        'Counter Top': 'Kitchen',
-        'Kitchen': 'Kitchen',
-        'Washroom': 'Bathroom',
-        'Bathroom': 'Bathroom',
-        'Vanity': 'Bathroom',
-        'Powder Room': 'Bathroom',
-        'Wall Cladding': 'Living Room',
-        'Flooring': 'Living Room',
-        'Floor': 'Living Room',
-        'Facade': 'Lobby',
-        'Exterior': 'Lobby',
-        'Feature Wall': 'Living Room',
-        'Staircase': 'Lobby',
-        'Dining': 'Kitchen',
-        'Table Top': 'Kitchen'
+        // High Priority / Specialized Residential Exteriors
+        'Facade': 'Luxury Home Balcony',
+        'Exterior': 'Modern Residential Exterior',
+        'Outer Wall': 'High-end Villa Facade',
+        'Driveway': 'Outdoor Entrance',
+        'Balcony': 'Luxury Residential Balcony',
+        
+        // Interior
+        'Counter Top': 'Luxury Kitchen',
+        'Kitchen': 'Luxury Kitchen',
+        'Washroom': 'High-end Bathroom',
+        'Bathroom': 'High-end Bathroom',
+        'Vanity': 'High-end Bathroom',
+        'Powder Room': 'High-end Bathroom',
+        'Wall Cladding': 'Modern Living Room',
+        'Flooring': 'Minimalist Living Room',
+        'Floor': 'Minimalist Living Room',
+        'Feature Wall': 'Luxury Living Room',
+        'Staircase': 'Grand Lobby',
+        'Dining': 'Luxury Dining Room',
+        'Table Top': 'Bespoke Kitchen'
     };
 
     useEffect(() => {
