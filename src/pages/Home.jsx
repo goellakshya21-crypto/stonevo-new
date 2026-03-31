@@ -134,7 +134,7 @@ function Home() {
     // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [appliedFilters]);
+    }, [filters]);
 
     const handleReset = () => {
         setFilters({
@@ -158,7 +158,7 @@ function Home() {
         <div className="min-h-screen bg-stone-950 text-stone-200 font-sans selection:bg-luxury-bronze/30">
 
             {/* Immersive Hero & AI Concierge */}
-            <section className="relative min-h-[85vh] flex flex-col items-center justify-center pt-20 pb-32">
+            <section className="relative min-h-[60vh] md:min-h-[85vh] flex flex-col items-center justify-center pt-16 md:pt-20 pb-20 md:pb-32">
                 {/* Geological Background Image Wrapper (Clipping contained here) */}
                 <div className="absolute inset-0 z-0 overflow-hidden">
                     <img
@@ -167,20 +167,20 @@ function Home() {
                         src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8V6FefDxODr-gE99KmfKBpOaa7ttQxkZ43OooLIpRStirrlnpEbS74TLoks1cTJC7WIE05o0WSG1rrobP6A11bk4cdMgnZc3C8vmpO02BkFSzx2EBW-SHM-x_k8sPmgLv28tIpN7XsPjzR0044NOm-tdNaobs0RJZt9yLnddY2-82SmOdaItBgqdiMXLbbJVFuQ2K8_r67GJq2rLXJtBzohjaCvwJjo_0DsFjPUboYWOcOscR61Go52debRHXQR7AtYtvl2TNuyrv"
                     />
                     {/* Multi-layered cinematic gradient */}
-                    <div className="absolute inset-0 bg-black/20" />
+                    <div className="absolute inset-0 bg-black/30" />
                     <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-taupe" />
                     <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
                 </div>
 
-                <div className="max-w-7xl mx-auto px-6 text-center space-y-8 relative z-40 w-full">
+                <div className="max-w-7xl mx-auto px-6 text-center space-y-6 md:space-y-8 relative z-40 w-full">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                         className=""
                     >
-                        <h1 className="font-serif text-6xl md:text-8xl text-luxury-cream text-shadow-sm tracking-tighter leading-none">Stonevo</h1>
-                        <p className="font-serif italic text-xl md:text-2xl text-bronze mt-6 tracking-normal text-shadow-sm opacity-100">Your stone procurement and consulting partner</p>
+                        <h1 className="font-serif text-5xl md:text-8xl text-luxury-cream text-shadow-sm tracking-tighter leading-tight md:leading-none">Stonevo</h1>
+                        <p className="font-serif italic text-lg md:text-2xl text-bronze mt-4 md:mt-6 tracking-normal text-shadow-sm opacity-90">Your stone procurement and consulting partner</p>
                     </motion.div>
 
                     <div className="max-w-4xl mx-auto w-full">

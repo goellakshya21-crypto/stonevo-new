@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tag, ArrowRight, FileText, Plus } from 'lucide-react';
+import { Tag, ArrowRight, FileText, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import ImageModal from '../components/ImageModal';
 import StoneSelectionForm from '../components/StoneSelectionForm';
 
@@ -14,6 +14,8 @@ const BuilderPortal = () => {
     const [isConfiguratorOpen, setIsConfiguratorOpen] = useState(false);
     const [projectRequirements, setProjectRequirements] = useState(null);
     const [lastUpdated, setLastUpdated] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 50;
 
     useEffect(() => {
         fetchSmallLots();
@@ -125,6 +127,11 @@ const BuilderPortal = () => {
 
     const [activeFilter, setActiveFilter] = useState('All');
 
+    // Reset to page 1 when category or filter changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [activeCategory, activeFilter]);
+
     const getFilterOptions = () => {
         const uniqueValues = [...new Set(lots.flatMap(lot => {
             const val = activeCategory === 'type' ? lot.type : lot[activeCategory];
@@ -141,6 +148,13 @@ const BuilderPortal = () => {
             const val = activeCategory === 'type' ? lot.type : lot[activeCategory];
             return Array.isArray(val) ? val.includes(activeFilter) : val === activeFilter;
         });
+
+    // Pagination Logic
+    const totalPages = Math.ceil(filteredLots.length / ITEMS_PER_PAGE);
+    const paginatedLots = filteredLots.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
 
     return (
         <div className="min-h-screen bg-[#f2f0ed] dark:bg-[#221c10] text-[#181611] dark:text-slate-100 font-sans selection:bg-[#eca413]/30">
@@ -225,7 +239,7 @@ const BuilderPortal = () => {
                 {/* List Container */}
                 <div className="flex flex-col gap-1">
                     <AnimatePresence mode="popLayout">
-                        {filteredLots.map((lot) => (
+                        {paginatedLots.map((lot) => (
                             <motion.div
                                 key={lot.id}
                                 layout
@@ -275,6 +289,36 @@ const BuilderPortal = () => {
                         ))}
                     </AnimatePresence>
                 </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="mt-12 flex items-center justify-center gap-8">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                            className="p-3 rounded-full bg-white/5 border border-white/10 text-white/40 hover:text-[#eca413] hover:border-[#eca413]/50 disabled:opacity-20 disabled:hover:text-white/40 disabled:hover:border-white/10 transition-all active:scale-90"
+                        >
+                            <ChevronLeft size={24} />
+                        </button>
+
+                        <div className="flex items-center gap-3">
+                            <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-[#eca413]">
+                                Page {currentPage}
+                            </span>
+                            <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-white/20">
+                                of {totalPages}
+                            </span>
+                        </div>
+
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage === totalPages}
+                            className="p-3 rounded-full bg-white/5 border border-white/10 text-white/40 hover:text-[#eca413] hover:border-[#eca413]/50 disabled:opacity-20 disabled:hover:text-white/40 disabled:hover:border-white/10 transition-all active:scale-90"
+                        >
+                            <ChevronRight size={24} />
+                        </button>
+                    </div>
+                )}
 
                 {/* Pagination / Load More Footer */}
                 <div className="mt-20 mb-12 flex flex-col items-center">

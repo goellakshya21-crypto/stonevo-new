@@ -115,8 +115,8 @@ const MultiSelect = ({ label, name, options, selectedValues, onChange, variant =
             {isOpen && (
                 <div className={`${isPremium
                     ? isSwatch
-                        ? 'absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[480px] glass-dropdown rounded-2xl p-8 z-50 animate-in fade-in zoom-in-95 duration-500 transform translate-y-0'
-                        : 'absolute top-full left-0 mt-2 w-[240px] glass-dropdown rounded-xl shadow-2xl z-50 py-4 max-h-80 overflow-y-auto animate-in fade-in slide-in-from-top-2 custom-scrollbar'
+                        ? 'absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[90vw] max-w-[480px] md:w-[480px] glass-dropdown rounded-2xl p-6 md:p-8 z-50 animate-in fade-in zoom-in-95 duration-500 shadow-2xl'
+                        : 'absolute top-full left-0 mt-2 w-[200px] md:w-[240px] glass-dropdown rounded-xl shadow-2xl z-50 py-4 max-h-80 overflow-y-auto animate-in fade-in slide-in-from-top-2 custom-scrollbar'
                     : 'absolute top-[calc(100%+4px)] left-0 w-full bg-white border border-stone-200 rounded-lg shadow-xl z-50 py-2 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2'
                     }`}>
 

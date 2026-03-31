@@ -215,33 +215,33 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                         initial={{ scale: 0.9, opacity: 0, y: 40 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.9, opacity: 0, y: 40 }}
-                        className="bg-[#0f0d0a] border border-white/10 w-full max-w-6xl h-full md:h-auto md:aspect-[16/9] rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(236,164,19,0.15)] flex flex-col md:flex-row relative"
+                        className="bg-[#0f0d0a] border border-white/10 w-full max-w-6xl h-[90vh] md:h-auto md:aspect-[16/9] rounded-2xl md:rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(236,164,19,0.15)] flex flex-col md:flex-row relative"
                     >
                         {/* Close Button */}
                         <button
                             onClick={onClose}
-                            className="absolute top-6 right-6 z-[60] p-3 bg-black/40 hover:bg-[#eca413] text-white hover:text-black rounded-full transition-all backdrop-blur-md"
+                            className="absolute top-4 md:top-6 right-4 md:right-6 z-[60] p-2.5 md:p-3 bg-black/60 hover:bg-[#eca413] text-white hover:text-black rounded-full transition-all backdrop-blur-md border border-white/10"
                         >
-                            <X size={20} />
+                            <X size={18} />
                         </button>
 
                         {/* Selection Step */}
                         {showAppSelection && (
-                            <div className="absolute inset-0 z-50 bg-[#0f0d0a] flex flex-col items-center justify-center p-12">
+                            <div className="absolute inset-0 z-50 bg-[#0f0d0a] flex flex-col items-center justify-center p-6 md:p-12 overflow-y-auto">
                                 <motion.div 
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="max-w-xl w-full text-center"
+                                    className="max-w-xl w-full text-center py-8"
                                 >
-                                    <div className="w-16 h-16 bg-luxury-bronze/10 rounded-full flex items-center justify-center mx-auto mb-8">
-                                        <Box className="text-[#eca413]" size={32} />
+                                    <div className="w-12 h-12 md:w-16 md:h-16 bg-luxury-bronze/10 rounded-full flex items-center justify-center mx-auto mb-6 md:mb-8">
+                                        <Box className="text-[#eca413]" size={24} md:size={32} />
                                     </div>
-                                    <h2 className="text-3xl font-serif text-white mb-4 italic">Tailor the Vision</h2>
-                                    <p className="text-white/50 text-sm mb-12 tracking-wide font-sans leading-relaxed">
+                                    <h2 className="text-2xl md:text-3xl font-serif text-white mb-4 italic">Tailor the Vision</h2>
+                                    <p className="text-white/50 text-xs md:text-sm mb-8 md:text-12 tracking-wide font-sans leading-relaxed">
                                         This specimen is versatile. How would you like to see <strong>{stone?.name}</strong> applied in your architectural rendering?
                                     </p>
                                     
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                                         {normalizedApps.map(app => (
                                             <button
                                                 key={app}
@@ -249,59 +249,49 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                                     setSelectedApp(app);
                                                     handleVisualize(null, app);
                                                 }}
-                                                className="group relative p-6 bg-white/[0.03] border border-white/10 rounded-2xl text-left hover:bg-white/[0.08] hover:border-[#eca413]/50 transition-all duration-300 overflow-hidden"
+                                                className="group relative p-4 md:p-6 bg-white/[0.03] border border-white/10 rounded-xl md:rounded-2xl text-left hover:bg-white/[0.08] hover:border-[#eca413]/50 transition-all duration-300 overflow-hidden"
                                             >
                                                 <div className="relative z-10">
-                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#eca413] mb-2 group-hover:translate-x-1 transition-transform">{app}</p>
-                                                    <p className="text-xs text-white/40 group-hover:text-white/80 transition-colors">Visualize in a {APP_ROOM_MAP[Object.keys(APP_ROOM_MAP).find(k => app.toLowerCase().includes(k.toLowerCase()))] || 'Luxury Space'}</p>
+                                                    <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-[#eca413] mb-1 md:mb-2 group-hover:translate-x-1 transition-transform">{app}</p>
+                                                    <p className="text-[10px] md:text-xs text-white/40 group-hover:text-white/80 transition-colors">Visualize space</p>
                                                 </div>
-                                                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <ArrowRight size={16} className="text-[#eca413]" />
+                                                <div className="absolute top-0 right-0 p-3 md:p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <ArrowRight size={14} className="text-[#eca413]" />
                                                 </div>
                                             </button>
                                         ))}
                                     </div>
-
-                                    <button 
-                                        onClick={onClose}
-                                        className="mt-12 text-[10px] uppercase font-bold tracking-widest text-white/20 hover:text-white transition-colors"
-                                    >
-                                        Cancel Visualization
-                                    </button>
                                 </motion.div>
                             </div>
                         )}
 
                         {/* Left Side: AI Visual Rendering */}
-                        <div className="flex-1 bg-stone-900 relative overflow-hidden group">
+                        <div className="h-[45vh] md:h-full md:flex-1 bg-stone-900 relative overflow-hidden group shrink-0">
                             {!imageReady ? (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 z-20 bg-stone-900">
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 md:gap-6 z-20 bg-stone-900 px-6">
                                     {error ? (
-                                        <div className="text-center px-8 flex flex-col items-center max-w-sm">
-                                            <div className="p-4 bg-amber-500/10 rounded-full mb-4">
-                                                <Camera className="text-amber-400" size={32} />
+                                        <div className="text-center flex flex-col items-center max-w-sm">
+                                            <div className="p-3 bg-amber-500/10 rounded-full mb-3 md:mb-4">
+                                                <Camera className="text-amber-400" size={24} md:size={32} />
                                             </div>
-                                            <h3 className="text-white font-serif text-xl mb-2">Rendering Incomplete</h3>
-                                            <p className="text-white/40 text-xs mb-8 text-center leading-relaxed">
-                                                The AI couldn't composite the stone this time. This can happen occasionally — hit Revisualise to try again with the same stone.
-                                            </p>
+                                            <h3 className="text-white font-serif text-lg md:text-xl mb-2">Rendering Incomplete</h3>
                                             <button 
                                                 onClick={(e) => { e.stopPropagation(); setError(null); handleVisualize(); }}
-                                                className="px-8 py-3 bg-[#eca413] text-black text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-white transition-all shadow-xl active:scale-95 flex items-center gap-2"
+                                                className="px-6 py-2.5 bg-[#eca413] text-black text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-white transition-all shadow-xl active:scale-95 flex items-center gap-2"
                                             >
-                                                <Sparkles size={14} />
-                                                Revisualise
+                                                <Sparkles size={12} />
+                                                Retry
                                             </button>
                                         </div>
                                     ) : (
                                         <>
                                             <div className="relative">
-                                                <div className="w-20 h-20 border-2 border-[#eca413]/20 border-t-[#eca413] rounded-full animate-spin"></div>
-                                                <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[#eca413] animate-pulse" size={24} />
+                                                <div className="w-12 h-12 md:w-20 md:h-20 border-2 border-[#eca413]/20 border-t-[#eca413] rounded-full animate-spin"></div>
+                                                <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[#eca413] animate-pulse" size={16} md:size={24} />
                                             </div>
-                                            <div className="text-center px-4">
-                                                <h3 className="text-[#eca413] font-serif italic text-xl mb-1">Gemini AI is reimagining your space...</h3>
-                                                <p className="text-white/40 text-[10px] uppercase tracking-widest">Architectural Neural Rendering in Progress</p>
+                                            <div className="text-center">
+                                                <h3 className="text-[#eca413] font-serif italic text-lg md:text-xl mb-1">Gemini AI is reimagining...</h3>
+                                                <p className="text-white/40 text-[8px] md:text-[10px] uppercase tracking-widest">Neural Rendering in Progress</p>
                                             </div>
                                         </>
                                     )}
@@ -313,22 +303,17 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                         alt="AI Rendering"
                                         className="w-full h-full object-cover animate-image-reveal"
                                         onError={(e) => {
-                                            console.error("[AI Modal] React img onError triggered");
                                             e.target.src = "https://images.unsplash.com/photo-1556911220-e15595b6a981?auto=format&fit=crop&q=80&w=1200";
-                                        }}
-                                        style={{
-                                            filter: 'contrast(1.1) saturate(0.9) brightness(0.9)',
-                                            mixBlendMode: 'normal'
                                         }}
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
-                                    <div className="absolute bottom-8 left-8 flex items-end gap-6">
-                                        <div className="size-24 rounded-lg overflow-hidden border-2 border-white/20 shadow-2xl">
+                                    <div className="absolute bottom-4 md:bottom-8 left-4 md:left-8 flex items-end gap-4 md:gap-6">
+                                        <div className="size-16 md:size-24 rounded-lg overflow-hidden border-2 border-white/20 shadow-2xl">
                                             <img src={stone?.image_url || 'https://images.unsplash.com/photo-1628595351029-c2bf17511435?auto=format&fit=crop&q=80&w=200'} alt="Texture" className="w-full h-full object-cover" />
                                         </div>
-                                        <div className="pb-2">
-                                            <p className="text-[10px] font-bold text-[#eca413] uppercase tracking-widest mb-1">Material Source</p>
-                                            <h4 className="text-white font-serif text-lg italic">{stone?.name}</h4>
+                                        <div className="pb-1 md:pb-2">
+                                            <p className="text-[8px] md:text-[10px] font-bold text-[#eca413] uppercase tracking-widest mb-0.5 md:mb-1">Material Source</p>
+                                            <h4 className="text-white font-serif text-sm md:text-lg italic">{stone?.name}</h4>
                                         </div>
                                     </div>
                                 </>
@@ -337,17 +322,18 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                         </div>
 
                         {/* Right Side: Architectural Analysis */}
-                        <div className="w-full md:w-[400px] p-10 flex flex-col bg-[#0f0d0a] border-l border-white/5 overflow-y-auto custom-scrollbar">
-                            <div className="mb-10">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <Sparkles size={16} className="text-[#eca413]" />
-                                    <span className="text-[10px] font-bold tracking-[0.3em] text-[#eca413] uppercase">AI Architectural Vision</span>
+                        <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#0f0d0a]">
+                            <div className="p-6 md:p-10 flex flex-col h-full border-t md:border-t-0 md:border-l border-white/5">
+                                <div className="mb-6 md:mb-10">
+                                    <div className="flex items-center gap-2 mb-3 md:mb-4">
+                                        <Sparkles size={14} md:size={16} className="text-[#eca413]" />
+                                        <span className="text-[8px] md:text-[10px] font-bold tracking-[0.3em] text-[#eca413] uppercase">AI Architectural Vision</span>
+                                    </div>
+                                    <h2 className="text-2xl md:text-3xl font-serif text-white mb-2 leading-tight">
+                                        {finalRoomType} <br />
+                                        <span className="text-white/40 italic">Reimagined</span>
+                                    </h2>
                                 </div>
-                                <h2 className="text-3xl font-serif text-white mb-2 leading-tight">
-                                    {finalRoomType} <br />
-                                    <span className="text-white/40 italic">Reimagined</span>
-                                </h2>
-                            </div>
 
                             {/* Style Selector */}
                             <div className="mb-8">
@@ -405,6 +391,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                 </div>
                             )}
                         </div>
+                    </div>
 
                         <style>{`
                             @keyframes image-reveal {

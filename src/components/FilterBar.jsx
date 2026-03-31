@@ -85,99 +85,111 @@ const FilterBar = ({ filters, setFilters, onReset }) => {
     ];
 
     return (
-        <div className="w-full animate-fade-in">
-            <div className="glass-panel rounded-lg py-4 px-8 flex flex-wrap lg:flex-nowrap items-center justify-between gap-0 shadow-xl overflow-visible">
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-x-4 gap-y-4 w-full lg:w-auto">
+        <div className="w-full animate-fade-in group/filters">
+            {/* Mobile/Tablet: Horizontal Scroll Container | Desktop: Grid */}
+            <div className="glass-panel rounded-2xl py-3 md:py-4 px-4 md:px-8 flex items-center justify-between gap-4 shadow-2xl overflow-visible border border-white/5">
+                
+                <div className="flex-1 flex overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 scrollbar-hide gap-4 lg:grid lg:grid-cols-8 lg:gap-x-4 lg:gap-y-4 items-end">
                     {/* Name Search */}
-                    <div className="flex flex-col group">
-                        <label className="text-[9px] uppercase font-semibold tracking-[0.15em] text-bronze mb-1 font-display transition-colors">
-                            Name
+                    <div className="flex flex-col group min-w-[140px] lg:min-w-0">
+                        <label className="text-[8px] md:text-[9px] uppercase font-bold tracking-[0.2em] text-bronze/60 mb-1.5 font-display transition-colors">
+                            Specimen Name
                         </label>
-                        <div className="flex items-center border-b border-luxury-cream/20 pb-1 h-8 transition-all focus-within:border-bronze w-full min-w-[80px]">
-                            <span className="material-icons text-xs text-luxury-cream/50 mr-1 opacity-50">search</span>
+                        <div className="flex items-center border-b border-white/10 pb-1 h-9 transition-all focus-within:border-bronze w-full">
+                            <span className="material-icons text-[10px] text-bronze/40 mr-1.5">search</span>
                             <input
                                 type="text"
                                 placeholder="Find..."
                                 value={filters.name}
                                 onChange={handleNameChange}
-                                className="bg-transparent border-none p-0 focus:ring-0 text-xs text-luxury-cream placeholder:text-stone-500 font-serif italic outline-none w-full"
+                                className="bg-transparent border-none p-0 focus:ring-0 text-xs text-luxury-cream placeholder:text-stone-600 font-serif italic outline-none w-full"
                             />
                         </div>
                     </div>
 
-                    <MultiSelect
-                        label="Marble"
-                        name="marble"
-                        options={marbleOptions}
-                        selectedValues={filters.marble}
-                        onChange={handleMultiChange}
-                        variant="premium"
-                    />
+                    <div className="flex shrink-0 lg:contents gap-4">
+                        <MultiSelect
+                            label="Marble"
+                            name="marble"
+                            options={marbleOptions}
+                            selectedValues={filters.marble}
+                            onChange={handleMultiChange}
+                            variant="premium"
+                        />
 
-                    <MultiSelect
-                        label="Color"
-                        name="color"
-                        options={colorOptions}
-                        selectedValues={filters.color}
-                        onChange={handleMultiChange}
-                        variant="premium"
-                    />
+                        <MultiSelect
+                            label="Color"
+                            name="color"
+                            options={colorOptions}
+                            selectedValues={filters.color}
+                            onChange={handleMultiChange}
+                            variant="premium"
+                            displayType="swatch"
+                        />
 
-                    <MultiSelect
-                        label="Finish"
-                        name="finish"
-                        options={finishOptions}
-                        selectedValues={filters.finish}
-                        onChange={handleMultiChange}
-                        variant="premium"
-                    />
+                        <MultiSelect
+                            label="Finish"
+                            name="finish"
+                            options={finishOptions}
+                            selectedValues={filters.finish}
+                            onChange={handleMultiChange}
+                            variant="premium"
+                        />
 
-                    <MultiSelect
-                        label="Price"
-                        name="priceRange"
-                        options={priceOptions}
-                        selectedValues={filters.priceRange}
-                        onChange={handleMultiChange}
-                        variant="premium"
-                    />
+                        <MultiSelect
+                            label="Price"
+                            name="priceRange"
+                            options={priceOptions}
+                            selectedValues={filters.priceRange}
+                            onChange={handleMultiChange}
+                            variant="premium"
+                        />
 
-                    <MultiSelect
-                        label="Application"
-                        name="application"
-                        options={applicationOptions}
-                        selectedValues={filters.application}
-                        onChange={handleMultiChange}
-                        variant="premium"
-                    />
+                        <MultiSelect
+                            label="Application"
+                            name="application"
+                            options={applicationOptions}
+                            selectedValues={filters.application}
+                            onChange={handleMultiChange}
+                            variant="premium"
+                        />
 
-                    <MultiSelect
-                        label="Pattern"
-                        name="pattern"
-                        options={patternOptions}
-                        selectedValues={filters.pattern}
-                        onChange={handleMultiChange}
-                        variant="premium"
-                    />
+                        <MultiSelect
+                            label="Pattern"
+                            name="pattern"
+                            options={patternOptions}
+                            selectedValues={filters.pattern}
+                            onChange={handleMultiChange}
+                            variant="premium"
+                        />
 
-                    <MultiSelect
-                        label="Temp"
-                        name="temperature"
-                        options={temperatureOptions}
-                        selectedValues={filters.temperature}
-                        onChange={handleMultiChange}
-                        variant="premium"
-                    />
+                        <MultiSelect
+                            label="Temp"
+                            name="temperature"
+                            options={temperatureOptions}
+                            selectedValues={filters.temperature}
+                            onChange={handleMultiChange}
+                            variant="premium"
+                        />
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-4 pl-4 border-l border-luxury-cream/10 ml-4">
+                <div className="flex items-center pl-4 border-l border-white/10 h-10">
                     <button
                         onClick={onReset}
-                        className="group flex items-center justify-center p-2 text-luxury-cream/40 hover:text-bronze transition-all"
+                        className="group flex items-center justify-center p-2.5 text-white/20 hover:text-bronze transition-all bg-white/5 hover:bg-white/10 rounded-xl border border-white/5"
                         title="Reset Selection"
                     >
                         <Trash2 size={16} strokeWidth={1.5} className="group-hover:rotate-12 transition-transform" />
                     </button>
                 </div>
+            </div>
+            
+            {/* Scroll Hint (Mobile only) */}
+            <div className="lg:hidden flex items-center justify-center gap-1 mt-2 opacity-30">
+                <div className="w-1 h-1 bg-white rounded-full animate-pulse"></div>
+                <p className="text-[7px] uppercase font-bold tracking-widest text-white">Slide for more filters</p>
+                <div className="w-1 h-1 bg-white rounded-full animate-pulse delay-75"></div>
             </div>
         </div>
     );
