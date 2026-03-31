@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const MultiSelect = ({ label, name, options, selectedValues, onChange, variant = 'base', displayType = 'list' }) => {
+const MultiSelect = ({ label, name, options, selectedValues, onChange, variant = 'base', displayType = 'list', multiple = false }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -27,9 +27,16 @@ const MultiSelect = ({ label, name, options, selectedValues, onChange, variant =
     }, []);
 
     const toggleOption = (optionValue) => {
-        const newValues = selectedValues.includes(optionValue)
-            ? selectedValues.filter(val => val !== optionValue)
-            : [...selectedValues, optionValue];
+        let newValues;
+        if (multiple) {
+            newValues = selectedValues.includes(optionValue)
+                ? selectedValues.filter(val => val !== optionValue)
+                : [...selectedValues, optionValue];
+        } else {
+            // For single select: selections are mutually exclusive
+            newValues = selectedValues.includes(optionValue) ? [] : [optionValue];
+            if (newValues.length > 0) setIsOpen(false); // Close dropdown on selection
+        }
 
         onChange(name, newValues);
     };
@@ -65,8 +72,8 @@ const MultiSelect = ({ label, name, options, selectedValues, onChange, variant =
                             {isPremium ? (
                                 <span className="text-luxury-cream font-display text-sm leading-tight transition-all duration-500 italic">
                                     {isSwatch
-                                        ? (selectedValues.length === 1 ? colorSwatches[selectedValues[0]]?.label || selectedValues[0] : `${selectedValues.length} Selected`)
-                                        : selectedValues.join(', ')
+                                        ? (selectedValues.length === 1 ? colorSwatches[selectedValues[0]]?.label || selectedValues[0] : (multiple ? `${selectedValues.length} Selected` : (colorSwatches[selectedValues[0]]?.label || selectedValues[0])))
+                                        : (multiple ? selectedValues.join(', ') : selectedValues[0])
                                     }
                                 </span>
                             ) : (

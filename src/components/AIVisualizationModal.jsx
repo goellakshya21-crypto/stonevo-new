@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Box, Camera, Download, Share2, Expand } from 'lucide-react';
+import { X, Sparkles, Box, Camera, Download, Share2, Expand, ArrowRight } from 'lucide-react';
 import { aiVisualizer } from '../lib/aiVisualizer';
 
-const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle }) => {
-    const [loading, setLoading] = useState(true);
+const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, intendedApp }) => {
+    const [loading, setLoading] = useState(false);
     const [visualData, setVisualData] = useState(null);
     const [roomImage, setRoomImage] = useState(null);
     const [imageReady, setImageReady] = useState(false);
     const [finalRoomType, setFinalRoomType] = useState(roomName || 'Luxury Space');
     const [selectedStyle, setSelectedStyle] = useState(initialStyle || 'Classical');
     const [error, setError] = useState(null);
+    
+    // Application Selection States
+    const [showAppSelection, setShowAppSelection] = useState(false);
+    const [selectedApp, setSelectedApp] = useState(intendedApp || null);
+    const [normalizedApps, setNormalizedApps] = useState([]);
 
     const roomStyles = [
         'Classical', 'Modern', 'Contemporary', 'Minimalist', 'Neo Classical', 
@@ -19,53 +24,114 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle }
         'Mediterranean', 'Art Deco', 'Sustainable / Green'
     ];
 
+    // Mapping: Application Category -> Default AI Room Type
+    const APP_ROOM_MAP = {
+        'Counter Top': 'Kitchen',
+        'Kitchen': 'Kitchen',
+        'Washroom': 'Bathroom',
+        'Bathroom': 'Bathroom',
+        'Vanity': 'Bathroom',
+        'Powder Room': 'Bathroom',
+        'Wall Cladding': 'Living Room',
+        'Flooring': 'Living Room',
+        'Floor': 'Living Room',
+        'Facade': 'Lobby',
+        'Exterior': 'Lobby',
+        'Feature Wall': 'Living Room',
+        'Staircase': 'Lobby',
+        'Dining': 'Kitchen',
+        'Table Top': 'Kitchen'
+    };
+
     useEffect(() => {
         if (isOpen && stone) {
+            console.log("[AI Modal] Stone loaded:", stone.name, "Apps:", stone.application);
             setError(null);
             setImageReady(false);
-            handleVisualize();
+            setRoomImage(null);
+            
+            // Normalize application to array
+            const apps = Array.isArray(stone.application) 
+                ? stone.application 
+                : (stone.application ? [stone.application] : []);
+            
+            setNormalizedApps(apps);
+            
+            // If the user specified an application (e.g. via Chat) or there's only one, proceed
+            if (intendedApp) {
+                console.log("[AI Modal] Using intended application:", intendedApp);
+                setSelectedApp(intendedApp);
+                setShowAppSelection(false);
+                handleVisualize(null, intendedApp);
+            } else if (apps.length === 1) {
+                console.log("[AI Modal] Single application detected:", apps[0]);
+                setSelectedApp(apps[0]);
+                setShowAppSelection(false);
+                handleVisualize(null, apps[0]);
+            } else if (apps.length > 1) {
+                console.log("[AI Modal] Multiple applications detected. Asking user...");
+                setShowAppSelection(true);
+                setLoading(false); // Stop loading while waiting for choice
+            } else {
+                console.log("[AI Modal] No application metadata found, defaulting to rendering.");
+                handleVisualize();
+            }
         }
-    }, [isOpen, stone]);
+    }, [isOpen, stone?.name, intendedApp]); // Use name instead of whole object to prevent infinite loops
 
-    const handleVisualize = async (forcedStyle) => {
+    const handleDownloadImage = () => {
+        if (!roomImage) return;
+        
+        console.log("[AI Modal] Commencing download of rendering...");
+        const link = document.createElement('a');
+        link.href = roomImage;
+        // Clean stone name for filename
+        const safeName = (stone?.name || 'render').replace(/[^a-z0-9]/gi, '-').toLowerCase();
+        link.download = `stonevo-${safeName}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleVisualize = async (forcedStyle, forcedApp) => {
         const styleToUse = forcedStyle || selectedStyle;
-        const targetRoom = roomName || 'Luxury Space';
-        console.log("[AI Modal] Starting visualization for:", stone?.name, "in room:", targetRoom);
+        const appToUse = forcedApp || selectedApp || 'Surface';
+        
+        console.log("[AI Modal] Starting visualization for:", stone?.name, "Application:", appToUse);
         setLoading(true);
         setImageReady(false);
         setRoomImage(null);
         setError(null);
+        setShowAppSelection(false);
 
-        const app = stone?.application?.toLowerCase() || stone?.type?.toLowerCase() || '';
-        const room = targetRoom.toLowerCase();
+        // Determine roomType from Mapping
+        let roomType = 'Living Room'; // Global Default
+        
+        const mappedRoom = Object.keys(APP_ROOM_MAP).find(k => 
+            appToUse.toLowerCase().includes(k.toLowerCase()) || 
+            k.toLowerCase().includes(appToUse.toLowerCase())
+        );
 
-        let roomType = 'Living Room';
-
-        if (app.includes('countertop') || app.includes('kitchen')) {
-            roomType = (room.includes('bath') || app.includes('bath')) ? 'Bathroom' : 'Kitchen';
-        } else if (room.includes('kitchen')) {
-            roomType = 'Kitchen';
-        } else if (room.includes('bath')) {
-            roomType = 'Bathroom';
-        } else if (room.includes('living')) {
-            roomType = 'Living Room';
-        } else if (room.includes('bed')) {
-            roomType = 'Bedroom';
-        } else if (room.includes('lobby') || app.includes('exterior')) {
-            roomType = 'Lobby';
+        if (mappedRoom) {
+            roomType = APP_ROOM_MAP[mappedRoom];
         }
 
-        console.log("[AI Modal] Determined roomType:", roomType);
+        // Contextual overrides (if roomName was passed by chat override)
+        if (roomName && !intendedApp) {
+            roomType = roomName;
+        }
+
+        console.log("[AI Modal] Determined roomType from app:", roomType);
         setFinalRoomType(roomType);
 
         try {
             console.log("[AI Modal] Calling aiVisualizer API...");
             const [aiData, imageUrl] = await Promise.all([
                 aiVisualizer.generateVisualDescription(
-                    stone?.name || 'Natural Stone', roomType, stone?.colour || 'Natural', app || 'Surface', styleToUse
+                    stone?.name || 'Natural Stone', roomType, stone?.colour || 'Natural', appToUse, styleToUse
                 ),
                 aiVisualizer.generateRoomImage(
-                    stone?.name || 'Natural Stone', roomType, stone?.colour || 'Natural', app || 'Surface', stone?.image_url, styleToUse
+                    stone?.name || 'Natural Stone', roomType, stone?.colour || 'Natural', appToUse, stone?.image_url, styleToUse
                 )
             ]);
 
@@ -154,10 +220,57 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle }
                         {/* Close Button */}
                         <button
                             onClick={onClose}
-                            className="absolute top-6 right-6 z-50 p-3 bg-black/40 hover:bg-[#eca413] text-white hover:text-black rounded-full transition-all backdrop-blur-md"
+                            className="absolute top-6 right-6 z-[60] p-3 bg-black/40 hover:bg-[#eca413] text-white hover:text-black rounded-full transition-all backdrop-blur-md"
                         >
                             <X size={20} />
                         </button>
+
+                        {/* Selection Step */}
+                        {showAppSelection && (
+                            <div className="absolute inset-0 z-50 bg-[#0f0d0a] flex flex-col items-center justify-center p-12">
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="max-w-xl w-full text-center"
+                                >
+                                    <div className="w-16 h-16 bg-luxury-bronze/10 rounded-full flex items-center justify-center mx-auto mb-8">
+                                        <Box className="text-[#eca413]" size={32} />
+                                    </div>
+                                    <h2 className="text-3xl font-serif text-white mb-4 italic">Tailor the Vision</h2>
+                                    <p className="text-white/50 text-sm mb-12 tracking-wide font-sans leading-relaxed">
+                                        This specimen is versatile. How would you like to see <strong>{stone?.name}</strong> applied in your architectural rendering?
+                                    </p>
+                                    
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {normalizedApps.map(app => (
+                                            <button
+                                                key={app}
+                                                onClick={() => {
+                                                    setSelectedApp(app);
+                                                    handleVisualize(null, app);
+                                                }}
+                                                className="group relative p-6 bg-white/[0.03] border border-white/10 rounded-2xl text-left hover:bg-white/[0.08] hover:border-[#eca413]/50 transition-all duration-300 overflow-hidden"
+                                            >
+                                                <div className="relative z-10">
+                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#eca413] mb-2 group-hover:translate-x-1 transition-transform">{app}</p>
+                                                    <p className="text-xs text-white/40 group-hover:text-white/80 transition-colors">Visualize in a {APP_ROOM_MAP[Object.keys(APP_ROOM_MAP).find(k => app.toLowerCase().includes(k.toLowerCase()))] || 'Luxury Space'}</p>
+                                                </div>
+                                                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <ArrowRight size={16} className="text-[#eca413]" />
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <button 
+                                        onClick={onClose}
+                                        className="mt-12 text-[10px] uppercase font-bold tracking-widest text-white/20 hover:text-white transition-colors"
+                                    >
+                                        Cancel Visualization
+                                    </button>
+                                </motion.div>
+                            </div>
+                        )}
 
                         {/* Left Side: AI Visual Rendering */}
                         <div className="flex-1 bg-stone-900 relative overflow-hidden group">
@@ -258,50 +371,36 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle }
 
                             {!imageReady ? (
                                 <div className="space-y-6">
-                                    {[1, 2, 3, 4, 5].map(i => (
+                                    {[1, 2, 3, 4].map(i => (
                                         <div key={i} className="h-4 bg-white/5 rounded animate-pulse" style={{ width: `${100 - (i % 3) * 20}%` }}></div>
                                     ))}
-                                    <div className="pt-10">
-                                        <div className="h-12 bg-white/5 rounded-xl animate-pulse"></div>
-                                    </div>
                                 </div>
                             ) : (
-                                <div className="space-y-10">
+                                <div className="space-y-8">
                                     <div>
-                                        <p className="text-white/80 font-serif italic text-lg leading-relaxed mb-6">
-                                            "{visualData?.description}"
+                                        <p className="text-white/90 font-serif italic text-base leading-relaxed mb-6">
+                                            "{visualData?.description?.split('.').slice(0, 2).join('.') + '.'}"
                                         </p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {visualData?.style_keywords?.map(keyword => (
-                                                <span key={keyword} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] uppercase font-bold text-white/50">
-                                                    {keyword}
-                                                </span>
-                                            ))}
-                                        </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl">
-                                            <p className="text-[9px] uppercase font-bold text-white/30 tracking-widest mb-2">Lighting Mode</p>
-                                            <p className="text-xs text-white uppercase tracking-wider">{visualData?.lighting || 'Natural Daylight'}</p>
-                                        </div>
-                                        <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl">
-                                            <p className="text-[9px] uppercase font-bold text-white/30 tracking-widest mb-2">Reflectivity</p>
-                                            <p className="text-xs text-white uppercase tracking-wider">High Gloss</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-3 pt-6">
-                                        <button className="w-full py-4 bg-[#eca413] text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#d99510] transition-all flex items-center justify-center gap-2">
+                                    <div className="space-y-3">
+                                        <button 
+                                            onClick={handleDownloadImage}
+                                            className="w-full py-4 bg-[#eca413] text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#d99510] transition-all flex items-center justify-center gap-2"
+                                        >
                                             <Download size={14} /> Download Rendering
                                         </button>
-                                        <button className="w-full py-4 bg-white/5 text-white/60 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2 border border-white/10">
-                                            <Share2 size={14} /> Send to Client
+                                        
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); handleVisualize(); }}
+                                            className="w-full py-4 bg-white/5 text-white/40 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2 border border-white/10"
+                                        >
+                                            <Sparkles size={14} /> New Architecture
                                         </button>
                                     </div>
 
-                                    <p className="text-[9px] text-white/20 text-center uppercase tracking-widest italic pt-4">
-                                        * This AI visualization is for concept and material interplay demonstration.
+                                    <p className="text-[8px] text-white/20 text-center uppercase tracking-widest leading-relaxed">
+                                        Rendered with Google Gemini & Stonevo Neural Engine
                                     </p>
                                 </div>
                             )}

@@ -218,9 +218,10 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true 
                     stone={{
                         name: stone.name,
                         type: stone?.physical_properties?.type || stone?.type || 'Natural Stone',
-                        image_url: stone.imageUrl || stone.image_url
+                        image_url: stone.imageUrl || stone.image_url,
+                        application: stone?.physical_properties?.application || []
                     }}
-                    roomName={`Luxury ${stone?.physical_properties?.application || stone?.application || 'Room'}`}
+                    roomName={null} // Let the modal determine room from application
                     onClose={() => setIsVisualizing(false)}
                 />
             )}

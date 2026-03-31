@@ -2,7 +2,7 @@ import React from 'react';
 import MultiSelect from './MultiSelect';
 import { Trash2 } from 'lucide-react';
 
-const FilterBar = ({ filters, setFilters, onSearch, onReset }) => {
+const FilterBar = ({ filters, setFilters, onReset }) => {
     const handleMultiChange = (name, values) => {
         setFilters(prev => ({
             ...prev,
@@ -170,13 +170,6 @@ const FilterBar = ({ filters, setFilters, onSearch, onReset }) => {
                 </div>
 
                 <div className="flex items-center gap-4 pl-4 border-l border-luxury-cream/10 ml-4">
-                    <button
-                        onClick={onSearch}
-                        className="px-4 py-2 bg-bronze/90 hover:bg-bronze text-stone-900 text-[9px] font-bold uppercase tracking-[0.2em] rounded transition-all active:scale-95 shadow-lg shadow-bronze/10"
-                    >
-                        Search
-                    </button>
-
                     <button
                         onClick={onReset}
                         className="group flex items-center justify-center p-2 text-luxury-cream/40 hover:text-bronze transition-all"

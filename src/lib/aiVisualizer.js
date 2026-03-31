@@ -17,10 +17,7 @@ export const aiVisualizer = {
             lighting: "Warm Ambient"
         };
 
-        if (!genAI) return fallback;
-
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
             const prompt = `You are a high-end luxury interior architect specialized in ${roomStyle} design. 
             Describe how a ${roomStyle} style ${roomType} would look if we used ${stoneName} (${stoneType}) specifically for the ${application}.
             Focus on the interplay of light, the shadows on the stone surface, and the overall atmospheric "vibe" (e.g., quiet luxury, dramatic brutalism, organic modernism).
@@ -29,9 +26,22 @@ export const aiVisualizer = {
             
             Format: Return a JSON object: { "description": "...", "style_keywords": ["...", "..."], "lighting": "..." }`;
 
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
+            const response = await fetch('/api/gemini-vertex', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: prompt,
+                    model: 'gemini-2.5-flash'
+                })
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || `Server error: ${response.status}`);
+            }
+
+            const vertexData = await response.json();
+            const text = vertexData.text;
             const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
             return JSON.parse(cleaned);
         } catch (error) {

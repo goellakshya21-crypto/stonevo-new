@@ -11,6 +11,8 @@ const AdminLeads = () => {
     const [viewingActivity, setViewingActivity] = useState(null); // ID of lead being viewed
     const [activities, setActivities] = useState([]);
     const [activityLoading, setActivityLoading] = useState(false);
+    const [aiSummaries, setAiSummaries] = useState({}); // leadId -> summary
+    const [generatingSummary, setGeneratingSummary] = useState({}); // leadId -> boolean
 
     useEffect(() => {
         fetchLeads();
@@ -45,10 +47,53 @@ const AdminLeads = () => {
 
             if (error) throw error;
             setActivities(data);
+            return data; // Return for summary generation if needed
         } catch (err) {
             console.error('Failed to fetch activity:', err);
+            return [];
         } finally {
             setActivityLoading(false);
+        }
+    };
+
+    const generateLeadSummary = async (leadId, leadActivities) => {
+        if (!leadActivities || leadActivities.length === 0) return;
+        
+        setGeneratingSummary(prev => ({ ...prev, [leadId]: true }));
+        try {
+            const activityStrings = leadActivities.slice(0, 20).map(act => {
+                const details = formatActivityDetails(act.action_type, act.details);
+                return `[${act.action_type}] ${details}`;
+            }).join('\n');
+
+            const prompt = `You are a Senior Project Consultant at Stonevo. 
+            Analyze the following activity logs for a prospective professional lead:
+            ${activityStrings}
+
+            Generate a concise (1 paragraph, ~60-80 words) "Lead Intelligence Summary".
+            Focus on:
+            1. Their primary material interests (e.g. "prefers dark grey marbles").
+            2. Their application focus (e.g. "looking for washroom flooring").
+            3. Their project vibe/style (e.g. "Contemporary Minimalist").
+            4. A professional recommendation for our sales team.
+
+            Return ONLY the narrative paragraph. No bullet points. No JSON.`;
+
+            const response = await fetch('/api/gemini-vertex', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: prompt, model: 'gemini-2.5-flash' })
+            });
+
+            if (!response.ok) throw new Error('AI Summary failed');
+            
+            const data = await response.json();
+            setAiSummaries(prev => ({ ...prev, [leadId]: data.text }));
+        } catch (err) {
+            console.error('AI Summary Error:', err);
+            setAiSummaries(prev => ({ ...prev, [leadId]: 'Intelligence generation failed. Please try again.' }));
+        } finally {
+            setGeneratingSummary(prev => ({ ...prev, [leadId]: false }));
         }
     };
 
@@ -298,9 +343,69 @@ const AdminLeads = () => {
                             {/* Activity Section Expandable */}
                             {viewingActivity === lead.id && (
                                 <div className="border-t border-stone-100 bg-stone-50/50 p-6 animate-in slide-in-from-top-2 duration-300">
+                                    
+                                    {/* AI Intelligence Summary Section */}
+                                    <div className="mb-8 p-6 bg-white border border-bronze/20 rounded-2xl shadow-sm relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 p-4 opacity-10">
+                                            <MessageSquare size={80} className="text-bronze" />
+                                        </div>
+                                        
+                                        <div className="relative z-10">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-8 h-8 bg-bronze/10 rounded-lg flex items-center justify-center">
+                                                        <SearchIcon size={16} className="text-bronze" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-[10px] uppercase font-black tracking-[0.2em] text-bronze">Lead Intelligence</h4>
+                                                        <p className="text-[9px] text-stone-400 font-medium">Generative AI Behavioral Analysis</p>
+                                                    </div>
+                                                </div>
+                                                
+                                                {!aiSummaries[lead.id] && !generatingSummary[lead.id] && (
+                                                    <button
+                                                        onClick={() => generateLeadSummary(lead.id, activities)}
+                                                        className="px-4 py-1.5 bg-bronze text-white text-[9px] font-bold uppercase tracking-widest rounded-md hover:bg-stone-900 transition-all active:scale-95 flex items-center gap-2"
+                                                    >
+                                                        Generate Insights
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {generatingSummary[lead.id] ? (
+                                                <div className="py-4 flex items-center gap-3">
+                                                    <div className="w-4 h-4 border-2 border-bronze/20 border-t-bronze rounded-full animate-spin"></div>
+                                                    <p className="text-xs text-stone-500 italic">The Archivist is analyzing search patterns and architectural intent...</p>
+                                                </div>
+                                            ) : aiSummaries[lead.id] ? (
+                                                <div className="space-y-4">
+                                                    <p className="text-sm text-stone-700 leading-relaxed font-serif italic">
+                                                        "{aiSummaries[lead.id]}"
+                                                    </p>
+                                                    <div className="flex items-center gap-2 pt-2 border-t border-stone-100">
+                                                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                                                        <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">AI Generated Intent Analysis</span>
+                                                    </div>
+                                                </div>
+                                            ) : lead.behavioral_compaction ? (
+                                                <div className="space-y-3 bg-stone-50 p-4 rounded-xl border border-stone-100">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <Clock size={12} className="text-bronze" />
+                                                        <p className="text-[9px] font-black uppercase tracking-widest text-bronze">Historical Archive (Compacted)</p>
+                                                    </div>
+                                                    <p className="text-xs text-stone-600 leading-relaxed italic">
+                                                        {lead.behavioral_compaction.summary_para || JSON.stringify(lead.behavioral_compaction)}
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <p className="text-xs text-stone-400 italic">No summary generated. Click above to analyze this professional's specific stone interests.</p>
+                                            )}
+                                        </div>
+                                    </div>
+
                                     <div className="flex items-center gap-2 mb-4">
                                         <Activity size={14} className="text-stone-500" />
-                                        <h4 className="text-[10px] uppercase font-bold tracking-widest text-stone-500">Movement Timeline</h4>
+                                        <h4 className="text-[10px] uppercase font-bold tracking-widest text-stone-500">Live Movement Timeline</h4>
                                     </div>
 
                                     {activityLoading ? (
@@ -312,7 +417,7 @@ const AdminLeads = () => {
                                         <p className="text-xs text-stone-400 italic py-2">No activity recorded yet.</p>
                                     ) : (
                                         <div className="space-y-3 relative before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-[1px] before:bg-stone-200">
-                                            {activities.map((act) => (
+                                            {activities.slice(0, 10).map((act) => (
                                                 <div key={act.id} className="pl-6 relative">
                                                     <div className={`absolute left-0 top-1.5 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm flex items-center justify-center ${act.action_type === 'ai_query' ? 'bg-amber-400' : 'bg-stone-800'
                                                         }`}>
@@ -336,6 +441,11 @@ const AdminLeads = () => {
                                                     </div>
                                                 </div>
                                             ))}
+                                            {activities.length > 10 && (
+                                                <p className="text-[9px] text-stone-400 font-bold uppercase tracking-[0.2em] pl-6 pt-2 italic">
+                                                    + {activities.length - 10} more historical movements in Supabase database
+                                                </p>
+                                            )}
                                         </div>
                                     )}
                                 </div>

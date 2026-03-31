@@ -27,6 +27,7 @@ dist-ssr
 *.sw?
 
 .vercel
-
-.vercel
 .env*.local
+
+# Secrets
+hi.json

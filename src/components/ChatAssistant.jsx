@@ -56,20 +56,13 @@ const ChatAssistant = ({ marbles, onStoneClick, onVisualizeRequest }) => {
         logActivity('ai_query', { query: userMsg });
 
         try {
-            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-            if (!apiKey) {
-                throw new Error("API Key is missing. Please check your environment variables.");
-            }
-            const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-            // Prepare conversation history (last 5 exchanges)
+            // Prepare conversation history
             const history = messages.slice(-10).map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
 
             const prompt = `You are the Stonevo Archivist & Curator. Your goal is to showcase the beauty and architectural significance of natural stones. 
             This is NOT a sales site. You are an educator and curator.
             
-            Inventory Context: ${JSON.stringify(stoneContext.slice(0, 30))}
+            Inventory Context: ${JSON.stringify(stoneContext)}
 
             Conversation History:
             ${history}
@@ -83,7 +76,7 @@ const ChatAssistant = ({ marbles, onStoneClick, onVisualizeRequest }) => {
              5. Return your response in this EXACT JSON format:
                 {
                   "text": "Your concise architectural description here...",
-                  "suggestedStoneNames": ["Exact Name 1", "Exact Name 2"],
+                  "suggestedStoneNames": ["Exact Name 1", "Exact Name 2", "Exact Name 3"],
                   "visualization": {
                     "request": true, 
                     "stoneName": "Exact Name", 
@@ -94,11 +87,29 @@ const ChatAssistant = ({ marbles, onStoneClick, onVisualizeRequest }) => {
              6. Set "visualization.request" to true ONLY if the user explicitly asks to see, visualize, or show a stone in a room. 
              7. Map the roomStyle to one of the exact architectural styles listed above. Use "Modern" as default if style is unclear.
              8. Map the roomType to one of the exact types listed above. Use "Kitchen" as default if type is unclear.
+             9. Extact the intended Application (e.g. "Counter Top", "Flooring", "Wall Cladding", "Facade") from the user's message.
+             10. IMPORTANT: Suggest as many relevant matches as possible (up to 8) if the user's query is broad (e.g., "blue stones").
              
              Current User Query: "${userMsg}"`;
 
-            const result = await model.generateContent(prompt);
-            const responseText = await result.response.text();
+            // Call our new backend Vertex AI endpoint
+            const response = await fetch('/api/gemini-vertex', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: prompt, // sending the full prompt here
+                    history: messages.slice(-10),
+                    model: 'gemini-2.5-flash'
+                })
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || `Server error: ${response.status}`);
+            }
+
+            const vertexData = await response.json();
+            const responseText = vertexData.text;
 
             // Robust JSON extraction
             let cleanedJson = responseText.trim();
@@ -135,11 +146,13 @@ const ChatAssistant = ({ marbles, onStoneClick, onVisualizeRequest }) => {
                     onVisualizeRequest({
                         stone: {
                             name: stone.name,
-                            type: stone.physical_properties?.type || stone.type || 'Natural Stone',
-                            image_url: stone.imageUrl || stone.image_url
+                            type: stone.physical_properties?.marble || stone.physical_properties?.type || stone.type || 'Natural Stone',
+                            image_url: stone.imageUrl || stone.image_url,
+                            application: stone.physical_properties?.application || []
                         },
                         roomType: data.visualization.roomType,
-                        roomStyle: data.visualization.roomStyle
+                        roomStyle: data.visualization.roomStyle,
+                        intendedApplication: data.visualization.application // new field
                     });
                 } else {
                     console.warn("[Chatbot] Stone NOT matched in inventory:", data.visualization.stoneName);

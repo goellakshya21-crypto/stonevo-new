@@ -32,20 +32,9 @@ function Home() {
         pattern: [],
         temperature: []
     });
-    const [appliedFilters, setAppliedFilters] = useState({
-        name: '',
-        marble: [],
-        color: [],
-        finish: [],
-        priceRange: [],
-        application: [],
-        pattern: [],
-        temperature: []
-    });
 
     // Lead Activity Tracking: Explicit search logging
-    const handleSearch = () => {
-        setAppliedFilters(filters);
+    useEffect(() => {
         const hasActiveFilters = filters.name ||
             filters.marble.length > 0 ||
             filters.color.length > 0 ||
@@ -60,7 +49,7 @@ function Home() {
                 logActivity('search', { filters });
             });
         }
-    };
+    }, [filters]);
 
     const fetchMarbles = async () => {
         setLoading(true);
@@ -108,7 +97,7 @@ function Home() {
         let result = marbles;
 
         // Apply fuzzy search if a name is typed
-        if (appliedFilters.name.trim()) {
+        if (filters.name.trim()) {
             const fuse = new Fuse(marbles, {
                 keys: ['name', 'physical_properties.application', 'tags', 'description'],
                 threshold: 0.35,
@@ -116,7 +105,7 @@ function Home() {
                 minMatchCharLength: 2,
                 includeScore: true
             });
-            const searchResults = fuse.search(appliedFilters.name);
+            const searchResults = fuse.search(filters.name);
             result = searchResults.map(res => res.item);
         }
 
@@ -124,16 +113,16 @@ function Home() {
             const p = marble.physical_properties;
             const hasOverlap = (filterArr, stoneArr) =>
                 filterArr.length === 0 || filterArr.some(v => [].concat(stoneArr || []).includes(v));
-            if (!hasOverlap(appliedFilters.marble, p.marble)) return false;
-            if (!hasOverlap(appliedFilters.color, p.color)) return false;
-            if (!hasOverlap(appliedFilters.finish, p.finish)) return false;
-            if (!hasOverlap(appliedFilters.priceRange, p.priceRange)) return false;
-            if (!hasOverlap(appliedFilters.application, p.application)) return false;
-            if (!hasOverlap(appliedFilters.pattern, p.pattern)) return false;
-            if (!hasOverlap(appliedFilters.temperature, p.temperature)) return false;
+            if (!hasOverlap(filters.marble, p.marble)) return false;
+            if (!hasOverlap(filters.color, p.color)) return false;
+            if (!hasOverlap(filters.finish, p.finish)) return false;
+            if (!hasOverlap(filters.priceRange, p.priceRange)) return false;
+            if (!hasOverlap(filters.application, p.application)) return false;
+            if (!hasOverlap(filters.pattern, p.pattern)) return false;
+            if (!hasOverlap(filters.temperature, p.temperature)) return false;
             return true;
         });
-    }, [appliedFilters, marbles]);
+    }, [filters, marbles]);
 
     // Pagination
     const totalPages = Math.ceil(filteredMarbles.length / ITEMS_PER_PAGE);
@@ -148,7 +137,7 @@ function Home() {
     }, [appliedFilters]);
 
     const handleReset = () => {
-        const emptyFilters = {
+        setFilters({
             name: '',
             marble: [],
             color: [],
@@ -157,9 +146,7 @@ function Home() {
             application: [],
             pattern: [],
             temperature: []
-        };
-        setFilters(emptyFilters);
-        setAppliedFilters(emptyFilters);
+        });
     };
 
     const handleStoneClick = (stone, contextStones = []) => {
@@ -211,7 +198,6 @@ function Home() {
                         <FilterBar
                             filters={filters}
                             setFilters={setFilters}
-                            onSearch={handleSearch}
                             onReset={handleReset}
                         />
                     </div>
@@ -359,6 +345,7 @@ function Home() {
                     stone={visualizationData.stone}
                     roomName={visualizationData.roomType}
                     initialStyle={visualizationData.roomStyle}
+                    intendedApp={visualizationData.intendedApplication}
                     onClose={() => setVisualizationData(null)}
                 />
             )}
