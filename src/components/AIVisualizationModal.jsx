@@ -322,8 +322,8 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                         </div>
 
                         {/* Right Side: Architectural Analysis */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#0f0d0a]">
-                            <div className="p-6 md:p-10 flex flex-col h-full border-t md:border-t-0 md:border-l border-white/5">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#0f0d0a] min-h-0">
+                            <div className="p-6 md:p-10 flex flex-col border-t md:border-t-0 md:border-l border-white/5 pb-12 md:pb-10">
                                 <div className="mb-6 md:mb-10">
                                     <div className="flex items-center gap-2 mb-3 md:mb-4">
                                         <Sparkles size={14} md:size={16} className="text-[#eca413]" />
@@ -335,63 +335,63 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                     </h2>
                                 </div>
 
-                            {/* Style Selector */}
-                            <div className="mb-8">
-                                <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest block mb-3">Architectural Style</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <select 
-                                        value={selectedStyle}
-                                        onChange={(e) => {
-                                            setSelectedStyle(e.target.value);
-                                            handleVisualize(e.target.value);
-                                        }}
-                                        disabled={loading}
-                                        className="col-span-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white/80 focus:outline-none focus:border-[#eca413] transition-all cursor-pointer disabled:opacity-50"
-                                    >
-                                        {roomStyles.map(style => (
-                                            <option key={style} value={style} className="bg-[#0f0d0a]">{style}</option>
-                                        ))}
-                                    </select>
+                                {/* Style Selector */}
+                                <div className="mb-8">
+                                    <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest block mb-3">Architectural Style</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <select 
+                                            value={selectedStyle}
+                                            onChange={(e) => {
+                                                setSelectedStyle(e.target.value);
+                                                handleVisualize(e.target.value);
+                                            }}
+                                            disabled={loading}
+                                            className="col-span-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white/80 focus:outline-none focus:border-[#eca413] transition-all cursor-pointer disabled:opacity-50"
+                                        >
+                                            {roomStyles.map(style => (
+                                                <option key={style} value={style} className="bg-[#0f0d0a]">{style}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {!imageReady ? (
-                                <div className="space-y-6">
-                                    {[1, 2, 3, 4].map(i => (
-                                        <div key={i} className="h-4 bg-white/5 rounded animate-pulse" style={{ width: `${100 - (i % 3) * 20}%` }}></div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="space-y-8">
-                                    <div>
-                                        <p className="text-white/90 font-serif italic text-base leading-relaxed mb-6">
-                                            "{visualData?.description?.split('.').slice(0, 2).join('.') + '.'}"
+                                {!imageReady ? (
+                                    <div className="space-y-6">
+                                        {[1, 2, 3, 4].map(i => (
+                                            <div key={i} className="h-4 bg-white/5 rounded animate-pulse" style={{ width: `${100 - (i % 3) * 20}%` }}></div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-8">
+                                        <div>
+                                            <p className="text-white/90 font-serif italic text-base leading-relaxed mb-6">
+                                                "{visualData?.description?.split('.').slice(0, 2).join('.') + '.'}"
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <button 
+                                                onClick={handleDownloadImage}
+                                                className="w-full py-4 bg-[#eca413] text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#d99510] transition-all flex items-center justify-center gap-2"
+                                            >
+                                                <Download size={14} /> Download Rendering
+                                            </button>
+                                            
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); handleVisualize(); }}
+                                                className="w-full py-4 bg-white/5 text-white/40 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2 border border-white/10"
+                                            >
+                                                <Sparkles size={14} /> New Architecture
+                                            </button>
+                                        </div>
+
+                                        <p className="text-[8px] text-white/20 text-center uppercase tracking-widest leading-relaxed">
+                                            Rendered with Google Gemini & Stonevo Neural Engine
                                         </p>
                                     </div>
-
-                                    <div className="space-y-3">
-                                        <button 
-                                            onClick={handleDownloadImage}
-                                            className="w-full py-4 bg-[#eca413] text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#d99510] transition-all flex items-center justify-center gap-2"
-                                        >
-                                            <Download size={14} /> Download Rendering
-                                        </button>
-                                        
-                                        <button 
-                                            onClick={(e) => { e.stopPropagation(); handleVisualize(); }}
-                                            className="w-full py-4 bg-white/5 text-white/40 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2 border border-white/10"
-                                        >
-                                            <Sparkles size={14} /> New Architecture
-                                        </button>
-                                    </div>
-
-                                    <p className="text-[8px] text-white/20 text-center uppercase tracking-widest leading-relaxed">
-                                        Rendered with Google Gemini & Stonevo Neural Engine
-                                    </p>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
-                    </div>
 
                         <style>{`
                             @keyframes image-reveal {

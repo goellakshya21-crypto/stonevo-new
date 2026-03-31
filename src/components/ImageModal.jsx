@@ -72,13 +72,13 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true 
                 onClick={onClose}
             >
                 <div
-                    className="fixed inset-0 bg-white flex flex-col md:flex-row animate-scale-up"
+                    className="fixed inset-0 bg-white flex flex-col md:flex-row overflow-y-auto md:overflow-hidden animate-scale-up"
                     onClick={e => e.stopPropagation()}
                 >
                     {/* Close Button */}
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 z-20 p-2 bg-white/10 hover:bg-stone-900 text-stone-900 hover:text-white rounded-full transition-all border border-stone-200"
+                        className="fixed top-4 right-4 z-[60] p-2.5 bg-white/80 hover:bg-stone-900 text-stone-900 hover:text-white rounded-full transition-all border border-stone-200 backdrop-blur-md shadow-lg"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -89,7 +89,7 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true 
                     {hasMultiple && !isVisualizing && (
                         <button
                             onClick={handlePrev}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 bg-white/20 hover:bg-white text-stone-900 rounded-full transition-all shadow-xl backdrop-blur-sm border border-stone-200 group"
+                            className="fixed left-4 top-1/2 -translate-y-1/2 z-20 p-3 bg-white/20 hover:bg-white text-stone-900 rounded-full transition-all shadow-xl backdrop-blur-sm border border-stone-200 group invisible md:visible"
                         >
                             <svg className="w-6 h-6 transform group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
@@ -101,7 +101,7 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true 
                     {hasMultiple && !isVisualizing && (
                         <button
                             onClick={handleNext}
-                            className="absolute right-[320px] top-1/2 -translate-y-1/2 z-20 p-3 bg-white/20 hover:bg-white text-stone-900 rounded-full transition-all shadow-xl backdrop-blur-sm border border-stone-200 group invisible md:visible mr-4"
+                            className="fixed right-4 md:right-[320px] top-1/2 -translate-y-1/2 z-20 p-3 bg-white/20 hover:bg-white text-stone-900 rounded-full transition-all shadow-xl backdrop-blur-sm border border-stone-200 group invisible md:visible mr-4"
                         >
                             <svg className="w-6 h-6 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
@@ -110,7 +110,7 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true 
                     )}
 
                     {/* Image Container */}
-                    <div className="flex-1 bg-stone-900 flex items-center justify-center overflow-hidden relative min-h-[400px]">
+                    <div className="w-full md:flex-1 bg-stone-900 flex items-center justify-center overflow-hidden relative h-[50vh] md:h-full shrink-0">
                         {!isBookmatched ? (
                             <img
                                 key={stone.id}
@@ -123,14 +123,12 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true 
                                 <div className="flex-1 h-full overflow-hidden mr-[-1px] relative z-10">
                                     <img
                                         src={stone.imageUrl}
-                                        alt={`${stone.name} - Left`}
                                         className="w-full h-full object-cover"
                                     />
                                 </div>
                                 <div className="flex-1 h-full overflow-hidden relative z-0">
                                     <img
                                         src={stone.imageUrl}
-                                        alt={`${stone.name} - Mirror`}
                                         className="w-full h-full object-cover scale-x-[-1]"
                                     />
                                 </div>
@@ -146,35 +144,34 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true 
                     </div>
 
                     {/* Sidebar Info */}
-                    <div className="w-full md:w-80 p-8 flex flex-col bg-white border-l border-stone-100 z-10">
-                        <div className="mb-8">
-                            <span className="text-[10px] font-bold tracking-[0.2em] text-stone-400 uppercase mb-2 block">Stonevo Archive</span>
-                            <h2 className="text-3xl font-serif font-bold text-stone-900 mb-2">{stone.name}</h2>
+                    <div className="w-full md:w-80 p-6 md:p-8 flex flex-col bg-white border-l border-stone-100 z-10 overflow-y-auto md:overflow-visible h-auto max-h-none">
+                        <div className="mb-6 md:mb-8">
+                            <span className="text-[9px] font-bold tracking-[0.2em] text-stone-400 uppercase mb-2 block">Stonevo Archive</span>
+                            <h2 className="text-2xl md:text-3xl font-serif font-bold text-stone-900 mb-2">{stone.name}</h2>
                             <div className="flex items-center gap-2 mb-4">
                                 <span className="px-2 py-0.5 bg-stone-100 text-[10px] font-bold text-stone-500 uppercase rounded">{stone.physical_properties?.type || 'Natural Stone'}</span>
                                 <span className="px-2 py-0.5 bg-stone-900 text-[10px] font-bold text-white uppercase rounded">{stone.physical_properties?.color}</span>
                             </div>
                         </div>
 
-                        <p className="text-stone-500 text-sm leading-relaxed mb-8 font-light italic">
+                        <p className="text-stone-500 text-sm leading-relaxed mb-6 md:mb-8 font-light italic">
                             "{stone.description}"
                         </p>
 
-                        <div className="mt-auto space-y-4">
-                            {/* Mobile-only next button */}
+                        <div className="space-y-3 md:space-y-4 pb-8 md:pb-0">
+                            {/* Mobile-only next recommended button */}
                             {hasMultiple && (
                                 <button
                                     onClick={handleNext}
-                                    className="w-full md:hidden bg-stone-100 text-stone-900 py-3 px-6 text-[10px] font-bold uppercase tracking-widest hover:bg-stone-200 transition-all flex items-center justify-center gap-2 border border-stone-200 group relative overflow-hidden"
+                                    className="w-full md:hidden bg-stone-50 text-stone-900 py-3.5 px-6 text-[10px] font-bold uppercase tracking-widest hover:bg-stone-100 transition-all flex items-center justify-center gap-2 border border-stone-200 group relative overflow-hidden active:scale-[0.98]"
                                 >
-                                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
-                                    Next Recommended Stone
+                                    Next Recommended Specimen
                                 </button>
                             )}
 
                             <button
                                 onClick={(e) => { e.stopPropagation(); setIsBookmatched(!isBookmatched); }}
-                                className={`w-full py-4 px-6 text-[10px] font-bold uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 border relative overflow-hidden ${
+                                className={`w-full py-3.5 md:py-4 px-6 text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 border relative overflow-hidden active:scale-[0.98] ${
                                     isBookmatched 
                                     ? 'bg-stone-900 text-white border-stone-800' 
                                     : 'bg-white text-stone-900 border-stone-200 hover:bg-stone-50'
@@ -188,7 +185,7 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true 
 
                             <button
                                 onClick={(e) => { e.stopPropagation(); setIsVisualizing(true); }}
-                                className="w-full bg-stone-50 text-stone-900 py-4 px-6 text-xs font-bold uppercase tracking-[0.2em] hover:bg-stone-100 transition-all flex items-center justify-center gap-2 border border-stone-200 group relative overflow-hidden"
+                                className="w-full bg-stone-50 text-stone-900 py-3.5 md:py-4 px-6 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] hover:bg-stone-100 transition-all flex items-center justify-center gap-2 border border-stone-200 group relative overflow-hidden active:scale-[0.98]"
                             >
                                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
                                 <svg className="w-4 h-4 text-luxury-bronze" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -199,7 +196,7 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true 
 
                             <button
                                 onClick={handleDownload}
-                                className="w-full bg-stone-900 text-white py-4 px-6 text-xs font-bold uppercase tracking-[0.2em] hover:bg-stone-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-stone-900/20"
+                                className="w-full bg-stone-900 text-white py-3.5 md:py-4 px-6 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] hover:bg-stone-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-stone-900/20 active:scale-[0.98]"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a2 2 0 002 2h12 a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
