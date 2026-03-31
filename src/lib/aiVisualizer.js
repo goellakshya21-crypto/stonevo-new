@@ -65,16 +65,18 @@ export const aiVisualizer = {
             ? `photorealistic, wide-angle residential exterior shot — luxury home architecture, bright natural daylight, 8K resolution, architectural magazine style.`
             : `photorealistic, wide-angle architectural interior shot — high-end design, soft ambient lighting, 8K resolution, architectural magazine style.`;
 
-        const compositePrompt = `This is a photograph of a natural stone slab called "${stoneName}".
-Take this exact stone — with its real colors, veining patterns, translucency, and texture — and show it applied as the ${application} in a ${roomStyle} ${roomType}.
-The stone must look IDENTICAL to the slab in the image: same hue, same vein patterns, same finish quality.
-The rest of the scene should be a ${contextShot}
-Do NOT change the stone's color or pattern. Do NOT re-interpret it. Use the actual stone from the image.`;
+        const compositePrompt = `This is a high-resolution source photograph of the natural stone "${stoneName}".
+CRITICAL REQUIREMENT: Use the EXACT texture, vein structure, and colors from this specific image. 
+Do NOT generate a new stone pattern. Do NOT re-interpret the stone's appearance. 
+Map this precise slab onto the ${application} in a ${roomStyle} ${roomType} using pixel-perfect perspective.
+The stone in the final render must be the IDENTICAL twin of the source image: same hue, same grain, same translucency.
+The rest of the scene should be a ${contextShot}.
+Maintain 100% structural faithfulness to the material source.`;
 
         const fallbackPrompt = `A ultra-high-end, photorealistic wide-angle ${isOutdoor ? 'exterior' : 'interior'} shot of a ${roomType}.
-The centerpiece is a large-scale ${application} featuring ${stoneName} — a natural ${stoneType} with authentic veining and polished finish.
-${isOutdoor ? 'Bright sunlight' : 'Soft architectural lighting'}, 8k resolution, architectural magazine style, realistic natural stone texture.
-Integrated naturally into high-end architecture.`;
+The focal point is the ${application} made of "${stoneName}" — a natural ${stoneType} with authentic veining and polished finish.
+Maintain strict adherence to the visual characteristics of this specific luxury material.
+${isOutdoor ? 'Bright sunlight' : 'Soft architectural lighting'}, 8k resolution, architectural magazine style, realistic natural stone texture.`;
 
         console.log(`[AI Visualizer] Sending stone image URL to server for compositing...`);
 
