@@ -113,10 +113,14 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         // Determine roomType from Mapping
         let roomType = 'Living Room'; // Global Default
         
-        const mappedRoom = Object.keys(APP_ROOM_MAP).find(k => 
-            appToUse.toLowerCase().includes(k.toLowerCase()) || 
-            k.toLowerCase().includes(appToUse.toLowerCase())
-        );
+        // Normalization helper for special characters like Façade
+        const normalize = (str) => str?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") || "";
+        const normalizedApp = normalize(appToUse);
+
+        const mappedRoom = Object.keys(APP_ROOM_MAP).find(k => {
+            const nk = normalize(k);
+            return normalizedApp.includes(nk) || nk.includes(normalizedApp);
+        });
 
         if (mappedRoom) {
             roomType = APP_ROOM_MAP[mappedRoom];
@@ -127,7 +131,29 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
             roomType = roomName;
         }
 
-        console.log("[AI Modal] Determined roomType from app:", roomType);
+        // FINAL CRITICAL CHECK: Force Outdoor if it's a Facade or Exterior synonym
+        const isActuallyOutdoor = 
+            normalizedApp.includes('facade') || 
+            normalizedApp.includes('exterior') || 
+            normalizedApp.includes('balcony') ||
+            normalizedApp.includes('cladding') ||
+            normalizedApp.includes('elevation') ||
+            normalizedApp.includes('landscape') ||
+            normalizedApp.includes('paving') ||
+            normalizedApp.includes('entrance') ||
+            normalizedApp.includes('outdoor') ||
+            normalize(stone?.name).includes('facade') ||
+            normalize(stone?.name).includes('exterior') ||
+            normalize(stone?.description).includes('exterior') ||
+            normalize(stone?.description).includes('facade') ||
+            normalize(stone?.description).includes('balcony');
+
+        if (isActuallyOutdoor) {
+            console.log("[AI Modal] CRITICAL: Outdoor specimen detected (normalized)! Locking to Residential Balcony.");
+            roomType = 'Luxury Residential Balcony with Outdoor View';
+        }
+
+        console.log("[AI Modal] FINAL Determined environment:", roomType, "for:", appToUse);
         setFinalRoomType(roomType);
 
         try {

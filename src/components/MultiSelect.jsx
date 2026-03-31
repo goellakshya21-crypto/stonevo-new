@@ -10,10 +10,17 @@ const MultiSelect = ({ label, name, options, selectedValues, onChange, variant =
         'Black': { bg: 'bg-[#121212]', border: 'border-white/10', label: 'Nero Marquina' },
         'Blue': { bg: 'bg-[#4A7BB0]', border: 'border-white/10', label: 'Azul Macaubas' },
         'Green': { bg: 'bg-[#2D4F44]', border: 'border-white/10', label: 'Verde Alpi' },
-        'Yellow': { bg: 'bg-[#E6C35C]', border: 'border-white/10', label: 'Calacatta Gold' },
+        'Yellow': { bg: 'bg-[#E6C35C]', border: 'border-white/10', label: 'Giallo Siena' },
         'Beige': { bg: 'bg-[#D2C1A8]', border: 'border-white/10', label: 'Travertine' },
         'Grey': { bg: 'bg-[#7D7D7D]', border: 'border-white/10', label: 'Silver Fox' },
-        'Pink': { bg: 'bg-[#EBC4BB]', border: 'border-white/10', label: 'Rosa Aurora' }
+        'Pink': { bg: 'bg-[#EBC4BB]', border: 'border-white/10', label: 'Rosa Aurora' },
+        'Peach': { bg: 'bg-[#F4C2C2]', border: 'border-white/10', label: 'Peach Pearl' },
+        'Purple': { bg: 'bg-[#4B3D60]', border: 'border-white/10', label: 'Royal Purple' },
+        'Red': { bg: 'bg-[#8B0000]', border: 'border-white/10', label: 'Rosso Levant' },
+        'Golden': { bg: 'bg-[#D4AF37]', border: 'border-white/10', label: 'Imperial Gold' },
+        'Multi Tone': { bg: 'bg-gradient-to-tr from-[#D1D1D1] via-[#8E8E8E] to-[#4A4A4A]', border: 'border-white/10', label: 'Multi-tonal' },
+        'Brown': { bg: 'bg-[#5D4037]', border: 'border-white/10', label: 'Emperador Brown' },
+        'Cream': { bg: 'bg-[#FFF5E1]', border: 'border-white/10', label: 'Crema Marfil' }
     };
 
     useEffect(() => {
