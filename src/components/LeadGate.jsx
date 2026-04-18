@@ -297,7 +297,7 @@ const LeadGate = ({ children }) => {
 
                 <button
                     onClick={resetSession}
-                    className="fixed bottom-4 right-4 z-[300] px-4 py-2 bg-black/80 border border-white/10 rounded-full text-[10px] text-stone-400 hover:text-bronze uppercase tracking-widest transition-all backdrop-blur-md opacity-50 hover:opacity-100 shadow-2xl"
+                    className="fixed bottom-4 left-4 z-[300] px-4 py-2 bg-black/80 border border-white/10 rounded-full text-[10px] text-stone-400 hover:text-bronze uppercase tracking-widest transition-all backdrop-blur-md opacity-50 hover:opacity-100 shadow-2xl"
                 >
                     Reset Verification (Testing)
                 </button>
@@ -456,7 +456,7 @@ const LeadGate = ({ children }) => {
 
             <button
                 onClick={resetSession}
-                className="fixed bottom-4 right-4 z-[110] text-[8px] text-stone-700 hover:text-bronze uppercase tracking-widest transition-colors opacity-50 hover:opacity-100"
+                className="fixed bottom-4 left-4 z-[110] text-[8px] text-stone-700 hover:text-bronze uppercase tracking-widest transition-colors opacity-50 hover:opacity-100"
             >
                 Reset Session (Testing)
             </button>

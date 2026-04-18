@@ -1,13 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Home, Layers, ShoppingBag, ArrowRight, Save, X, Search, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Home, Layers, ShoppingBag, ArrowRight, Save, X, Search, Sparkles, GripVertical } from 'lucide-react';
 import AIVisualizationModal from './AIVisualizationModal';
 
-const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory = [] }) => {
+const StoneSelectionForm = ({ isOpen, onClose, onSubmit, onChange, initialData, inventory = [] }) => {
     const scrollContainerRef = useRef(null);
     const [isSaving, setIsSaving] = useState(false);
     const [lastAddedId, setLastAddedId] = useState(null);
+    const [requestAudit, setRequestAudit] = useState(false);
+    const [requestSourcing, setRequestSourcing] = useState(false);
 
     const [projectData, setProjectData] = useState([]);
     const [flooringData, setFlooringData] = useState({
@@ -22,6 +24,7 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
 
     const [visualizingStone, setVisualizingStone] = useState(null);
     const [visualizingRoom, setVisualizingRoom] = useState("");
+    const [dragOverRoomId, setDragOverRoomId] = useState(null);
 
     // Initialize state
     React.useEffect(() => {
@@ -45,17 +48,29 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
         }
     }, []);
 
-    // Update state if initialData changes (e.g., after a successful save)
+    // Update state if initialData changes (e.g., after a successful save or a gallery addition)
     React.useEffect(() => {
         if (initialData) {
-            if (initialData.floors) {
-                setProjectData(initialData.floors);
-                if (initialData.flooring) {
-                    setFlooringData(initialData.flooring);
-                }
-            } else if (Array.isArray(initialData)) {
-                setProjectData(initialData);
+            const nextFloors = initialData.floors || (Array.isArray(initialData) ? initialData : []);
+            const nextFlooring = initialData.flooring || { name: "", colour: "", price: "", area: "" };
+
+            // Only update if data is materially different to prevent infinite loops
+            const currentFloorsStr = JSON.stringify(projectData);
+            const nextFloorsStr = JSON.stringify(nextFloors);
+            
+            if (currentFloorsStr !== nextFloorsStr) {
+                setProjectData(nextFloors);
             }
+            
+            const currentFlooringStr = JSON.stringify(flooringData);
+            const nextFlooringStr = JSON.stringify(nextFlooring);
+            
+            if (currentFlooringStr !== nextFlooringStr) {
+                setFlooringData(nextFlooring);
+            }
+
+            if (initialData.requestAudit !== undefined) setRequestAudit(initialData.requestAudit);
+            if (initialData.requestSourcing !== undefined) setRequestSourcing(initialData.requestSourcing);
         }
     }, [initialData]);
 
@@ -68,6 +83,23 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
             }
         }
     }, [lastAddedId]);
+
+    // Send unsaved changes back UP to parent so they stay synced while form is open
+    // Added a small debounce to prevent "jitter" during rapid typing
+    useEffect(() => {
+        if (!onChange) return;
+
+        const handler = setTimeout(() => {
+            onChange({
+                floors: projectData,
+                flooring: flooringData,
+                requestAudit,
+                requestSourcing
+            });
+        }, 500);
+
+        return () => clearTimeout(handler);
+    }, [projectData, flooringData, requestAudit, requestSourcing, onChange]);
 
     if (!isOpen) return null;
 
@@ -176,11 +208,17 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
             setActiveSearch({ floorId, roomId, stoneId });
             if (value.length > 1) {
                 const query = value.toLowerCase();
-                const matches = inventory.filter(item =>
-                    item.name.toLowerCase().includes(query) ||
-                    (item.type && item.type.toLowerCase().includes(query)) ||
-                    (item.color && item.color.toLowerCase().includes(query))
-                ).slice(0, 5);
+                const matches = inventory.filter(item => {
+                    const typeRaw = item.physical_properties?.marble || item.type || '';
+                    const colorRaw = item.physical_properties?.color || item.color || '';
+                    
+                    const typeStr = Array.isArray(typeRaw) ? typeRaw.join(' ') : typeRaw;
+                    const colorStr = Array.isArray(colorRaw) ? colorRaw.join(' ') : colorRaw;
+
+                    return item.name?.toLowerCase().includes(query) ||
+                        (typeStr && typeStr.toLowerCase().includes(query)) ||
+                        (colorStr && colorStr.toLowerCase().includes(query));
+                }).slice(0, 5);
                 setSearchResults(matches);
             } else {
                 setSearchResults([]);
@@ -225,10 +263,10 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
                                         return {
                                             ...stone,
                                             name: item.name,
-                                            colour: `${item.color || ''} / ${item.finish || ''}`, // Showing Finish instead of type
-                                            application: item.application || 'Flooring',
-                                            price: item.price_range,
-                                            image_url: item.image_url
+                                            colour: `${item.physical_properties?.color || item.color || ''} / ${item.physical_properties?.finish || item.finish || ''}`,
+                                            application: item.physical_properties?.application?.[0] || item.application || 'Flooring',
+                                            price: item.physical_properties?.priceRange?.[0] || item.price_range || '',
+                                            image_url: item.imageUrl || item.image_url
                                         };
                                     }
                                     return stone;
@@ -243,6 +281,84 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
         }));
         setActiveSearch({ floorId: null, roomId: null, stoneId: null });
         setSearchResults([]);
+    };
+
+    const handleAutoScroll = (e) => {
+        if (!scrollContainerRef.current) return;
+        
+        const container = scrollContainerRef.current;
+        const rect = container.getBoundingClientRect();
+        const scrollZoneHeight = 100; // 100px from top/bottom to start scrolling
+        const scrollSpeed = 15; // Max scroll speed
+        
+        // Only trigger if we are dragging a stone
+        if (!e.dataTransfer.types.includes("movedstone") && !e.target.closest('[draggable="true"]')) {
+            // Check for standard move effect anyway to avoid flicker
+            e.preventDefault();
+        }
+
+        const distanceFromTop = e.clientY - rect.top;
+        const distanceFromBottom = rect.bottom - e.clientY;
+
+        if (distanceFromTop < scrollZoneHeight) {
+            // Scroll Up
+            const intensity = (scrollZoneHeight - distanceFromTop) / scrollZoneHeight;
+            container.scrollTop -= scrollSpeed * intensity;
+        } else if (distanceFromBottom < scrollZoneHeight) {
+            // Scroll Down
+            const intensity = (scrollZoneHeight - distanceFromBottom) / scrollZoneHeight;
+            container.scrollTop += scrollSpeed * intensity;
+        }
+        
+        e.preventDefault();
+    };
+
+    const handleMoveStone = (stoneId, sourceFloorId, sourceRoomId, targetFloorId, targetRoomId) => {
+        if (sourceRoomId === targetRoomId) return;
+
+        setProjectData(prev => {
+            let movedStone = null;
+            // First find and remove the stone
+            const updated = prev.map(floor => {
+                if (floor.id === sourceFloorId) {
+                    return {
+                        ...floor,
+                        rooms: floor.rooms.map(room => {
+                            if (room.id === sourceRoomId) {
+                                movedStone = room.stones.find(s => s.id === stoneId);
+                                return {
+                                    ...room,
+                                    stones: room.stones.filter(s => s.id !== stoneId)
+                                };
+                            }
+                            return room;
+                        })
+                    };
+                }
+                return floor;
+            });
+
+            if (!movedStone) return prev;
+
+            // Then add it to the target
+            return updated.map(floor => {
+                if (floor.id === targetFloorId) {
+                    return {
+                        ...floor,
+                        rooms: floor.rooms.map(room => {
+                            if (room.id === targetRoomId) {
+                                return {
+                                    ...room,
+                                    stones: [...room.stones, movedStone]
+                                };
+                            }
+                            return room;
+                        })
+                    };
+                }
+                return floor;
+            });
+        });
     };
 
     const updateFloorNo = (floorId, value) => {
@@ -284,7 +400,11 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
         e.preventDefault();
         const finalData = {
             flooring: flooringData,
-            floors: projectData
+            floors: projectData,
+            service_upsells: {
+                requestAudit,
+                requestSourcing
+            }
         };
         if (onSubmit) {
             setIsSaving(true);
@@ -315,6 +435,7 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
                     initial={{ scale: 0.95, opacity: 0, y: 20 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                    onDragOver={handleAutoScroll}
                     className="bg-[#1a150c] border border-white/5 w-full max-w-[1600px] h-[90vh] overflow-y-auto rounded-3xl shadow-2xl relative custom-scrollbar text-slate-100"
                 >
                     {/* Inline styles to match the provided CSS exactly */}
@@ -490,7 +611,26 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
                                         {/* Rooms in Floor */}
                                         <div className="space-y-8">
                                             {floor.rooms.map((room) => (
-                                                <div key={room.id} id={`scroll-target-${room.id}`} className="rounded-xl border border-white/5 bg-white/[0.01] p-8 space-y-8 relative group">
+                                                <div 
+                                                    key={room.id} 
+                                                    id={`scroll-target-${room.id}`} 
+                                                    onDragOver={(e) => {
+                                                        e.preventDefault();
+                                                        setDragOverRoomId(room.id);
+                                                    }}
+                                                    onDragLeave={() => setDragOverRoomId(null)}
+                                                    onDrop={(e) => {
+                                                        e.preventDefault();
+                                                        setDragOverRoomId(null);
+                                                        try {
+                                                            const data = JSON.parse(e.dataTransfer.getData("movedStone"));
+                                                            handleMoveStone(data.stoneId, data.floorId, data.roomId, floor.id, room.id);
+                                                        } catch (err) {
+                                                            console.error("Drop failed:", err);
+                                                        }
+                                                    }}
+                                                    className={`rounded-xl border transition-all p-8 space-y-8 relative group ${dragOverRoomId === room.id ? 'border-[#eca413] bg-[#eca413]/5 ring-1 ring-[#eca413]/20 scale-[1.01]' : 'border-white/5 bg-white/[0.01]'}`}
+                                                >
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-4">
                                                             <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
@@ -519,7 +659,10 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
                                                     {/* Stones Table */}
                                                     <div className="space-y-4">
                                                         <div className="grid grid-cols-12 gap-6 px-2 text-[10px] uppercase tracking-widest font-bold text-slate-500">
-                                                            <div className="col-span-4">Stone Type/Name</div>
+                                                            <div className="col-span-4 flex items-center gap-2">
+                                                                <div className="w-5" /> {/* Empty space for drag handle alignment */}
+                                                                Stone Type/Name
+                                                            </div>
                                                             <div className="col-span-3">Color / Finish</div>
                                                             <div className="col-span-2 text-center">Quantity</div>
                                                             <div className="col-span-2 text-center">Area (Sq.Ft)</div>
@@ -527,9 +670,24 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
                                                         </div>
 
                                                         {room.stones.map((stone) => (
-                                                            <div key={stone.id} className="grid grid-cols-12 gap-6 items-center">
-                                                                <div className="col-span-4 relative group">
-                                                                    <div className="relative">
+                                                            <div 
+                                                                key={stone.id} 
+                                                                className="grid grid-cols-12 gap-6 items-center group/stone"
+                                                                draggable="true"
+                                                                onDragStart={(e) => {
+                                                                    e.dataTransfer.setData("movedStone", JSON.stringify({
+                                                                        stoneId: stone.id,
+                                                                        floorId: floor.id,
+                                                                        roomId: room.id
+                                                                    }));
+                                                                    e.dataTransfer.effectAllowed = "move";
+                                                                }}
+                                                            >
+                                                                <div className="col-span-4 relative flex items-center gap-2">
+                                                                    <div className="cursor-grab active:cursor-grabbing text-slate-700 hover:text-[#eca413] transition-colors p-1">
+                                                                        <GripVertical size={16} />
+                                                                    </div>
+                                                                    <div className="relative flex-1">
                                                                         <input
                                                                             type="text"
                                                                             value={stone.name}
@@ -599,18 +757,16 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
                                                                     </div>
                                                                 </div>
                                                                 <div className="col-span-1 flex justify-center gap-2">
-                                                                    {stone.name && (
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                setVisualizingStone(stone);
-                                                                                setVisualizingRoom(room.roomName);
-                                                                            }}
-                                                                            title="AI Visualise"
-                                                                            className="w-10 h-10 flex items-center justify-center text-[#eca413] hover:bg-[#eca413]/10 rounded-lg transition-all"
-                                                                        >
-                                                                            <Sparkles size={18} />
-                                                                        </button>
-                                                                    )}
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setVisualizingStone(stone);
+                                                                            setVisualizingRoom(room.roomName);
+                                                                        }}
+                                                                        title={stone.name ? "AI Visualise" : "Select a stone to visualise"}
+                                                                        className={`w-10 h-10 flex items-center justify-center rounded-lg transition-all ${stone.name ? 'text-[#eca413] hover:bg-[#eca413]/10' : 'text-slate-600 hover:text-slate-400 opacity-50'}`}
+                                                                    >
+                                                                        <Sparkles size={18} />
+                                                                    </button>
                                                                     <button
                                                                         onClick={() => removeStone(floor.id, room.id, stone.id)}
                                                                         className="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
@@ -668,6 +824,45 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, initialData, inventory 
                                     <span className="text-xl font-medium text-slate-100 tracking-wide font-serif italic">Add New Floor Requirement</span>
                                 </button>
                             </div>
+
+                            {/* Service Integration Upsells */}
+                            <section className="bg-stone-900 border border-luxury-bronze/30 rounded-3xl p-8 mt-12 bg-gradient-to-r from-stone-900 to-stone-950 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-8 opacity-5">
+                                    <Sparkles size={120} />
+                                </div>
+                                <h3 className="text-2xl font-serif text-luxury-cream mb-2 relative z-10">Maximize Value & Mitigate Risk</h3>
+                                <p className="text-stone-400 text-sm mb-8 max-w-2xl relative z-10">Our institutional services integrate natively with your requirement draft. Opt-in below before saving.</p>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                                    {/* Auditing Toggle */}
+                                    <div 
+                                        onClick={() => setRequestAudit(!requestAudit)}
+                                        className={`p-6 rounded-2xl border cursor-pointer transition-all flex gap-4 ${requestAudit ? 'border-luxury-bronze bg-luxury-bronze/10' : 'border-white/10 hover:border-white/30 bg-white/5'}`}
+                                    >
+                                        <div className={`w-6 h-6 rounded border flex items-center justify-center shrink-0 mt-1 ${requestAudit ? 'bg-luxury-bronze border-luxury-bronze/0' : 'border-stone-600'}`}>
+                                            {requestAudit && <div className="w-3 h-3 bg-stone-950 rounded-sm" />}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-serif text-lg text-white mb-1">Add Stone Audit</h4>
+                                            <p className="text-xs text-stone-400 leading-relaxed">Let our experts review this draft for quality risks and precise price benchmarking (₹5k - ₹25k). Highly recommended.</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Sourcing Toggle */}
+                                    <div 
+                                        onClick={() => setRequestSourcing(!requestSourcing)}
+                                        className={`p-6 rounded-2xl border cursor-pointer transition-all flex gap-4 ${requestSourcing ? 'border-luxury-bronze bg-luxury-bronze/10' : 'border-white/10 hover:border-white/30 bg-white/5'}`}
+                                    >
+                                        <div className={`w-6 h-6 rounded border flex items-center justify-center shrink-0 mt-1 ${requestSourcing ? 'bg-luxury-bronze border-luxury-bronze/0' : 'border-stone-600'}`}>
+                                            {requestSourcing && <div className="w-3 h-3 bg-stone-950 rounded-sm" />}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-serif text-lg text-white mb-1">Submit for Curated Sourcing</h4>
+                                            <p className="text-xs text-stone-400 leading-relaxed">Submit these exact requirements to Stonevo for exclusive material shortlisting and robust negotiation.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
                         </div>
 
                         {/* Footer */}

@@ -7,12 +7,12 @@ import AIVisualizationModal from '../components/AIVisualizationModal';
 import { supabase } from '../lib/supabaseClient';
 import Fuse from 'fuse.js';
 import ChatAssistant from '../components/ChatAssistant';
-import { Menu, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import StoneSelectionForm from '../components/StoneSelectionForm';
+import { useRequirements } from '../context/RequirementsContext';
 
 const ITEMS_PER_PAGE = 50;
-
-// Deploy sync: 2026-03-16T19:10:00
 const SYNTHETIC_MARBLES = [];
 
 function Home() {
@@ -22,6 +22,17 @@ function Home() {
     const [visualizationData, setVisualizationData] = useState(null);
     const [stoneContextList, setStoneContextList] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
+    
+    const { 
+        isConfiguratorOpen, 
+        setIsConfiguratorOpen, 
+        addToRequirements, 
+        saveRequirements, 
+        updateActiveDraft,
+        stoneCount,
+        activeDraft
+    } = useRequirements();
+
     const [filters, setFilters] = useState({
         name: '',
         marble: [],
@@ -33,7 +44,6 @@ function Home() {
         temperature: []
     });
 
-    // Lead Activity Tracking: Explicit search logging
     useEffect(() => {
         const hasActiveFilters = filters.name ||
             filters.marble.length > 0 ||
@@ -78,11 +88,9 @@ function Home() {
                 tags: item.tags
             }));
 
-            // Merge live data with synthetic data
             setMarbles([...transformedData, ...SYNTHETIC_MARBLES]);
         } catch (err) {
             console.error('Error fetching stones:', err);
-            // Fallback to only synthetic data if Supabase fails
             setMarbles(SYNTHETIC_MARBLES);
         } finally {
             setLoading(false);
@@ -93,10 +101,21 @@ function Home() {
         fetchMarbles();
     }, []);
 
+    const handleSaveRequirements = async (data) => {
+        const result = await saveRequirements(data);
+        if (result.success) {
+            alert("Requirements saved successfully to our institutional database.");
+        } else {
+            alert(`Save failed: ${result.error}`);
+        }
+    };
+
+    const handleAddToRequirements = (stone) => {
+        addToRequirements(stone);
+    };
+
     const filteredMarbles = useMemo(() => {
         let result = marbles;
-
-        // Apply fuzzy search if a name is typed
         if (filters.name.trim()) {
             const fuse = new Fuse(marbles, {
                 keys: ['name', 'physical_properties.application', 'tags', 'description'],
@@ -108,7 +127,6 @@ function Home() {
             const searchResults = fuse.search(filters.name);
             result = searchResults.map(res => res.item);
         }
-
         return result.filter(marble => {
             const p = marble.physical_properties;
             const hasOverlap = (filterArr, stoneArr) =>
@@ -124,29 +142,18 @@ function Home() {
         });
     }, [filters, marbles]);
 
-    // Pagination
     const totalPages = Math.ceil(filteredMarbles.length / ITEMS_PER_PAGE);
     const paginatedMarbles = filteredMarbles.slice(
         (currentPage - 1) * ITEMS_PER_PAGE,
         currentPage * ITEMS_PER_PAGE
     );
 
-    // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
     }, [filters]);
 
     const handleReset = () => {
-        setFilters({
-            name: '',
-            marble: [],
-            color: [],
-            finish: [],
-            priceRange: [],
-            application: [],
-            pattern: [],
-            temperature: []
-        });
+        setFilters({ name: '', marble: [], color: [], finish: [], priceRange: [], application: [], pattern: [], temperature: [] });
     };
 
     const handleStoneClick = (stone, contextStones = []) => {
@@ -156,189 +163,80 @@ function Home() {
 
     return (
         <div className="min-h-screen bg-stone-950 text-stone-200 font-sans selection:bg-luxury-bronze/30">
-
-            {/* Immersive Hero & AI Concierge */}
-            <section className="relative min-h-[60vh] md:min-h-[85vh] flex flex-col items-center justify-center pt-16 md:pt-20 pb-20 md:pb-32">
-                {/* Geological Background Image Wrapper (Clipping contained here) */}
-                <div className="absolute inset-0 z-0 overflow-hidden">
-                    <img
-                        alt="Rare veined marble slab background"
-                        className="w-full h-full object-cover transform scale-110 motion-safe:animate-[pulse_10s_ease-in-out_infinite]"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8V6FefDxODr-gE99KmfKBpOaa7ttQxkZ43OooLIpRStirrlnpEbS74TLoks1cTJC7WIE05o0WSG1rrobP6A11bk4cdMgnZc3C8vmpO02BkFSzx2EBW-SHM-x_k8sPmgLv28tIpN7XsPjzR0044NOm-tdNaobs0RJZt9yLnddY2-82SmOdaItBgqdiMXLbbJVFuQ2K8_r67GJq2rLXJtBzohjaCvwJjo_0DsFjPUboYWOcOscR61Go52debRHXQR7AtYtvl2TNuyrv"
-                    />
-                    {/* Multi-layered cinematic gradient */}
-                    <div className="absolute inset-0 bg-black/30" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-taupe" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
-                </div>
-
-                <div className="max-w-7xl mx-auto px-6 text-center space-y-6 md:space-y-8 relative z-40 w-full">
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-                        className=""
+            <header className="absolute top-0 w-full z-50 py-6 px-8 flex justify-between items-center">
+                <div />
+                <nav className="flex items-center gap-6">
+                    <Link to="/advisory" className="text-[10px] uppercase tracking-widest text-stone-400 hover:text-white transition-colors font-bold py-2 px-4 border border-stone-800/50 rounded-full bg-stone-900/50 backdrop-blur-sm">Audit & Advisory</Link>
+                    <button 
+                        onClick={() => setIsConfiguratorOpen(true)} 
+                        className="group flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] text-white font-bold py-2 px-6 rounded-full bg-luxury-bronze hover:bg-bronze transition-all shadow-lg shadow-luxury-bronze/20"
                     >
-                        <h1 className="font-serif text-5xl md:text-8xl text-luxury-cream text-shadow-sm tracking-tighter leading-tight md:leading-none">Stonevo</h1>
-                        <p className="font-serif italic text-lg md:text-2xl text-bronze mt-4 md:mt-6 tracking-normal text-shadow-sm opacity-90">Your stone procurement and consulting partner</p>
+                        {stoneCount > 0 ? (
+                            <>
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-stone-950 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-stone-950"></span>
+                                </span>
+                                <span>Requirements ({stoneCount})</span>
+                            </>
+                        ) : (
+                            <span>Add Requirement</span>
+                        )}
+                    </button>
+                </nav>
+            </header>
+
+            <section className="relative min-h-[60vh] md:min-h-[85vh] flex flex-col items-center justify-center pt-16 md:pt-20 pb-20 md:pb-32">
+                <div className="absolute inset-0 z-0 overflow-hidden">
+                    <img alt="background" className="w-full h-full object-cover transform scale-110 motion-safe:animate-[pulse_10s_ease-in-out_infinite]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8V6FefDxODr-gE99KmfKBpOaa7ttQxkZ43OooLIpRStirrlnpEbS74TLoks1cTJC7WIE05o0WSG1rrobP6A11bk4cdMgnZc3C8vmpO02BkFSzx2EBW-SHM-x_k8sPmgLv28tIpN7XsPjzR0044NOm-tdNaobs0RJZt9yLnddY2-82SmOdaItBgqdiMXLbbJVFuQ2K8_r67GJq2rLXJtBzohjaCvwJjo_0DsFjPUboYWOcOscR61Go52debRHXQR7AtYtvl2TNuyrv" />
+                    <div className="absolute inset-0 bg-black/30" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-stone-950" />
+                </div>
+                <div className="max-w-7xl mx-auto px-6 text-center space-y-6 md:space-y-8 relative z-40 w-full">
+                    <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2 }}>
+                        <h1 className="font-serif text-5xl md:text-8xl text-luxury-cream tracking-tighter leading-tight">Stonevo</h1>
+                        <p className="font-serif italic text-lg md:text-2xl text-bronze mt-4 tracking-normal opacity-90">Your stone procurement and consulting partner</p>
                     </motion.div>
-
                     <div className="max-w-4xl mx-auto w-full">
-                        <ChatAssistant 
-                            marbles={marbles} 
-                            onStoneClick={handleStoneClick} 
-                            onVisualizeRequest={(data) => {
-                                setVisualizationData(data);
-                            }}
-                        />
+                        <ChatAssistant marbles={marbles} onStoneClick={handleStoneClick} onVisualizeRequest={setVisualizationData} />
                     </div>
-
-                    {/* Integrated Premium Filter Bar */}
                     <div className="pt-8 px-4 w-full max-w-6xl mx-auto">
-                        <FilterBar
-                            filters={filters}
-                            setFilters={setFilters}
-                            onReset={handleReset}
-                        />
+                        <FilterBar filters={filters} setFilters={setFilters} onReset={handleReset} />
                     </div>
-
-                    {/* Visual Buffer for Gallery Transition */}
-                    <div className="h-12" />
                 </div>
             </section>
 
-            {/* Main Gallery Content */}
-            <main className="max-w-[100vw] px-6 py-24 bg-taupe rounded-t-[4rem] border-t border-white/5 shadow-[0_-80px_150px_rgba(0,0,0,0.6)] -mt-16 relative z-10 group/gallery">
+            <main className="max-w-[100vw] px-6 py-24 bg-stone-900 rounded-t-[4rem] border-t border-white/5 shadow-[0_-80px_150px_rgba(0,0,0,0.6)] -mt-16 relative z-10 group/gallery">
                 <div className="max-w-7xl mx-auto mb-16 flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-white/5 pb-12">
                     <div className="space-y-2">
                         <h3 className="text-[10px] font-bold text-bronze uppercase tracking-[0.4em] italic opacity-60">Archives</h3>
                         <p className="text-luxury-cream font-serif text-3xl italic tracking-wide">
                             {filteredMarbles.length} Curated Specimens
-                            {totalPages > 1 && ` • Showing ${(currentPage - 1) * ITEMS_PER_PAGE + 1}-${Math.min(currentPage * ITEMS_PER_PAGE, filteredMarbles.length)}`}
                         </p>
-
-                        {/* Top Pagination */}
                         {totalPages > 1 && (
-                            <div className="flex items-center justify-center gap-4 mt-6">
-                                <button
-                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                    disabled={currentPage === 1}
-                                    className="p-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                                >
-                                    <ChevronLeft className="w-4 h-4" />
-                                </button>
-                                <div className="flex items-center gap-1">
-                                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                        let pageNum;
-                                        if (totalPages <= 5) {
-                                            pageNum = i + 1;
-                                        } else if (currentPage <= 3) {
-                                            pageNum = i + 1;
-                                        } else if (currentPage >= totalPages - 2) {
-                                            pageNum = totalPages - 4 + i;
-                                        } else {
-                                            pageNum = currentPage - 2 + i;
-                                        }
-                                        return (
-                                            <button
-                                                key={pageNum}
-                                                onClick={() => setCurrentPage(pageNum)}
-                                                className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${
-                                                    currentPage === pageNum
-                                                        ? 'bg-bronze text-stone-900'
-                                                        : 'border border-white/10 hover:bg-white/5'
-                                                }`}
-                                            >
-                                                {pageNum}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                <button
-                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                    disabled={currentPage === totalPages}
-                                    className="p-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                                >
-                                    <ChevronRight className="w-4 h-4" />
-                                </button>
-                                <span className="text-xs text-stone-500 ml-2">
-                                    {currentPage}/{totalPages}
-                                </span>
+                            <div className="flex items-center gap-4 mt-6">
+                                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-30"><ChevronLeft className="w-4 h-4" /></button>
+                                <span className="text-xs text-stone-500">{currentPage}/{totalPages}</span>
+                                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="p-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-30"><ChevronRight className="w-4 h-4" /></button>
                             </div>
                         )}
                     </div>
                 </div>
-
                 <div className="max-w-7xl mx-auto">
-                    <MarbleGrid
-                        marbles={paginatedMarbles}
-                        loading={loading}
-                        onEnlarge={(stone) => handleStoneClick(stone, paginatedMarbles)}
-                    />
-
-                    {/* Pagination Controls */}
-                    {totalPages > 1 && (
-                        <div className="flex items-center justify-center gap-4 mt-16 pt-8 border-t border-white/5">
-                            <button
-                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                disabled={currentPage === 1}
-                                className="p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                            >
-                                <ChevronLeft className="w-5 h-5" />
-                            </button>
-                            <div className="flex items-center gap-2">
-                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                    let pageNum;
-                                    if (totalPages <= 5) {
-                                        pageNum = i + 1;
-                                    } else if (currentPage <= 3) {
-                                        pageNum = i + 1;
-                                    } else if (currentPage >= totalPages - 2) {
-                                        pageNum = totalPages - 4 + i;
-                                    } else {
-                                        pageNum = currentPage - 2 + i;
-                                    }
-                                    return (
-                                        <button
-                                            key={pageNum}
-                                            onClick={() => setCurrentPage(pageNum)}
-                                            className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
-                                                currentPage === pageNum
-                                                    ? 'bg-bronze text-stone-900'
-                                                    : 'border border-white/10 hover:bg-white/5'
-                                            }`}
-                                        >
-                                            {pageNum}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                            <button
-                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                disabled={currentPage === totalPages}
-                                className="p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                            >
-                                <ChevronRight className="w-5 h-5" />
-                            </button>
-                            <span className="text-sm text-stone-500 ml-4">
-                                Page {currentPage} of {totalPages}
-                            </span>
-                        </div>
-                    )}
+                    <MarbleGrid marbles={paginatedMarbles} loading={loading} onEnlarge={(stone) => handleStoneClick(stone, paginatedMarbles)} />
                 </div>
             </main>
 
-            {/* Image Modal */}
             {selectedStone && (
                 <ImageModal
                     stone={selectedStone}
                     allStones={stoneContextList}
                     onClose={() => { setSelectedStone(null); setStoneContextList([]); }}
                     onNavigate={setSelectedStone}
+                    onAddToRequirements={handleAddToRequirements}
                 />
             )}
 
-            {/* Direct AI Visualization (triggered from Chat) */}
             {visualizationData && (
                 <AIVisualizationModal
                     isOpen={true}
@@ -350,44 +248,21 @@ function Home() {
                 />
             )}
 
-            {/* Premium Footer */}
-            <footer className="bg-stone-900 py-24 mt-20 text-stone-400">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-16 border-b border-stone-800 pb-16 mb-16">
-                        <div className="col-span-1 md:col-span-1 space-y-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 border border-stone-700 flex items-center justify-center transform rotate-45">
-                                    <div className="w-5 h-5 border-[0.5px] border-stone-700 transform -rotate-45" />
-                                </div>
-                                <h1 className="text-xl font-serif tracking-[0.1em] text-white">STONEVO</h1>
-                            </div>
-                            <p className="text-xs leading-relaxed max-w-xs">Curating the world's most evocative natural surfaces for architectural distinction.</p>
-                        </div>
-                        <div className="space-y-6">
-                            <h4 className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Sitemap</h4>
-                            <ul className="text-sm space-y-4 text-stone-300">
-                                <li className="hover:text-luxury-bronze cursor-pointer transition-colors">Origins</li>
-                                <li className="hover:text-luxury-bronze cursor-pointer transition-colors">Specimens</li>
-                                <Link to="/internal-management-stonevo-9921" className="block hover:text-luxury-bronze cursor-pointer transition-colors">Admin Management</Link>
-                                <li className="hover:text-luxury-bronze cursor-pointer transition-colors">Legal Archives</li>
-                            </ul>
-                        </div>
-                        <div className="space-y-6">
-                            <h4 className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Connection</h4>
-                            <ul className="text-sm space-y-4 text-stone-300">
-                                <li className="hover:text-luxury-bronze cursor-pointer transition-colors">Inquire</li>
-                                <li className="hover:text-luxury-bronze cursor-pointer transition-colors">Newsletter</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-[10px] uppercase tracking-widest font-bold">
-                        <p>© 2026 Stonevo Architectural. Artifact of Nature.</p>
-                        {import.meta.env.VITE_ENABLE_ADMIN === 'true' && (
-                            <Link to="/internal-management-stonevo-9921" className="text-stone-700 hover:text-luxury-bronze transition-colors py-2 px-4 border border-stone-800/50">Admin Interface</Link>
-                        )}
-                    </div>
+            <footer className="bg-stone-950 py-24 mt-20 text-stone-400">
+                <div className="max-w-7xl mx-auto px-6 text-center border-t border-white/5 pt-16">
+                    <h1 className="text-xl font-serif tracking-[0.1em] text-white">STONEVO</h1>
+                    <p className="text-[10px] uppercase tracking-widest font-bold mt-4">© 2026 Stonevo Architectural. Artifact of Nature.</p>
                 </div>
             </footer>
+
+            <StoneSelectionForm
+                isOpen={isConfiguratorOpen}
+                onClose={() => setIsConfiguratorOpen(false)}
+                onSubmit={handleSaveRequirements}
+                onChange={updateActiveDraft}
+                initialData={activeDraft}
+                inventory={stoneContextList.length > 0 ? stoneContextList : marbles}
+            />
         </div>
     );
 }

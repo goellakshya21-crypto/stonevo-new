@@ -8,52 +8,57 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { stoneImageUrl, roomType, application, stoneName, roomStyle, modelId = 'gemini-2.5-flash-image' } = req.body;
+        const { stoneImageUrl, roomType, application, stoneName, roomStyle, promptText, userRoomImage, modelId = 'gemini-2.5-flash-image' } = req.body;
 
         if (!stoneImageUrl) {
             return res.status(400).json({ error: 'Stone image URL is required.' });
         }
 
-        // Secure Service Account Loading
+        // ... (Service Account loading stays the same)
         let keyData;
         if (process.env.GOOGLE_SERVICE_ACCOUNT) {
-            console.log('[Vertex AI Image] Loading credentials from GOOGLE_SERVICE_ACCOUNT Env Var.');
             keyData = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
         } else {
             const keyPath = path.join(process.cwd(), 'hi.json');
             if (fs.existsSync(keyPath)) {
-                console.log('[Vertex AI Image] Loading credentials from local hi.json.');
                 keyData = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
             } else {
-                return res.status(500).json({ error: 'Service account credentials not found. Set GOOGLE_SERVICE_ACCOUNT or provide hi.json.' });
+                return res.status(500).json({ error: 'Service account credentials not found.' });
             }
         }
 
-        // Initialize Vertex AI
         const vertexAI = new VertexAI({ 
             project: keyData.project_id, 
             location: 'us-central1',
-            googleAuthOptions: {
-                credentials: {
-                    client_email: keyData.client_email,
-                    private_key: keyData.private_key,
-                }
-            } 
+            googleAuthOptions: { credentials: { client_email: keyData.client_email, private_key: keyData.private_key } } 
         });
 
-        // Prompt from original code
-        const promptText = `
-        You are a master architectural photographer and AI renderer specialized in ${roomStyle || 'Modern'} design.
-        SLAB REFERENCE: The attached image is a natural stone slab called "${stoneName}".
-        INSTRUCTION: Generate a photorealistic 8K interior architectural rendering of a luxury ${roomType || 'kitchen'} in a ${roomStyle || 'Modern'} architectural style.
-        REQUIRED MAPPING: You MUST map the EXACT colors and vein patterns of the attached slab onto the ${application || 'primary surfaces (e.g. islands, counters, walls)'}.
-        STRUCTURAL REALISM: Natural stone is only applied to flat, rigid architectural planes. 
-        FORBIDDEN: NEVER apply the stone pattern to curved bathtubs, round sinks, or complex organic shapes.
-        WASHROOM LOGIC: If rendering a bathroom, apply the stone to the flat wall panels and vanity top ONLY. Keep the bathtub and sinks as pure white porcelain or matte ceramic.
-        STYLE DETAILS: Emphasize the unique characteristics of ${roomStyle || 'Modern'} architecture (e.g., specific lighting, materials, and furniture associated with this style).
-        QUALITY: High-end architectural photography, cinematic soft lighting, polished surfaces, 8K ultra-hdr resolution.
-        COMPOSITION: Wide-angle interior shot.
-        `;
+        // Refined Prompt for Multi-Modal Inpainting
+        let finalPrompt;
+        if (userRoomImage) {
+            finalPrompt = `
+            CONTEXT: You are performing high-end architectural inpainting and material replacement. 
+            MATERIAL SOURCE: The first attached image is the natural stone slab "${stoneName}". Use this EXACT texture, vein structure, and color.
+            USER ORIGINAL SPACE: The second attached image is a photograph of a user's actual room.
+            
+            INSTRUCTION: 
+            1. Identify every instance of the ${application || 'primary surface'} in the second (user) image.
+            2. Replace the identified ${application || 'primary surface'} with the stone texture from the first image.
+            3. Apply realistic perspective, depth, and specular highlights based on the original room's geometry.
+            4. IMPORTANT: Maintain the original lighting, shadows cast by furniture, and environmental reflections perfectly.
+            5. The resulting image must be an 8K photorealistic composite where ONLY the ${application} has been updated.
+            6. DO NOT add any rugs, furniture, or decor. Keep the room layout identical to the user's photo.
+            7. Return the final edited photograph.
+            `;
+        } else {
+            finalPrompt = `
+            ${promptText || ''}
+            You are a master architectural photographer. Generate a photorealistic 8K interior of a luxury ${roomType} in a ${roomStyle} style.
+            Map the EXACT colors and vein patterns of the attached stone slab "${stoneName}" onto the ${application}.
+            The stone must be a 1:1 identical match to the reference image.
+            No rugs or furniture should obscure the stone surface. High-contrast architectural lighting.
+            `;
+        }
 
         // Fetch stone image as base64
         const imgResp = await fetch(stoneImageUrl);
@@ -62,20 +67,27 @@ export default async function handler(req, res) {
         const stoneBase64 = Buffer.from(arrayBuffer).toString('base64');
         const stoneMime = imgResp.headers.get('content-type') || 'image/jpeg';
 
-        // NOTE: Standard Vertex AI Imagen 4 use case.
-        // If the model is Imagen, we use the prediction service.
         const model = vertexAI.preview.getGenerativeModel({ model: modelId });
+        console.log(`[Vertex AI Image] Generating render. Custom Room: ${!!userRoomImage}`);
 
-        console.log(`[Vertex AI Image] Generating render with model: ${modelId}`);
+        const parts = [
+            { text: finalPrompt },
+            { inlineData: { mimeType: stoneMime, data: stoneBase64 } }
+        ];
+
+        // Add user room image if present
+        if (userRoomImage) {
+            // Fix destructuring: match() returns [fullMatch, group1, group2]
+            const [, mimeMatch, base64Data] = userRoomImage.match(/^data:(image\/\w+);base64,(.+)$/) || [];
+            if (mimeMatch && base64Data) {
+                parts.push({ inlineData: { mimeType: mimeMatch, data: base64Data } });
+            } else {
+                console.warn('[Vertex AI Image] userRoomImage provided but regex match failed.');
+            }
+        }
 
         const result = await model.generateContent({
-            contents: [{
-                role: 'user',
-                parts: [
-                    { text: promptText },
-                    { inlineData: { mimeType: stoneMime, data: stoneBase64 } }
-                ]
-            }]
+            contents: [{ role: 'user', parts }]
         });
 
         const response = await result.response;

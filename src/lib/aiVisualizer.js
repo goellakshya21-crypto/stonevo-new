@@ -55,7 +55,7 @@ export const aiVisualizer = {
      * The server fetches the image (no CORS), then uses Gemini's image editing
      * to composite the EXACT stone texture into the room scene.
      */
-    async generateRoomImage(stoneName, roomType, stoneType, application, imageUrl, roomStyle = 'Modern') {
+    async generateRoomImage(stoneName, roomType, stoneType, application, imageUrl, roomStyle = 'Modern', userRoomImage = null) {
         const isOutdoor = (roomType.toLowerCase().includes('exterior') || 
                           roomType.toLowerCase().includes('facade') || 
                           roomType.toLowerCase().includes('balcony') || 
@@ -70,15 +70,17 @@ CRITICAL REQUIREMENT: Use the EXACT texture, vein structure, and colors from thi
 Do NOT generate a new stone pattern. Do NOT re-interpret the stone's appearance. 
 Map this precise slab onto the ${application} in a ${roomStyle} ${roomType} using pixel-perfect perspective.
 The stone in the final render must be the IDENTICAL twin of the source image: same hue, same grain, same translucency.
+STRICTLY FORBIDDEN: Do NOT place any rugs, mats, carpets, or floor coverings in the scene. The entire ${application} MUST be 100% exposed and completely visible, from corner to corner. Do not obscure the stone with furniture unless strictly structural.
 The rest of the scene should be a ${contextShot}.
 Maintain 100% structural faithfulness to the material source.`;
 
         const fallbackPrompt = `A ultra-high-end, photorealistic wide-angle ${isOutdoor ? 'exterior' : 'interior'} shot of a ${roomType}.
 The focal point is the ${application} made of "${stoneName}" — a natural ${stoneType} with authentic veining and polished finish.
+STRICTLY FORBIDDEN: Do NOT place any rugs, mats, carpets, or floor coverings in the scene. The entire ${application} MUST be completely exposed.
 Maintain strict adherence to the visual characteristics of this specific luxury material.
 ${isOutdoor ? 'Bright sunlight' : 'Soft architectural lighting'}, 8k resolution, architectural magazine style, realistic natural stone texture.`;
 
-        console.log(`[AI Visualizer] Sending stone image URL to server for compositing...`);
+        console.log(`[AI Visualizer] Sending stone image URL to server for compositing... Custom Image: ${!!userRoomImage}`);
 
         try {
             const response = await fetch('/api/generate-image', {
@@ -90,7 +92,8 @@ ${isOutdoor ? 'Bright sunlight' : 'Soft architectural lighting'}, 8k resolution,
                     roomType,
                     application,
                     stoneName,
-                    roomStyle
+                    roomStyle,
+                    userRoomImage
                 })
             });
 

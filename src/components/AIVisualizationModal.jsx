@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Box, Camera, Download, Share2, Expand, ArrowRight } from 'lucide-react';
+import { X, Sparkles, Box, Camera, Download, Share2, Expand, ArrowRight, Upload, Image as ImageIcon, Wand2, RefreshCw } from 'lucide-react';
 import { aiVisualizer } from '../lib/aiVisualizer';
 
 const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, intendedApp }) => {
@@ -13,8 +13,12 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
     const [selectedStyle, setSelectedStyle] = useState(initialStyle || 'Classical');
     const [error, setError] = useState(null);
     
+    // Lifecycle Steps
+    const [visualizationStep, setVisualizationStep] = useState('app'); // 'app' | 'method' | 'upload'
+    const [userRoomImage, setUserRoomImage] = useState(null);
+    const [isDragging, setIsDragging] = useState(false);
+
     // Application Selection States
-    const [showAppSelection, setShowAppSelection] = useState(false);
     const [selectedApp, setSelectedApp] = useState(intendedApp || null);
     const [normalizedApps, setNormalizedApps] = useState([]);
 
@@ -55,6 +59,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
             setError(null);
             setImageReady(false);
             setRoomImage(null);
+            setUserRoomImage(null);
             
             // Normalize application to array
             const apps = Array.isArray(stone.application) 
@@ -63,27 +68,21 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
             
             setNormalizedApps(apps);
             
-            // If the user specified an application (e.g. via Chat) or there's only one, proceed
             if (intendedApp) {
-                console.log("[AI Modal] Using intended application:", intendedApp);
                 setSelectedApp(intendedApp);
-                setShowAppSelection(false);
-                handleVisualize(null, intendedApp);
+                setVisualizationStep('method'); // Still give choice even if app is pre-selected
             } else if (apps.length === 1) {
-                console.log("[AI Modal] Single application detected:", apps[0]);
                 setSelectedApp(apps[0]);
-                setShowAppSelection(false);
-                handleVisualize(null, apps[0]);
+                setVisualizationStep('method');
             } else if (apps.length > 1) {
-                console.log("[AI Modal] Multiple applications detected. Asking user...");
-                setShowAppSelection(true);
-                setLoading(false); // Stop loading while waiting for choice
+                setVisualizationStep('app');
+                setLoading(false);
             } else {
-                console.log("[AI Modal] No application metadata found, defaulting to rendering.");
-                handleVisualize();
+                setSelectedApp('Surface');
+                setVisualizationStep('method');
             }
         }
-    }, [isOpen, stone?.name, intendedApp]); // Use name instead of whole object to prevent infinite loops
+    }, [isOpen, stone?.id, intendedApp]); 
 
     const handleDownloadImage = () => {
         if (!roomImage) return;
@@ -99,16 +98,57 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         document.body.removeChild(link);
     };
 
-    const handleVisualize = async (forcedStyle, forcedApp) => {
+    const handleImageUpload = async (file) => {
+        if (!file) return;
+        
+        // Convert to Base64 with Resizing
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 1024;
+                const MAX_HEIGHT = 1024;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                const resizedBase64 = canvas.toDataURL('image/jpeg', 0.85);
+                
+                setUserRoomImage(resizedBase64);
+                handleVisualize(null, selectedApp, resizedBase64);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleVisualize = async (forcedStyle, forcedApp, forcedUserImage) => {
         const styleToUse = forcedStyle || selectedStyle;
         const appToUse = forcedApp || selectedApp || 'Surface';
+        const userImgToUse = forcedUserImage !== undefined ? forcedUserImage : userRoomImage;
         
-        console.log("[AI Modal] Starting visualization for:", stone?.name, "Application:", appToUse);
+        console.log("[AI Modal] Starting visualization for:", stone?.name, "Application:", appToUse, "Custom Image:", !!userImgToUse);
         setLoading(true);
         setImageReady(false);
         setRoomImage(null);
         setError(null);
-        setShowAppSelection(false);
+        setVisualizationStep(null);
 
         // Determine roomType from Mapping
         let roomType = 'Living Room'; // Global Default
@@ -148,7 +188,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
             normalize(stone?.description).includes('facade') ||
             normalize(stone?.description).includes('balcony');
 
-        if (isActuallyOutdoor) {
+        if (isActuallyOutdoor && !userImgToUse) {
             console.log("[AI Modal] CRITICAL: Outdoor specimen detected (normalized)! Locking to Residential Balcony.");
             roomType = 'Luxury Residential Balcony with Outdoor View';
         }
@@ -163,7 +203,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                     stone?.name || 'Natural Stone', roomType, stone?.colour || 'Natural', appToUse, styleToUse
                 ),
                 aiVisualizer.generateRoomImage(
-                    stone?.name || 'Natural Stone', roomType, stone?.colour || 'Natural', appToUse, stone?.image_url, styleToUse
+                    stone?.name || 'Natural Stone', roomType, stone?.colour || 'Natural', appToUse, stone?.image_url, styleToUse, userImgToUse
                 )
             ]);
 
@@ -243,56 +283,154 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                     exit={{ opacity: 0 }}
                     className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-2xl p-4 md:p-12 overflow-hidden"
                 >
-                    <motion.div
-                        initial={{ scale: 0.9, opacity: 0, y: 40 }}
-                        animate={{ scale: 1, opacity: 1, y: 0 }}
-                        exit={{ scale: 0.9, opacity: 0, y: 40 }}
-                        className="bg-[#0f0d0a] border border-white/10 w-full max-w-6xl h-[90vh] md:h-auto md:aspect-[16/9] rounded-2xl md:rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(236,164,19,0.15)] flex flex-col md:flex-row relative"
-                    >
+                    {/* Main UI Body */}
+                    <div className="bg-[#0f0d0a] border border-white/10 w-full max-w-6xl h-[90vh] md:h-auto md:aspect-[16/9] rounded-2xl md:rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(236,164,19,0.15)] flex flex-col md:flex-row relative">
                         {/* Close Button */}
                         <button
                             onClick={onClose}
-                            className="absolute top-4 md:top-6 right-4 md:right-6 z-[60] p-2.5 md:p-3 bg-black/60 hover:bg-[#eca413] text-white hover:text-black rounded-full transition-all backdrop-blur-md border border-white/10"
+                            className="absolute top-4 md:top-6 right-4 md:right-6 z-[100] p-2.5 md:p-3 bg-black/60 hover:bg-[#eca413] text-white hover:text-black rounded-full transition-all backdrop-blur-md border border-white/10"
                         >
                             <X size={18} />
                         </button>
 
-                        {/* Selection Step */}
-                        {showAppSelection && (
-                            <div className="absolute inset-0 z-50 bg-[#0f0d0a] flex flex-col items-center justify-center p-6 md:p-12 overflow-y-auto">
+                        {/* Sequential Steps Overlay */}
+                        {visualizationStep && (
+                            <div className="absolute inset-0 z-[80] bg-[#0f0d0a] flex flex-col items-center justify-center p-6 md:p-12 overflow-y-auto">
                                 <motion.div 
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="max-w-xl w-full text-center py-8"
+                                    className="max-w-xl w-full"
                                 >
-                                    <div className="w-12 h-12 md:w-16 md:h-16 bg-luxury-bronze/10 rounded-full flex items-center justify-center mx-auto mb-6 md:mb-8">
-                                        <Box className="text-[#eca413]" size={24} md:size={32} />
-                                    </div>
-                                    <h2 className="text-2xl md:text-3xl font-serif text-white mb-4 italic">Tailor the Vision</h2>
-                                    <p className="text-white/50 text-xs md:text-sm mb-8 md:text-12 tracking-wide font-sans leading-relaxed">
-                                        This specimen is versatile. How would you like to see <strong>{stone?.name}</strong> applied in your architectural rendering?
-                                    </p>
-                                    
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                                        {normalizedApps.map(app => (
-                                            <button
-                                                key={app}
-                                                onClick={() => {
-                                                    setSelectedApp(app);
-                                                    handleVisualize(null, app);
-                                                }}
-                                                className="group relative p-4 md:p-6 bg-white/[0.03] border border-white/10 rounded-xl md:rounded-2xl text-left hover:bg-white/[0.08] hover:border-[#eca413]/50 transition-all duration-300 overflow-hidden"
+                                    {visualizationStep === 'app' && (
+                                        <div className="text-center">
+                                            <div className="w-12 h-12 md:w-16 md:h-16 bg-luxury-bronze/10 rounded-full flex items-center justify-center mx-auto mb-6 md:mb-8">
+                                                <Box className="text-[#eca413]" size={24} md:size={32} />
+                                            </div>
+                                            <h2 className="text-2xl md:text-3xl font-serif text-white mb-4 italic">Choose Application</h2>
+                                            <p className="text-white/50 text-xs md:text-sm mb-8 tracking-wide leading-relaxed">
+                                                Where will <strong>{stone?.name}</strong> be featured in your architectural project?
+                                            </p>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                                                {normalizedApps.length > 0 ? normalizedApps.map(app => (
+                                                    <button
+                                                        key={app}
+                                                        onClick={() => {
+                                                            setSelectedApp(app);
+                                                            setVisualizationStep('method');
+                                                        }}
+                                                        className="group relative p-4 md:p-6 bg-white/[0.03] border border-white/10 rounded-xl md:rounded-2xl text-left hover:bg-white/[0.08] hover:border-[#eca413]/50 transition-all duration-300"
+                                                    >
+                                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#eca413] mb-1">{app}</p>
+                                                        <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <ArrowRight size={14} className="text-[#eca413]" />
+                                                        </div>
+                                                    </button>
+                                                )) : (
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedApp('Surface');
+                                                            setVisualizationStep('method');
+                                                        }}
+                                                        className="col-span-2 p-6 bg-white/[0.03] border border-white/10 rounded-2xl text-center hover:bg-[#eca413] hover:text-black transition-all font-bold uppercase tracking-widest text-xs"
+                                                    >
+                                                        General Surface Application
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {visualizationStep === 'method' && (
+                                        <div className="text-center">
+                                            <div className="mb-6">
+                                                <span className="px-3 py-1 bg-[#eca413]/10 text-[#eca413] rounded-full text-[8px] font-black uppercase tracking-widest border border-[#eca413]/20">
+                                                    Selected: {selectedApp}
+                                                </span>
+                                            </div>
+                                            <h2 className="text-2xl md:text-3xl font-serif text-white mb-4 italic">Next, Visualize Your Space</h2>
+                                            <p className="text-white/50 text-xs md:text-sm mb-12 tracking-wide leading-relaxed">
+                                                Would you like Gemini AI to generate a curated room for you, or do you want to see it in your actual project?
+                                            </p>
+                                            
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                                <button
+                                                    onClick={() => handleVisualize()}
+                                                    className="group p-8 bg-white/[0.03] border border-white/10 rounded-2xl text-center hover:bg-white/[0.08] hover:border-[#eca413]/50 transition-all"
+                                                >
+                                                    <div className="w-12 h-12 bg-[#eca413]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                                                        <Wand2 className="text-[#eca413]" size={20} />
+                                                    </div>
+                                                    <h3 className="text-white font-serif text-lg mb-1 italic">Surprise Me</h3>
+                                                    <p className="text-white/30 text-[9px] uppercase tracking-widest">AI Generated Environment</p>
+                                                </button>
+
+                                                <button
+                                                    onClick={() => setVisualizationStep('upload')}
+                                                    className="group p-8 bg-white/[0.03] border border-white/10 rounded-2xl text-center hover:bg-white/[0.08] hover:border-[#eca413]/50 transition-all font-black uppercase tracking-widest"
+                                                >
+                                                    <div className="w-12 h-12 bg-[#eca413]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                                                        <Camera className="text-[#eca413]" size={20} />
+                                                    </div>
+                                                    <h3 className="text-white font-serif text-lg mb-1 italic">Visualize My Space</h3>
+                                                    <p className="text-white/30 text-[9px] uppercase tracking-widest">Upload Your Room Photo</p>
+                                                </button>
+                                            </div>
+
+                                            <button 
+                                                onClick={() => setVisualizationStep('app')}
+                                                className="mt-12 text-[10px] text-white/30 uppercase tracking-[0.2em] hover:text-[#eca413] transition-colors flex items-center gap-2 mx-auto font-black"
                                             >
-                                                <div className="relative z-10">
-                                                    <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] text-[#eca413] mb-1 md:mb-2 group-hover:translate-x-1 transition-transform">{app}</p>
-                                                    <p className="text-[10px] md:text-xs text-white/40 group-hover:text-white/80 transition-colors">Visualize space</p>
-                                                </div>
-                                                <div className="absolute top-0 right-0 p-3 md:p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <ArrowRight size={14} className="text-[#eca413]" />
-                                                </div>
+                                                <RefreshCw size={10} /> Change Application
                                             </button>
-                                        ))}
-                                    </div>
+                                        </div>
+                                    )}
+
+                                    {visualizationStep === 'upload' && (
+                                        <div className="text-center">
+                                            <h2 className="text-2xl md:text-3xl font-serif text-white mb-4 italic">Upload Photo</h2>
+                                            <p className="text-white/50 text-xs md:text-sm mb-12 tracking-wide font-sans leading-relaxed">
+                                                Ensure the room is well-lit and the {selectedApp} surfaces are clearly visible.
+                                            </p>
+
+                                            <div 
+                                                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                                                onDragLeave={() => setIsDragging(false)}
+                                                onDrop={(e) => {
+                                                    e.preventDefault();
+                                                    setIsDragging(false);
+                                                    const file = e.dataTransfer.files[0];
+                                                    if (file) handleImageUpload(file);
+                                                }}
+                                                className={`relative border-2 border-dashed rounded-3xl p-12 transition-all ${
+                                                    isDragging ? 'border-[#eca413] bg-[#eca413]/5' : 'border-white/10 hover:border-white/20 bg-white/[0.02]'
+                                                }`}
+                                            >
+                                                <input 
+                                                    type="file" 
+                                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                                    accept="image/*"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) handleImageUpload(file);
+                                                    }}
+                                                />
+                                                <div className="flex flex-col items-center">
+                                                    <div className="w-16 h-16 bg-white/[0.03] rounded-full flex items-center justify-center mb-6">
+                                                        <Upload className="text-white/40" size={32} />
+                                                    </div>
+                                                    <p className="text-white font-medium mb-2 font-serif text-lg italic">Tap to upload or drag & drop</p>
+                                                    <p className="text-white/30 text-[10px] uppercase tracking-widest">Supports JPG, PNG (Max 10MB)</p>
+                                                </div>
+                                            </div>
+
+                                            <button 
+                                                onClick={() => setVisualizationStep('method')}
+                                                className="mt-12 text-[10px] text-white/30 uppercase tracking-[0.2em] hover:text-[#eca413] transition-colors flex items-center gap-2 mx-auto font-black"
+                                            >
+                                                Back to Selection
+                                            </button>
+                                        </div>
+                                    )}
                                 </motion.div>
                             </div>
                         )}
@@ -355,7 +493,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
 
                         {/* Right Side: Architectural Analysis */}
                         <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#0f0d0a] min-h-0">
-                            <div className="p-6 md:p-10 flex flex-col border-t md:border-t-0 md:border-l border-white/5 pb-12 md:pb-10">
+                            <div className="p-6 md:p-10 flex flex-col border-t md:border-t-0 md:border-l border-white/5 pb-10">
                                 <div className="mb-6 md:mb-10">
                                     <div className="flex items-center gap-2 mb-3 md:mb-4">
                                         <Sparkles size={14} md:size={16} className="text-[#eca413]" />
@@ -437,8 +575,18 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                 background: linear-gradient(to bottom, transparent 50%, rgba(236, 164, 19, 0.1) 50%);
                                 background-size: 100% 4px;
                             }
+                            .custom-scrollbar::-webkit-scrollbar {
+                                width: 4px;
+                            }
+                            .custom-scrollbar::-webkit-scrollbar-track {
+                                background: transparent;
+                            }
+                            .custom-scrollbar::-webkit-scrollbar-thumb {
+                                background: rgba(255, 255, 255, 0.1);
+                                border-radius: 10px;
+                            }
                         `}</style>
-                    </motion.div>
+                    </div>
                 </motion.div>
             )}
         </AnimatePresence>,

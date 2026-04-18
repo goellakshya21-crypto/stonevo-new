@@ -172,7 +172,7 @@ const BuilderPortal = () => {
                     <nav className="hidden md:flex items-center gap-10">
                         <a className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#181611]/60 hover:text-[#181611] dark:text-slate-400 dark:hover:text-white transition-colors" href="/">Gallery</a>
                         <a className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#181611]/60 hover:text-[#181611] dark:text-slate-400 dark:hover:text-white transition-colors" href="/internal-management-stonevo-9921">Admin</a>
-                        <a className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#181611]/60 hover:text-[#181611] dark:text-slate-400 dark:hover:text-white transition-colors" href="#">About</a>
+                        <a className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#181611]/60 hover:text-[#181611] dark:text-slate-400 dark:hover:text-white transition-colors" href="/advisory">Advisory</a>
                     </nav>
                     <div className="flex items-center gap-6">
                         <button
