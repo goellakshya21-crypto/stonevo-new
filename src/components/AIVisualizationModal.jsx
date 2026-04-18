@@ -471,7 +471,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                     <img
                                         src={roomImage}
                                         alt="AI Rendering"
-                                        className="w-full h-full object-cover animate-image-reveal"
+                                        className="w-full h-full object-contain animate-image-reveal"
                                         onError={(e) => {
                                             e.target.src = "https://images.unsplash.com/photo-1556911220-e15595b6a981?auto=format&fit=crop&q=80&w=1200";
                                         }}
