@@ -10,7 +10,7 @@ export const RequirementsProvider = ({ children }) => {
     const [leadId, setLeadId] = useState(() => {
         try {
             return localStorage.getItem('stonevo_lead_id');
-        } catch (e) {
+        } catch {
             return null;
         }
     });
@@ -207,4 +207,5 @@ export const RequirementsProvider = ({ children }) => {
     );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useRequirements = () => useContext(RequirementsContext);

@@ -9,11 +9,9 @@ const SYNTHETIC_LOTS = [];
 
 const BuilderPortal = () => {
     const [lots, setLots] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [isConfiguratorOpen, setIsConfiguratorOpen] = useState(false);
     const [projectRequirements, setProjectRequirements] = useState(null);
-    const [lastUpdated, setLastUpdated] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 50;
 
@@ -38,7 +36,6 @@ const BuilderPortal = () => {
             if (error && error.code !== 'PGRST116') throw error;
             if (data) {
                 setProjectRequirements(data.data);
-                setLastUpdated(data.updated_at);
             }
         } catch (err) {
             console.error('Error fetching project requirements:', err);
@@ -77,7 +74,6 @@ const BuilderPortal = () => {
             if (error) throw error;
 
             setProjectRequirements(data);
-            setLastUpdated(timestamp);
             alert("Draft saved successfully to our institutional database.");
             setIsConfiguratorOpen(false);
         } catch (err) {
@@ -87,7 +83,6 @@ const BuilderPortal = () => {
     };
 
     const fetchSmallLots = async () => {
-        setLoading(true);
         try {
             const { data, error } = await supabase
                 .from('stones')
@@ -109,8 +104,6 @@ const BuilderPortal = () => {
             console.error('Error fetching small lots:', err);
             // Fallback to only synthetic data if Supabase fails
             setLots(SYNTHETIC_LOTS);
-        } finally {
-            setLoading(false);
         }
     };
 

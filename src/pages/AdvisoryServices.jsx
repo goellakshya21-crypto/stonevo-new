@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ShieldCheck, Search, Shield, Gem, ArrowRight, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import StoneSelectionForm from '../components/StoneSelectionForm';
 import { useRequirements } from '../context/RequirementsContext';
 
 const AdvisoryServices = () => {
-    const navigate = useNavigate();
     const [auditFormInfo, setAuditFormInfo] = useState({ name: '', phone: '', quoteDetails: '' });
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [inventory, setInventory] = useState([]);
 
     const { 
-        projectRequirements, 
         isConfiguratorOpen, 
         setIsConfiguratorOpen, 
         saveRequirements, 
