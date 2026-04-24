@@ -11,28 +11,52 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import StoneSelectionForm from '../components/StoneSelectionForm';
 import { useRequirements } from '../context/RequirementsContext';
+import ProjectChat from '../components/ProjectChat';
+import ClientManager from '../components/ClientManager';
+import { PowerOff, ChevronDown, Link as LinkIcon } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 50;
 const SYNTHETIC_MARBLES = [];
 
-function Home() {
+function Home({ role }) {
     const [marbles, setMarbles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedStone, setSelectedStone] = useState(null);
     const [visualizationData, setVisualizationData] = useState(null);
     const [stoneContextList, setStoneContextList] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    
-    const { 
+    const [isClientManagerOpen, setIsClientManagerOpen] = useState(false);
+    const [clients, setClients] = useState([]);
+    const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
+    const [pendingRequestCount, setPendingRequestCount] = useState(0);
+
+    const {
         isConfiguratorOpen, 
         setIsConfiguratorOpen, 
         addToRequirements, 
         saveRequirements, 
         updateActiveDraft,
         stoneCount,
-        activeDraft
+        activeDraft,
+        activeRoomId,
+        leadId,
+        activeProjectName,
+        linkToClient,
+        isLinked
     } = useRequirements();
 
+    // Resolve Chat Identity Safely
+    let isAdmin = false;
+    let userPhone = null;
+    try {
+        isAdmin = localStorage.getItem('stonevo_admin') === 'true';
+        userPhone = localStorage.getItem('stonevo_user_phone');
+    } catch (e) {
+        console.warn("[Chat] Storage access restricted");
+    }
+    const chatRole = isAdmin ? 'admin' : role;
+    const chatName = isAdmin ? 'Stonevo Team' : (activeProjectName || userPhone || 'User');
+    
     const [filters, setFilters] = useState({
         name: '',
         marble: [],
@@ -101,6 +125,72 @@ function Home() {
         fetchMarbles();
     }, []);
 
+    // Fetch clients for architect switcher
+    useEffect(() => {
+        if (chatRole !== 'architect' && chatRole !== 'admin') return;
+        const fetchClients = async () => {
+            try {
+                const leadId = localStorage.getItem('stonevo_lead_id');
+                if (!leadId) return;
+                const { data: leadData } = await supabase.from('leads').select('phone').eq('id', leadId).single();
+                if (!leadData?.phone) return;
+                const { data: whitelist } = await supabase.from('client_whitelist').select('*').eq('architect_phone', leadData.phone);
+                if (!whitelist?.length) return;
+                // c.id (client_whitelist row UUID) is the shared group room — no lead lookup needed
+                setClients(whitelist);
+            } catch (err) {
+                console.error('Error fetching clients for switcher:', err);
+            }
+        };
+        fetchClients();
+    }, [chatRole]);
+
+    // Pending client requests badge
+    useEffect(() => {
+        if (chatRole !== 'architect' && chatRole !== 'admin') return;
+
+        let archPhone = null;
+
+        const fetchPending = async (phone) => {
+            const { data } = await supabase
+                .from('leads')
+                .select('id', { count: 'exact' })
+                .eq('status', 'pending')
+                .eq('company_name', `PENDING_REQUEST:${phone}`);
+            setPendingRequestCount(data?.length || 0);
+        };
+
+        const init = async () => {
+            const lid = localStorage.getItem('stonevo_lead_id');
+            if (!lid) return;
+            const { data } = await supabase.from('leads').select('phone').eq('id', lid).single();
+            if (!data?.phone) return;
+            archPhone = data.phone;
+            await fetchPending(archPhone);
+
+            // Live ping — re-fetch when any lead row changes
+            const channel = supabase
+                .channel('pending_requests_badge')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+                    if (archPhone) fetchPending(archPhone);
+                })
+                .subscribe();
+
+            return () => supabase.removeChannel(channel);
+        };
+
+        const cleanup = init();
+        return () => { cleanup.then(fn => fn && fn()); };
+    }, [chatRole]);
+
+    // Close switcher on outside click
+    useEffect(() => {
+        if (!isSwitcherOpen) return;
+        const handler = () => setIsSwitcherOpen(false);
+        window.addEventListener('click', handler);
+        return () => window.removeEventListener('click', handler);
+    }, [isSwitcherOpen]);
+
     const handleSaveRequirements = async (data) => {
         const result = await saveRequirements(data);
         if (result.success) {
@@ -164,7 +254,57 @@ function Home() {
     return (
         <div className="min-h-screen bg-stone-950 text-stone-200 font-sans selection:bg-luxury-bronze/30">
             <header className="absolute top-0 w-full z-50 py-6 px-8 flex justify-between items-center">
-                <div />
+                <div className="flex items-center gap-12">
+                    <h1 className="text-xl font-serif tracking-[0.2em] text-white">STONEVO</h1>
+                    {(chatRole === 'architect' || chatRole === 'admin') && (
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => { setIsClientManagerOpen(true); setPendingRequestCount(0); }}
+                                className="relative px-5 py-2 border border-bronze/30 rounded-full text-[10px] uppercase tracking-widest text-bronze hover:bg-bronze hover:text-white transition-all font-bold backdrop-blur-md"
+                            >
+                                Client Dashboard
+                                {pendingRequestCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-bronze opacity-75" />
+                                        <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-bronze text-[8px] font-bold text-black items-center justify-center">
+                                            {pendingRequestCount}
+                                        </span>
+                                    </span>
+                                )}
+                            </button>
+
+                            {/* Client Switcher Dropdown */}
+                            {clients.length > 0 && (
+                                <div className="relative" onClick={e => e.stopPropagation()}>
+                                    <button
+                                        onClick={() => setIsSwitcherOpen(o => !o)}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] uppercase tracking-widest font-bold border transition-all backdrop-blur-md ${isLinked ? 'bg-bronze/10 border-bronze/30 text-bronze' : 'border-white/10 text-stone-400 hover:text-white hover:border-white/20'}`}
+                                    >
+                                        <LinkIcon size={11} />
+                                        <span>{isLinked ? activeProjectName : 'Switch Client'}</span>
+                                        <ChevronDown size={11} className={`transition-transform ${isSwitcherOpen ? 'rotate-180' : ''}`} />
+                                    </button>
+
+                                    {isSwitcherOpen && (
+                                        <div className="absolute top-full left-0 mt-2 w-52 bg-stone-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                                            {clients.map(c => (
+                                                <button
+                                                    key={c.id}
+                                                    onClick={() => { linkToClient(c.id, c.client_name); setIsSwitcherOpen(false); }}
+                                                    className={`w-full text-left px-4 py-3 text-xs hover:bg-white/5 transition-colors flex items-center justify-between ${activeRoomId === c.id ? 'text-bronze' : 'text-stone-300'}`}
+                                                >
+                                                    <span>{c.client_name || 'Unnamed'}</span>
+                                                    {activeRoomId === c.id && <span className="w-1.5 h-1.5 rounded-full bg-bronze" />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                        </div>
+                    )}
+                </div>
                 <nav className="flex items-center gap-6">
                     <Link to="/advisory" className="text-[10px] uppercase tracking-widest text-stone-400 hover:text-white transition-colors font-bold py-2 px-4 border border-stone-800/50 rounded-full bg-stone-900/50 backdrop-blur-sm">Audit & Advisory</Link>
                     <button 
@@ -262,6 +402,19 @@ function Home() {
                 onChange={updateActiveDraft}
                 initialData={activeDraft}
                 inventory={stoneContextList.length > 0 ? stoneContextList : marbles}
+            />
+            {/* Project Room Chat (Safety Shielded) */}
+            <ProjectChat
+                key={activeRoomId || leadId || 'personal_workspace'}
+                projectId={activeRoomId || leadId || 'personal_workspace'}
+                role={chatRole}
+                userName={chatName}
+                isLinked={isLinked}
+            />
+
+            <ClientManager 
+                isOpen={isClientManagerOpen} 
+                onClose={() => setIsClientManagerOpen(false)} 
             />
         </div>
     );

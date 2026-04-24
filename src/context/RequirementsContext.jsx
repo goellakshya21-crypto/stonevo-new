@@ -7,6 +7,7 @@ export const RequirementsProvider = ({ children }) => {
     const [projectRequirements, setProjectRequirements] = useState(null);
     const [isConfiguratorOpen, setIsConfiguratorOpen] = useState(false);
     const activeDraftRef = useRef(null);
+    const autoSaveTimerRef = useRef(null);
     const [leadId, setLeadId] = useState(() => {
         try {
             return localStorage.getItem('stonevo_lead_id');
@@ -15,11 +16,51 @@ export const RequirementsProvider = ({ children }) => {
         }
     });
 
-    useEffect(() => {
-        if (leadId) {
-            fetchRequirements(leadId);
+    const [activeRoomId, setActiveRoomId] = useState(() => {
+        try {
+            return localStorage.getItem('stonevo_active_room_id');
+        } catch {
+            return null;
         }
-    }, [leadId]);
+    });
+
+    const [activeProjectName, setActiveProjectName] = useState(() => {
+        try {
+            return localStorage.getItem('stonevo_active_project_name');
+        } catch {
+            return null;
+        }
+    });
+
+    useEffect(() => {
+        const idToFetch = activeRoomId || leadId;
+        if (idToFetch) {
+            fetchRequirements(idToFetch);
+        }
+    }, [leadId, activeRoomId]);
+
+    // Real-time subscription — architect sees client changes live, client sees architect changes live
+    useEffect(() => {
+        const idToWatch = activeRoomId || leadId;
+        if (!idToWatch) return;
+
+        const channel = supabase
+            .channel(`req_${idToWatch}`)
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'project_requirements',
+                filter: `lead_id=eq.${idToWatch}`
+            }, (payload) => {
+                if (payload.new?.data) {
+                    setProjectRequirements(payload.new.data);
+                    activeDraftRef.current = payload.new.data;
+                }
+            })
+            .subscribe();
+
+        return () => { supabase.removeChannel(channel); };
+    }, [leadId, activeRoomId]);
 
     const fetchRequirements = useCallback(async (id) => {
         if (!id) return;
@@ -37,6 +78,10 @@ export const RequirementsProvider = ({ children }) => {
                 const reqData = data.data || data;
                 setProjectRequirements(reqData);
                 activeDraftRef.current = reqData;
+            } else {
+                // No requirements found for this user — clear any stale state
+                setProjectRequirements(null);
+                activeDraftRef.current = null;
             }
         } catch (err) {
             console.error('Error fetching requirements:', err);
@@ -110,10 +155,38 @@ export const RequirementsProvider = ({ children }) => {
         setProjectRequirements(newData);
         activeDraftRef.current = newData;
         setIsConfiguratorOpen(true);
-    }, [projectRequirements]);
+
+        // Auto-save to DB immediately so the other party sees it in real-time
+        const saveId = activeRoomId || leadId;
+        if (saveId) {
+            supabase.from('project_requirements').upsert({
+                lead_id: saveId,
+                data: newData,
+                status: 'draft',
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'lead_id' }).then(({ error }) => {
+                if (error) console.error('Auto-save failed:', error);
+            });
+        }
+    }, [projectRequirements, leadId, activeRoomId]);
+
+    const linkToClient = useCallback((clientId, clientName) => {
+        localStorage.setItem('stonevo_active_room_id', clientId);
+        localStorage.setItem('stonevo_active_project_name', clientName);
+        setActiveRoomId(clientId);
+        setActiveProjectName(clientName);
+    }, []);
+
+    const unlinkClient = useCallback(() => {
+        localStorage.removeItem('stonevo_active_room_id');
+        localStorage.removeItem('stonevo_active_project_name');
+        setActiveRoomId(null);
+        setActiveProjectName(null);
+    }, []);
 
     const saveRequirements = useCallback(async (data) => {
-        let currentLeadId = leadId;
+        // When linked to a client, save to the client's row, not the architect's
+        let currentLeadId = activeRoomId || leadId;
         if (!currentLeadId) {
             currentLeadId = 'GUEST_' + Math.random().toString(36).substring(7);
             localStorage.setItem('stonevo_lead_id', currentLeadId);
@@ -153,17 +226,32 @@ export const RequirementsProvider = ({ children }) => {
             console.error('Error saving requirements:', err);
             return { success: false, error: err.message };
         }
-    }, [leadId]);
+    }, [leadId, activeRoomId]);
 
     const updateActiveDraft = useCallback((data) => {
         const currentDataStr = JSON.stringify(activeDraftRef.current || projectRequirements);
         const newDataStr = JSON.stringify(data);
-        
+
         if (currentDataStr !== newDataStr) {
             activeDraftRef.current = data;
             setProjectRequirements(data);
+
+            // Debounced auto-save so deletions and edits persist to DB
+            clearTimeout(autoSaveTimerRef.current);
+            autoSaveTimerRef.current = setTimeout(() => {
+                const saveId = activeRoomId || leadId;
+                if (!saveId) return;
+                supabase.from('project_requirements').upsert({
+                    lead_id: saveId,
+                    data: data,
+                    status: 'draft',
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'lead_id' }).then(({ error }) => {
+                    if (error) console.error('Auto-save failed:', error);
+                });
+            }, 800);
         }
-    }, [projectRequirements]);
+    }, [projectRequirements, leadId, activeRoomId]);
 
     const getFloors = useCallback(() => {
         const data = activeDraftRef.current || projectRequirements;
@@ -190,14 +278,25 @@ export const RequirementsProvider = ({ children }) => {
         saveRequirements,
         updateActiveDraft,
         stoneCount,
-        activeDraft: activeDraftRef.current || projectRequirements
+        activeDraft: activeDraftRef.current || projectRequirements,
+        activeRoomId,
+        activeProjectName,
+        linkToClient,
+        unlinkClient,
+        isLinked: !!activeRoomId,
+        setLeadId
     }), [
         projectRequirements,
         isConfiguratorOpen,
         addToRequirements,
         saveRequirements,
         updateActiveDraft,
-        stoneCount
+        stoneCount,
+        activeRoomId,
+        activeProjectName,
+        linkToClient,
+        unlinkClient,
+        setLeadId
     ]);
 
     return (

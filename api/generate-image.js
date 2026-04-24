@@ -44,17 +44,23 @@ export default async function handler(req, res) {
             INSTRUCTION: 
             1. Identify every instance of the ${application || 'primary surface'} in the second (user) image.
             2. Replace the identified ${application || 'primary surface'} with the stone texture from the first image.
-            3. Apply realistic perspective, depth, and specular highlights based on the original room's geometry.
-            4. IMPORTANT: Maintain the original lighting, shadows cast by furniture, and environmental reflections perfectly.
-            5. The resulting image must be an 8K photorealistic composite where ONLY the ${application} has been updated.
-            6. DO NOT add any rugs, furniture, or decor. Keep the room layout identical to the user's photo.
-            7. Return the final edited photograph.
+            3. SEAMLESS FINISH: The stone must be applied as a single, continuous, and uninterrupted slab. 
+            4. TEXTURE PRESERVATION: STRICTLY FORBIDDEN: Do NOT add any synthetic veins, patterns, or textures that do not exist in the first (source) image. If the source stone is solid or uniform, maintain that exact plain appearance.
+            5. STRICTLY FORBIDDEN: Do NOT add any grout lines, grid patterns, square tile segments, or visible seams.
+            6. Apply realistic perspective, depth, and specular highlights based on the original room's geometry.
+            7. IMPORTANT: Maintain the original lighting, shadows cast by furniture, and environmental reflections perfectly.
+            8. The resulting image must be an 8K photorealistic composite where ONLY the ${application} has been updated.
+            9. DO NOT add any rugs, furniture, or decor. Keep the room layout identical to the user's photo.
+            10. Return the final edited photograph.
             `;
         } else {
             finalPrompt = `
             ${promptText || ''}
             You are a master architectural photographer. Generate a photorealistic 8K interior of a luxury ${roomType} in a ${roomStyle} style.
             Map the EXACT colors and vein patterns of the attached stone slab "${stoneName}" onto the ${application}.
+            SEAMLESS SLAB: The ${application} MUST be one continuous, monolithic piece of stone. 
+            TEXTURE INTEGRITY: STRICTLY FORBIDDEN: Do NOT hallucinate extra veins or patterns. If the reference stone is plain or uniform, the final render must be equally plain and uniform.
+            STRICTLY FORBIDDEN: Do NOT add any grout lines, grid patterns, tile joins, or repeating segments. Use large-format slab logic.
             The stone must be a 1:1 identical match to the reference image.
             No rugs or furniture should obscure the stone surface. High-contrast architectural lighting.
             `;

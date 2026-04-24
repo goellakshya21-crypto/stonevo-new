@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Home, Layers, ShoppingBag, ArrowRight, Save, X, Search, Sparkles, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Home, Layers, ShoppingBag, ArrowRight, X, Search, Sparkles, GripVertical } from 'lucide-react';
 import AIVisualizationModal from './AIVisualizationModal';
 
 const StoneSelectionForm = ({ isOpen, onClose, onSubmit, onChange, initialData, inventory = [] }) => {
@@ -488,18 +488,6 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, onChange, initialData, 
                                         </p>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={handleSubmitLocal}
-                                    disabled={isSaving}
-                                    className="px-10 py-3.5 rounded-lg bg-[#eca413] text-black hover:bg-[#eca413]/90 transition-all text-sm font-bold shadow-lg shadow-[#eca413]/10 flex items-center gap-2 disabled:opacity-50 disabled:cursor-wait"
-                                >
-                                    {isSaving ? (
-                                        <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
-                                    ) : (
-                                        <Save size={18} />
-                                    )}
-                                    {isSaving ? "Saving..." : "Save Draft"}
-                                </button>
                             </div>
                         </header>
 

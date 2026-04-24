@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Tag, ArrowRight, FileText, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import ImageModal from '../components/ImageModal';
 import StoneSelectionForm from '../components/StoneSelectionForm';
+import ProjectChat from '../components/ProjectChat';
 
 const SYNTHETIC_LOTS = [];
 
@@ -14,6 +15,29 @@ const BuilderPortal = () => {
     const [projectRequirements, setProjectRequirements] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 50;
+    const [chatRoomId, setChatRoomId] = useState(null);
+    const [chatUserName, setChatUserName] = useState('');
+
+    useEffect(() => {
+        const leadId = localStorage.getItem('stonevo_lead_id');
+        if (!leadId) return;
+        // Read identity + room directly from the lead record — no phone matching,
+        // no cross-session leaks. room_id is stamped when admin whitelists the client.
+        const loadRoom = async () => {
+            const { data: lead } = await supabase
+                .from('leads')
+                .select('phone, full_name, room_id')
+                .eq('id', leadId)
+                .single();
+            if (!lead) return;
+            const displayName = lead.full_name || lead.phone || '';
+            setChatUserName(displayName);
+            if (lead.phone) localStorage.setItem('stonevo_user_phone', lead.phone);
+            if (lead.full_name) localStorage.setItem('stonevo_user_name', lead.full_name);
+            if (lead.room_id) setChatRoomId(lead.room_id);
+        };
+        loadRoom();
+    }, []);
 
     useEffect(() => {
         fetchSmallLots();
@@ -168,6 +192,17 @@ const BuilderPortal = () => {
                         <a className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#181611]/60 hover:text-[#181611] dark:text-slate-400 dark:hover:text-white transition-colors" href="/advisory">Advisory</a>
                     </nav>
                     <div className="flex items-center gap-6">
+                        {chatUserName && (
+                            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[#181611]/5 dark:bg-white/5 rounded-full border border-[#897c61]/20">
+                                <div className="w-2 h-2 rounded-full bg-[#eca413]" />
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-[#897c61] truncate max-w-[120px]">{chatUserName}</span>
+                                <button
+                                    onClick={() => { ['stonevo_lead_id','stonevo_user_phone','stonevo_user_name'].forEach(k => localStorage.removeItem(k)); window.location.reload(); }}
+                                    className="text-[#897c61] hover:text-red-400 transition-colors text-[10px] font-bold uppercase tracking-widest ml-1"
+                                    title="Switch account"
+                                >✕</button>
+                            </div>
+                        )}
                         <button
                             onClick={() => setIsConfiguratorOpen(true)}
                             className="px-6 py-2.5 bg-[#eca413] text-[#181611] text-[10px] sm:text-xs uppercase tracking-[0.15em] font-black rounded-md hover:bg-[#d99510] transition-all duration-300 flex items-center gap-2 shadow-[0_0_15px_rgba(236,164,19,0.3)] hover:shadow-[0_0_20px_rgba(236,164,19,0.5)] transform hover:-translate-y-0.5"
@@ -334,6 +369,13 @@ const BuilderPortal = () => {
                 onSubmit={handleSaveRequirements}
                 initialData={projectRequirements}
                 inventory={lots}
+            />
+
+            <ProjectChat
+                projectId={chatRoomId}
+                role="client"
+                userName={chatUserName}
+                isLinked={!!chatRoomId}
             />
 
             <ImageModal

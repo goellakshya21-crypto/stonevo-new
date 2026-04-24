@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import AdminUpload from '../components/AdminUpload';
 import AdminWhitelist from '../components/AdminWhitelist';
+import AdminChatRooms from '../components/AdminChatRooms';
 
 function AdminPage() {
     console.log('AdminPage rendering...');
@@ -46,6 +47,12 @@ function AdminPage() {
                         >
                             Whitelist Registry
                         </button>
+                        <button
+                            onClick={() => setActiveTab('chat')}
+                            className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-md ${activeTab === 'chat' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+                        >
+                            Project Rooms
+                        </button>
                     </div>
                 </div>
 
@@ -53,10 +60,12 @@ function AdminPage() {
                     <div className="border-2 border-dashed border-stone-200 p-4 min-h-[400px]">
                         <AdminUpload onCancel={() => { }} />
                     </div>
-                ) : (
+                ) : activeTab === 'whitelist' ? (
                     <div className="border-2 border-dashed border-bronze/20 p-4 min-h-[400px]">
                         <AdminWhitelist />
                     </div>
+                ) : (
+                    <AdminChatRooms />
                 )}
             </main>
 

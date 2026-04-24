@@ -16,7 +16,7 @@ function App() {
         <Routes>
           <Route path="/" element={
             <LeadGate>
-              {(role) => role === 'builder' ? <BuilderPortal /> : <Home />}
+              {(role) => <Home role={role} />}
             </LeadGate>
           } />
           <Route path="/builder" element={<BuilderPortal />} />

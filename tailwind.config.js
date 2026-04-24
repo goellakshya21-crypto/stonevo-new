@@ -7,9 +7,11 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        display: ['Inter', 'sans-serif'],
-        serif: ['Playfair Display', 'serif'],
+        sans: ['Manrope', 'Inter', 'sans-serif'],
+        display: ['Noto Serif', 'Playfair Display', 'serif'],
+        serif: ['Noto Serif', 'Playfair Display', 'serif'],
+        'noto-serif': ['Noto Serif', 'serif'],
+        'manrope': ['Manrope', 'sans-serif'],
       },
       colors: {
         "primary": "#065144",
