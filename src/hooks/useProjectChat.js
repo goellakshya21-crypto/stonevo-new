@@ -23,6 +23,37 @@ const toUUID = (id) => {
     return `00000000-0000-0000-0000-${padded}`;
 };
 
+// Request browser notification permission once
+const requestNotifPermission = () => {
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+};
+
+const showBrowserNotif = (title, body) => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+        const n = new Notification(title, {
+            body,
+            icon: '/favicon.ico',
+            badge: '/favicon.ico',
+            tag: 'stonevo-chat',
+        });
+        n.onclick = () => { window.focus(); n.close(); };
+    }
+};
+
+const callNotifyApi = async (projectId, senderRole, senderName, messagePreview) => {
+    try {
+        await fetch('/api/notify-message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projectId, senderRole, senderName, messagePreview }),
+        });
+    } catch (err) {
+        console.warn('[Chat] Notify API failed:', err.message);
+    }
+};
+
 export const useProjectChat = (projectId, userRole, userName) => {
     const [messages, setMessages] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -32,6 +63,9 @@ export const useProjectChat = (projectId, userRole, userName) => {
 
     // Normalize ID for database operations
     const dbProjectId = toUUID(projectId);
+
+    // Request browser notification permission on first use
+    useEffect(() => { requestNotifPermission(); }, []);
 
     // Fetch initial message history
     const fetchMessages = useCallback(async () => {
@@ -76,6 +110,9 @@ export const useProjectChat = (projectId, userRole, userName) => {
                 .insert(dbMessage);
 
             if (error) throw error;
+
+            // Fire email notifications to other parties (non-blocking)
+            callNotifyApi(projectId, userRole, userName, messageText);
         } catch (err) {
             console.error('[Chat] Send error:', err);
             setMessages(prev => prev.filter(m => m !== newMessage));
@@ -168,6 +205,9 @@ export const useProjectChat = (projectId, userRole, userName) => {
 
             // Remove optimistic — realtime will add the real one
             setMessages(prev => prev.filter(m => m._optimisticId !== optimisticId));
+
+            // Fire email notifications to other parties (non-blocking)
+            callNotifyApi(projectId, userRole, userName, `Sent a ${fileType}: ${fileName}`);
         } catch (err) {
             console.error('[Chat] File upload error:', err);
             setMessages(prev => prev.filter(m => m._optimisticId !== optimisticId));
@@ -227,6 +267,14 @@ export const useProjectChat = (projectId, userRole, userName) => {
                                 );
                                 return [...filtered, payload.new];
                             });
+
+                            // Browser notification for messages from other senders
+                            const msg = payload.new;
+                            const isFromMe = msg.sender_name === userName && msg.sender_role === userRole;
+                            if (!isFromMe) {
+                                const body = msg.message || (msg.file_name ? `Sent a file: ${msg.file_name}` : 'New message');
+                                showBrowserNotif(`${msg.sender_name} on Stonevo`, body);
+                            }
 
                             if (!isPanelOpen) {
                                 setUnreadCount(c => c + 1);

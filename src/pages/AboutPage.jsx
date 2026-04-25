@@ -67,13 +67,13 @@ const AboutPage = () => {
 
                 .sv-headline {
                     font-family: 'Noto Serif', serif;
-                    font-size: clamp(52px, 8vw, 108px);
+                    font-size: clamp(44px, 6.5vw, 84px);
                     font-weight: 300;
                     letter-spacing: -0.03em;
                     line-height: 1.0;
                     color: #FDFCF8;
                     max-width: 14ch;
-                    margin-bottom: 36px;
+                    margin-bottom: 20px;
                 }
 
                 .sv-manifesto-text {
@@ -198,12 +198,12 @@ const AboutPage = () => {
                 <div className="sv-watermark" style={{ position:'absolute', bottom:'-0.1em', right:'-0.02em', zIndex:1 }}>STONE</div>
 
                 {/* content */}
-                <div style={{ position:'relative', zIndex:2, padding:'120px 48px 60px', display:'flex', flexDirection:'column', justifyContent:'center' }}>
-                    <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.85, marginBottom:28 }}>About Stonevo</p>
+                <div style={{ position:'relative', zIndex:2, padding:'88px 48px 32px', display:'flex', flexDirection:'column', justifyContent:'center' }}>
+                    <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.85, marginBottom:16 }}>About Stonevo</p>
                     <h1 className="sv sv-headline sv-d1">
                         The&nbsp;evolution<br />of <em style={{ fontStyle:'italic', color:'#A37D4B' }}>stone</em><br />selection.
                     </h1>
-                    <p className="sv sv-d2" style={{ fontFamily:'Manrope, sans-serif', fontSize:15, fontWeight:300, color:'#a89e8d', maxWidth:'38ch', lineHeight:1.7, marginBottom:44 }}>
+                    <p className="sv sv-d2" style={{ fontFamily:'Manrope, sans-serif', fontSize:15, fontWeight:300, color:'#a89e8d', maxWidth:'38ch', lineHeight:1.7, marginBottom:28 }}>
                         Redefining how stone is selected, sourced, and experienced — in alignment with design intent.
                     </p>
                     <div className="sv sv-d3" style={{ display:'flex', alignItems:'center', gap:28, flexWrap:'wrap' }}>
