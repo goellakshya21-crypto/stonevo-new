@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { Phone, Mail, Building, Globe, User, ShieldCheck, Compass, Hammer, X } from 'lucide-react';
 import { useRequirements } from '../context/RequirementsContext';
 
 const LeadGate = ({ children }) => {
     const { setLeadId: setContextLeadId } = useRequirements();
+    const navigate = useNavigate();
     const [status, setStatus] = useState('loading'); // 'loading', 'unregistered', 'otp_sent', 'whitelist_check', 'registration', 'pending', 'welcome', 'approved'
     const [step, setStep] = useState('PHONE'); // 'PHONE', 'OTP', 'NEW_USER_ROLE', 'FORM', 'CLIENT_REQUEST', 'ROLE_SELECTION'
     const [role, setRoleState] = useState(null);
@@ -49,6 +51,11 @@ const LeadGate = ({ children }) => {
         const storedLeadId = localStorage.getItem('stonevo_lead_id');
 
         if (!storedLeadId) {
+            // Brand-new visitor — send to About page unless they came from there
+            if (!sessionStorage.getItem('sv_enter')) {
+                navigate('/about', { replace: true });
+                return;
+            }
             setStatus('unregistered');
             return;
         }

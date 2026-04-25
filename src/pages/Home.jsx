@@ -13,7 +13,7 @@ import StoneSelectionForm from '../components/StoneSelectionForm';
 import { useRequirements } from '../context/RequirementsContext';
 import ProjectChat from '../components/ProjectChat';
 import ClientManager from '../components/ClientManager';
-import { PowerOff, ChevronDown, Link as LinkIcon } from 'lucide-react';
+import { PowerOff, ChevronDown, Link as LinkIcon, Upload, Sparkles, Trash2, Pencil, Check, X as XIcon } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 50;
 const SYNTHETIC_MARBLES = [];
@@ -29,6 +29,38 @@ function Home({ role }) {
     const [clients, setClients] = useState([]);
     const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
     const [pendingRequestCount, setPendingRequestCount] = useState(0);
+    const [customStoneOpen, setCustomStoneOpen] = useState(false);
+    const [stoneToVisualize, setStoneToVisualize] = useState(null); // re-visualize a saved stone
+    const [renamingId, setRenamingId] = useState(null);
+    const [renameValue, setRenameValue] = useState('');
+
+    const [customStones, setCustomStones] = useState([]);
+
+    const saveCustomStone = (stone) => {
+        setCustomStones(prev => {
+            const updated = [stone, ...prev.filter(s => s.id !== stone.id)];
+            try { localStorage.setItem(customStonesKey, JSON.stringify(updated)); } catch {}
+            return updated;
+        });
+    };
+
+    const deleteCustomStone = (id) => {
+        setCustomStones(prev => {
+            const updated = prev.filter(s => s.id !== id);
+            try { localStorage.setItem(customStonesKey, JSON.stringify(updated)); } catch {}
+            return updated;
+        });
+    };
+
+    const renameCustomStone = (id, newName) => {
+        if (!newName.trim()) return;
+        setCustomStones(prev => {
+            const updated = prev.map(s => s.id === id ? { ...s, name: newName.trim() } : s);
+            try { localStorage.setItem(customStonesKey, JSON.stringify(updated)); } catch {}
+            return updated;
+        });
+        setRenamingId(null);
+    };
 
     const {
         isConfiguratorOpen, 
@@ -44,6 +76,14 @@ function Home({ role }) {
         linkToClient,
         isLinked
     } = useRequirements();
+
+    const customStonesKey = `stonevo_custom_stones_${leadId || 'guest'}`;
+
+    useEffect(() => {
+        try {
+            setCustomStones(JSON.parse(localStorage.getItem(customStonesKey) || '[]'));
+        } catch { setCustomStones([]); }
+    }, [customStonesKey]);
 
     // Resolve Chat Identity Safely
     let isAdmin = false;
@@ -347,6 +387,84 @@ function Home({ role }) {
             </section>
 
             <main className="max-w-[100vw] px-6 py-24 bg-stone-900 rounded-t-[4rem] border-t border-white/5 shadow-[0_-80px_150px_rgba(0,0,0,0.6)] -mt-16 relative z-10 group/gallery">
+                {/* ── Your Stones ── */}
+                {customStones.length > 0 && (
+                    <div className="max-w-7xl mx-auto mb-16">
+                        <div className="flex items-end justify-between mb-6">
+                            <div>
+                                <p className="text-[10px] font-bold text-[#eca413] uppercase tracking-[0.4em] italic opacity-70 mb-1">Personal Collection</p>
+                                <h3 className="text-luxury-cream font-serif text-2xl italic">Your Stones</h3>
+                            </div>
+                            <button
+                                onClick={() => setCustomStoneOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-white/[0.03] hover:bg-[#eca413]/10 border border-white/10 hover:border-[#eca413]/30 rounded-xl transition-all text-[10px] font-bold uppercase tracking-widest text-white/50 hover:text-[#eca413]"
+                            >
+                                <Upload size={12} /> Add Stone
+                            </button>
+                        </div>
+                        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                            {customStones.map(cs => (
+                                <div key={cs.id} className="group/cs relative flex-shrink-0 w-44 rounded-2xl overflow-hidden border border-white/10 hover:border-[#eca413]/40 bg-stone-950 transition-all duration-300">
+                                    {/* Thumbnail */}
+                                    <div className="relative aspect-square overflow-hidden">
+                                        <img
+                                            src={cs.image_url}
+                                            alt={cs.name}
+                                            className="w-full h-full object-cover group-hover/cs:scale-105 transition-transform duration-500"
+                                        />
+                                        {/* Hover overlay with Visualize button */}
+                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/cs:opacity-100 transition-opacity flex items-center justify-center">
+                                            <button
+                                                onClick={() => setStoneToVisualize(cs)}
+                                                className="flex items-center gap-2 px-4 py-2 bg-[#eca413] text-black text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-white transition-all shadow-xl"
+                                            >
+                                                <Sparkles size={11} /> Visualize
+                                            </button>
+                                        </div>
+                                        {/* Delete button */}
+                                        <button
+                                            onClick={() => deleteCustomStone(cs.id)}
+                                            className="absolute top-2 right-2 w-6 h-6 bg-black/60 hover:bg-red-500/80 rounded-full flex items-center justify-center opacity-0 group-hover/cs:opacity-100 transition-all"
+                                            title="Remove"
+                                        >
+                                            <Trash2 size={11} color="white" />
+                                        </button>
+                                    </div>
+                                    {/* Name row */}
+                                    <div className="px-3 py-2.5">
+                                        {renamingId === cs.id ? (
+                                            <div className="flex items-center gap-1">
+                                                <input
+                                                    autoFocus
+                                                    value={renameValue}
+                                                    onChange={e => setRenameValue(e.target.value)}
+                                                    onKeyDown={e => {
+                                                        if (e.key === 'Enter') renameCustomStone(cs.id, renameValue);
+                                                        if (e.key === 'Escape') setRenamingId(null);
+                                                    }}
+                                                    className="flex-1 bg-white/10 border border-[#eca413]/40 rounded px-1.5 py-0.5 text-xs text-white focus:outline-none min-w-0"
+                                                />
+                                                <button onClick={() => renameCustomStone(cs.id, renameValue)} className="text-[#eca413] shrink-0"><Check size={12} /></button>
+                                                <button onClick={() => setRenamingId(null)} className="text-white/40 shrink-0"><XIcon size={12} /></button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-1 group/name">
+                                                <p className="text-white/80 text-xs font-medium truncate flex-1">{cs.name}</p>
+                                                <button
+                                                    onClick={() => { setRenamingId(cs.id); setRenameValue(cs.name); }}
+                                                    className="opacity-0 group-hover/name:opacity-100 transition-opacity text-white/30 hover:text-[#eca413] shrink-0"
+                                                >
+                                                    <Pencil size={10} />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 <div className="max-w-7xl mx-auto mb-16 flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-white/5 pb-12">
                     <div className="space-y-2">
                         <h3 className="text-[10px] font-bold text-bronze uppercase tracking-[0.4em] italic opacity-60">Archives</h3>
@@ -361,7 +479,21 @@ function Home({ role }) {
                             </div>
                         )}
                     </div>
+                    {/* Visualize Your Own Stone CTA */}
+                    <button
+                        onClick={() => setCustomStoneOpen(true)}
+                        className="group flex items-center gap-3 px-6 py-4 bg-white/[0.03] hover:bg-[#eca413]/10 border border-white/10 hover:border-[#eca413]/40 rounded-2xl transition-all duration-300 text-left"
+                    >
+                        <div className="w-10 h-10 bg-[#eca413]/10 group-hover:bg-[#eca413]/20 rounded-xl flex items-center justify-center transition-all shrink-0">
+                            <Upload size={18} className="text-[#eca413]" />
+                        </div>
+                        <div>
+                            <p className="text-white text-sm font-serif italic leading-tight">Visualize Your Stone</p>
+                            <p className="text-white/30 text-[10px] uppercase tracking-widest mt-0.5">Upload any sample · AI renders it</p>
+                        </div>
+                    </button>
                 </div>
+
                 <div className="max-w-7xl mx-auto">
                     <MarbleGrid marbles={paginatedMarbles} loading={loading} onEnlarge={(stone) => handleStoneClick(stone, paginatedMarbles)} />
                 </div>
@@ -385,6 +517,24 @@ function Home({ role }) {
                     initialStyle={visualizationData.roomStyle}
                     intendedApp={visualizationData.intendedApplication}
                     onClose={() => setVisualizationData(null)}
+                />
+            )}
+
+            {/* Custom stone visualizer — user uploads their own stone sample */}
+            <AIVisualizationModal
+                isOpen={customStoneOpen}
+                stone={null}
+                allowCustomStone={true}
+                onStoneUploaded={saveCustomStone}
+                onClose={() => setCustomStoneOpen(false)}
+            />
+
+            {/* Re-visualize a previously uploaded stone */}
+            {stoneToVisualize && (
+                <AIVisualizationModal
+                    isOpen={true}
+                    stone={stoneToVisualize}
+                    onClose={() => setStoneToVisualize(null)}
                 />
             )}
 

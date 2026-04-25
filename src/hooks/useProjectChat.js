@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 /**
@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabaseClient';
  */
 const toUUID = (id) => {
     if (!id) return null;
-    
+
     // If it's already a valid UUID, return it
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (uuidRegex.test(id)) return id;
@@ -18,7 +18,6 @@ const toUUID = (id) => {
     }
 
     // Convert string to a padded hex format to create a "Virtual UUID"
-    // We use a fixed prefix and pad the input to 12 hex chars
     const cleanId = String(id).replace(/\D/g, '');
     const padded = cleanId.padStart(12, '0').slice(-12);
     return `00000000-0000-0000-0000-${padded}`;
@@ -29,6 +28,7 @@ export const useProjectChat = (projectId, userRole, userName) => {
     const [isLoading, setIsLoading] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isPanelOpen, setIsPanelOpen] = useState(false);
+    const [uploadingFiles, setUploadingFiles] = useState(new Set());
 
     // Normalize ID for database operations
     const dbProjectId = toUUID(projectId);
@@ -53,7 +53,7 @@ export const useProjectChat = (projectId, userRole, userName) => {
         }
     }, [dbProjectId]);
 
-    // Send a message
+    // Send a text message
     const sendMessage = async (text) => {
         if (!text?.trim() || !dbProjectId) return;
 
@@ -64,7 +64,7 @@ export const useProjectChat = (projectId, userRole, userName) => {
             sender_role: userRole || 'guest',
             message: messageText,
             created_at: new Date().toISOString(),
-            isOptimistic: true 
+            isOptimistic: true
         };
 
         setMessages(prev => [...prev, newMessage]);
@@ -83,15 +83,126 @@ export const useProjectChat = (projectId, userRole, userName) => {
         }
     };
 
+    // Ensure the chat-files bucket exists and is writable
+    const ensureBucket = async () => {
+        // Try to create it — if it already exists Supabase returns a harmless "already exists" error
+        const { error: createErr } = await supabase.storage.createBucket('chat-files', {
+            public: true,
+            fileSizeLimit: 20971520 // 20 MB
+        });
+
+        // "already exists" is fine — anything else means we lack permission to create it
+        if (createErr && !createErr.message?.toLowerCase().includes('already exist')) {
+            console.warn('[Chat] Could not auto-create bucket:', createErr.message);
+            // Don't throw — let the upload attempt proceed; it will surface a clearer error if bucket truly missing
+        }
+    };
+
+    // Send a file (image or PDF)
+    const sendFile = async (file) => {
+        if (!file || !dbProjectId) return;
+
+        const isImage = file.type.startsWith('image/');
+        const isPdf = file.type === 'application/pdf';
+        if (!isImage && !isPdf) {
+            alert('Only images and PDF files are supported.');
+            return;
+        }
+
+        const fileType = isImage ? 'image' : 'pdf';
+        const fileName = file.name;
+        const fileKey = `${dbProjectId}/${Date.now()}_${fileName}`;
+
+        // Optimistic placeholder
+        const optimisticId = `opt_${Date.now()}`;
+        const optimisticMsg = {
+            _optimisticId: optimisticId,
+            project_id: dbProjectId,
+            sender_name: userName || 'Anonymous',
+            sender_role: userRole || 'guest',
+            message: '',
+            file_name: fileName,
+            file_type: fileType,
+            file_url: isImage ? URL.createObjectURL(file) : null,
+            created_at: new Date().toISOString(),
+            isOptimistic: true,
+            isUploading: true
+        };
+
+        setMessages(prev => [...prev, optimisticMsg]);
+        setUploadingFiles(prev => new Set(prev).add(optimisticId));
+
+        try {
+            // Auto-create bucket if it doesn't exist yet
+            await ensureBucket();
+
+            // Upload file to Supabase Storage
+            const { error: uploadError } = await supabase.storage
+                .from('chat-files')
+                .upload(fileKey, file, { upsert: false, contentType: file.type });
+
+            if (uploadError) throw uploadError;
+
+            // Get the public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('chat-files')
+                .getPublicUrl(fileKey);
+
+            // Insert the real message
+            const dbMessage = {
+                project_id: dbProjectId,
+                sender_name: userName || 'Anonymous',
+                sender_role: userRole || 'guest',
+                message: '',
+                file_url: publicUrl,
+                file_type: fileType,
+                file_name: fileName,
+                created_at: new Date().toISOString()
+            };
+
+            const { error: insertError } = await supabase
+                .from('project_messages')
+                .insert(dbMessage);
+
+            if (insertError) throw insertError;
+
+            // Remove optimistic — realtime will add the real one
+            setMessages(prev => prev.filter(m => m._optimisticId !== optimisticId));
+        } catch (err) {
+            console.error('[Chat] File upload error:', err);
+            setMessages(prev => prev.filter(m => m._optimisticId !== optimisticId));
+            const msg = err.message?.toLowerCase() || '';
+            if (msg.includes('bucket') || msg.includes('not found') || msg.includes('resource')) {
+                alert(
+                    'Storage not set up yet.\n\n' +
+                    '1. Go to Supabase → Storage → New Bucket\n' +
+                    '2. Name it exactly: chat-files\n' +
+                    '3. Enable "Public bucket"\n' +
+                    '4. Then run in SQL Editor:\n\n' +
+                    'CREATE POLICY "chat_upload" ON storage.objects\n' +
+                    'FOR INSERT TO public\n' +
+                    'WITH CHECK (bucket_id = \'chat-files\');\n\n' +
+                    'Then try again.'
+                );
+            } else {
+                alert(`Upload failed: ${err.message}`);
+            }
+        } finally {
+            setUploadingFiles(prev => {
+                const next = new Set(prev);
+                next.delete(optimisticId);
+                return next;
+            });
+        }
+    };
+
     // Subscription logic with race-condition protection (Safe-Boot)
     useEffect(() => {
         if (!dbProjectId) return;
 
-        // Wait for the main page to stabilize before starting chat services
         const initTimer = setTimeout(() => {
             fetchMessages();
 
-            // Set up real-time sync after initial fetch
             const channel = supabase
                 .channel(`project_chat_${dbProjectId}`)
                 .on(
@@ -104,14 +215,19 @@ export const useProjectChat = (projectId, userRole, userName) => {
                     },
                     (payload) => {
                         if (!payload || !payload.new) return;
-                        
+
                         try {
                             setMessages(prev => {
                                 if (!Array.isArray(prev)) return [payload.new];
-                                const filtered = prev.filter(m => !m.isOptimistic || (m.message !== payload.new.message));
+                                // Remove matching optimistic (text msg dedup by message content)
+                                const filtered = prev.filter(m =>
+                                    !m.isOptimistic ||
+                                    m.message !== payload.new.message ||
+                                    m.file_name !== payload.new.file_name
+                                );
                                 return [...filtered, payload.new];
                             });
-                            
+
                             if (!isPanelOpen) {
                                 setUnreadCount(c => c + 1);
                             }
@@ -125,7 +241,7 @@ export const useProjectChat = (projectId, userRole, userName) => {
             return () => {
                 supabase.removeChannel(channel);
             };
-        }, 1500); // 1.5s delay for page stability
+        }, 1500);
 
         return () => clearTimeout(initTimer);
     }, [dbProjectId, fetchMessages, isPanelOpen]);
@@ -141,9 +257,10 @@ export const useProjectChat = (projectId, userRole, userName) => {
         messages,
         isLoading,
         sendMessage,
+        sendFile,
         unreadCount,
         isPanelOpen,
-        setIsPanelOpen
+        setIsPanelOpen,
+        uploadingFiles
     };
 };
-

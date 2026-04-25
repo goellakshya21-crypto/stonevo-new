@@ -3,8 +3,11 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Box, Camera, Download, Share2, Expand, ArrowRight, Upload, Image as ImageIcon, Wand2, RefreshCw } from 'lucide-react';
 import { aiVisualizer } from '../lib/aiVisualizer';
+import { supabase } from '../lib/supabaseClient';
 
-const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, intendedApp }) => {
+const CUSTOM_STONE_APPS = ['Kitchen', 'Counter Top', 'Bathroom', 'Flooring', 'Wall Cladding', 'Feature Wall', 'Facade', 'Balcony'];
+
+const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, intendedApp, allowCustomStone, onStoneUploaded }) => {
     const [loading, setLoading] = useState(false);
     const [visualData, setVisualData] = useState(null);
     const [roomImage, setRoomImage] = useState(null);
@@ -12,9 +15,18 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
     const [finalRoomType, setFinalRoomType] = useState(roomName || 'Luxury Space');
     const [selectedStyle, setSelectedStyle] = useState(initialStyle || 'Classical');
     const [error, setError] = useState(null);
-    
+
+    // Custom stone upload (when allowCustomStone=true)
+    const [localStone, setLocalStone] = useState(null); // user-uploaded stone
+    const [uploadingStone, setUploadingStone] = useState(false);
+    const [stoneUploadError, setStoneUploadError] = useState(null);
+    const [isDraggingStone, setIsDraggingStone] = useState(false);
+
+    // The stone to use for visualization (custom upload takes priority)
+    const effectiveStone = localStone || stone;
+
     // Lifecycle Steps
-    const [visualizationStep, setVisualizationStep] = useState('app'); // 'app' | 'method' | 'upload'
+    const [visualizationStep, setVisualizationStep] = useState('app'); // 'stone_upload' | 'app' | 'method' | 'upload'
     const [userRoomImage, setUserRoomImage] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
 
@@ -54,35 +66,48 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
     };
 
     useEffect(() => {
-        if (isOpen && stone) {
-            console.log("[AI Modal] Stone loaded:", stone.name, "Apps:", stone.application);
-            setError(null);
-            setImageReady(false);
-            setRoomImage(null);
-            setUserRoomImage(null);
-            
-            // Normalize application to array
-            const apps = Array.isArray(stone.application) 
-                ? stone.application 
-                : (stone.application ? [stone.application] : []);
-            
-            setNormalizedApps(apps);
-            
-            if (intendedApp) {
-                setSelectedApp(intendedApp);
-                setVisualizationStep('method'); // Still give choice even if app is pre-selected
-            } else if (apps.length === 1) {
-                setSelectedApp(apps[0]);
-                setVisualizationStep('method');
-            } else if (apps.length > 1) {
-                setVisualizationStep('app');
-                setLoading(false);
-            } else {
-                setSelectedApp('Surface');
-                setVisualizationStep('method');
-            }
+        if (!isOpen) return;
+
+        // Always reset transient state on open
+        setError(null);
+        setImageReady(false);
+        setRoomImage(null);
+        setUserRoomImage(null);
+        setLocalStone(null);
+        setUploadingStone(false);
+        setStoneUploadError(null);
+
+        // Custom stone mode: no stone provided, user must upload one first
+        if (allowCustomStone && !stone) {
+            setVisualizationStep('stone_upload');
+            return;
         }
-    }, [isOpen, stone?.id, intendedApp]); 
+
+        if (!stone) return;
+
+        console.log("[AI Modal] Stone loaded:", stone.name, "Apps:", stone.application);
+
+        // Normalize application to array
+        const apps = Array.isArray(stone.application)
+            ? stone.application
+            : (stone.application ? [stone.application] : []);
+
+        setNormalizedApps(apps);
+
+        if (intendedApp) {
+            setSelectedApp(intendedApp);
+            setVisualizationStep('method');
+        } else if (apps.length === 1) {
+            setSelectedApp(apps[0]);
+            setVisualizationStep('method');
+        } else if (apps.length > 1) {
+            setVisualizationStep('app');
+            setLoading(false);
+        } else {
+            setSelectedApp('Surface');
+            setVisualizationStep('method');
+        }
+    }, [isOpen, stone?.id, intendedApp, allowCustomStone]);
 
     const handleDownloadImage = () => {
         if (!roomImage) return;
@@ -96,6 +121,55 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    };
+
+    // Upload user's own stone image to storage → proceed to app selection
+    const handleStoneImageUpload = async (file) => {
+        if (!file || !file.type.startsWith('image/')) {
+            setStoneUploadError('Please upload an image file (JPG, PNG, etc.)');
+            return;
+        }
+        setUploadingStone(true);
+        setStoneUploadError(null);
+        try {
+            const filePath = `custom-stones/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+            const { error: uploadErr } = await supabase.storage
+                .from('chat-files')
+                .upload(filePath, file, { upsert: false, contentType: file.type });
+            if (uploadErr) throw uploadErr;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('chat-files')
+                .getPublicUrl(filePath);
+
+            // Generate a readable name from the filename
+            const prettyName = file.name
+                .replace(/\.[^.]+$/, '')           // remove extension
+                .replace(/[-_]+/g, ' ')            // dashes/underscores → spaces
+                .replace(/\b\w/g, l => l.toUpperCase()) // title case
+                .trim() || 'My Stone';
+
+            const newStone = {
+                id: 'custom_' + Date.now(),
+                name: prettyName,
+                image_url: publicUrl,
+                application: CUSTOM_STONE_APPS,
+                colour: 'Natural',
+                description: 'Custom uploaded stone sample'
+            };
+            setLocalStone(newStone);
+            setNormalizedApps(CUSTOM_STONE_APPS);
+            setVisualizationStep('app');
+            // Notify parent so it can save the stone to the gallery
+            onStoneUploaded?.(newStone);
+        } catch (err) {
+            console.error('[AI Modal] Stone upload error:', err);
+            setStoneUploadError(err.message?.includes('bucket') || err.message?.includes('not found')
+                ? 'Storage not ready. Please create a "chat-files" bucket in Supabase Storage first.'
+                : `Upload failed: ${err.message}`);
+        } finally {
+            setUploadingStone(false);
+        }
     };
 
     const handleImageUpload = async (file) => {
@@ -143,7 +217,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         const appToUse = forcedApp || selectedApp || 'Surface';
         const userImgToUse = forcedUserImage !== undefined ? forcedUserImage : userRoomImage;
         
-        console.log("[AI Modal] Starting visualization for:", stone?.name, "Application:", appToUse, "Custom Image:", !!userImgToUse);
+        console.log("[AI Modal] Starting visualization for:", effectiveStone?.name, "Application:", appToUse, "Custom Image:", !!userImgToUse);
         setLoading(true);
         setImageReady(false);
         setRoomImage(null);
@@ -172,9 +246,9 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         }
 
         // FINAL CRITICAL CHECK: Force Outdoor if it's a Facade or Exterior synonym
-        const isActuallyOutdoor = 
-            normalizedApp.includes('facade') || 
-            normalizedApp.includes('exterior') || 
+        const isActuallyOutdoor =
+            normalizedApp.includes('facade') ||
+            normalizedApp.includes('exterior') ||
             normalizedApp.includes('balcony') ||
             normalizedApp.includes('cladding') ||
             normalizedApp.includes('elevation') ||
@@ -182,11 +256,11 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
             normalizedApp.includes('paving') ||
             normalizedApp.includes('entrance') ||
             normalizedApp.includes('outdoor') ||
-            normalize(stone?.name).includes('facade') ||
-            normalize(stone?.name).includes('exterior') ||
-            normalize(stone?.description).includes('exterior') ||
-            normalize(stone?.description).includes('facade') ||
-            normalize(stone?.description).includes('balcony');
+            normalize(effectiveStone?.name).includes('facade') ||
+            normalize(effectiveStone?.name).includes('exterior') ||
+            normalize(effectiveStone?.description).includes('exterior') ||
+            normalize(effectiveStone?.description).includes('facade') ||
+            normalize(effectiveStone?.description).includes('balcony');
 
         if (isActuallyOutdoor && !userImgToUse) {
             console.log("[AI Modal] CRITICAL: Outdoor specimen detected (normalized)! Locking to Residential Balcony.");
@@ -200,10 +274,10 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
             console.log("[AI Modal] Calling aiVisualizer API...");
             const [aiData, imageUrl] = await Promise.all([
                 aiVisualizer.generateVisualDescription(
-                    stone?.name || 'Natural Stone', roomType, stone?.colour || 'Natural', appToUse, styleToUse
+                    effectiveStone?.name || 'Natural Stone', roomType, effectiveStone?.colour || 'Natural', appToUse, styleToUse
                 ),
                 aiVisualizer.generateRoomImage(
-                    stone?.name || 'Natural Stone', roomType, stone?.colour || 'Natural', appToUse, stone?.image_url, styleToUse, userImgToUse
+                    effectiveStone?.name || 'Natural Stone', roomType, effectiveStone?.colour || 'Natural', appToUse, effectiveStone?.image_url, styleToUse, userImgToUse
                 )
             ]);
 
@@ -264,7 +338,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
             console.error("[AI Modal] FATAL ERROR:", error.message);
             setError(error.message);
             setVisualData({
-                description: `A stunning interior vision featuring ${stone?.name || 'this stone'}.`,
+                description: `A stunning interior vision featuring ${effectiveStone?.name || 'this stone'}.`,
                 style_keywords: ["Modern", "Elegant"],
                 lighting: "Natural"
             });
@@ -301,6 +375,62 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                     animate={{ opacity: 1, y: 0 }}
                                     className="max-w-xl w-full"
                                 >
+                                    {visualizationStep === 'stone_upload' && (
+                                        <div className="text-center">
+                                            <div className="w-12 h-12 md:w-16 md:h-16 bg-[#eca413]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                                                <ImageIcon className="text-[#eca413]" size={24} />
+                                            </div>
+                                            <h2 className="text-2xl md:text-3xl font-serif text-white mb-3 italic">Upload Your Stone</h2>
+                                            <p className="text-white/50 text-xs md:text-sm mb-8 tracking-wide leading-relaxed">
+                                                Upload a clear photo of your stone sample. The AI will capture its exact texture, veining, and colour.
+                                            </p>
+
+                                            {uploadingStone ? (
+                                                <div className="flex flex-col items-center gap-4 py-12">
+                                                    <div className="w-12 h-12 border-2 border-[#eca413]/20 border-t-[#eca413] rounded-full animate-spin" />
+                                                    <p className="text-white/40 text-xs uppercase tracking-widest">Uploading stone sample…</p>
+                                                </div>
+                                            ) : (
+                                                <div
+                                                    onDragOver={(e) => { e.preventDefault(); setIsDraggingStone(true); }}
+                                                    onDragLeave={() => setIsDraggingStone(false)}
+                                                    onDrop={(e) => {
+                                                        e.preventDefault();
+                                                        setIsDraggingStone(false);
+                                                        const file = e.dataTransfer.files[0];
+                                                        if (file) handleStoneImageUpload(file);
+                                                    }}
+                                                    className={`relative border-2 border-dashed rounded-3xl p-12 transition-all cursor-pointer ${
+                                                        isDraggingStone ? 'border-[#eca413] bg-[#eca413]/5' : 'border-white/10 hover:border-[#eca413]/40 bg-white/[0.02]'
+                                                    }`}
+                                                >
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) handleStoneImageUpload(file);
+                                                        }}
+                                                    />
+                                                    <div className="flex flex-col items-center pointer-events-none">
+                                                        <div className="w-16 h-16 bg-white/[0.03] rounded-full flex items-center justify-center mb-5 border border-white/10">
+                                                            <Upload className="text-[#eca413]" size={28} />
+                                                        </div>
+                                                        <p className="text-white font-serif text-lg italic mb-1">Tap to upload or drag & drop</p>
+                                                        <p className="text-white/30 text-[10px] uppercase tracking-widest">JPG, PNG, WEBP · Max 20MB</p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {stoneUploadError && (
+                                                <p className="mt-4 text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2">
+                                                    {stoneUploadError}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+
                                     {visualizationStep === 'app' && (
                                         <div className="text-center">
                                             <div className="w-12 h-12 md:w-16 md:h-16 bg-luxury-bronze/10 rounded-full flex items-center justify-center mx-auto mb-6 md:mb-8">
@@ -308,7 +438,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                             </div>
                                             <h2 className="text-2xl md:text-3xl font-serif text-white mb-4 italic">Choose Application</h2>
                                             <p className="text-white/50 text-xs md:text-sm mb-8 tracking-wide leading-relaxed">
-                                                Where will <strong>{stone?.name}</strong> be featured in your architectural project?
+                                                Where will <strong>{effectiveStone?.name || 'your stone'}</strong> be featured in your architectural project?
                                             </p>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                                                 {normalizedApps.length > 0 ? normalizedApps.map(app => (
@@ -337,6 +467,14 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                                     </button>
                                                 )}
                                             </div>
+                                            {allowCustomStone && localStone && (
+                                                <button
+                                                    onClick={() => { setLocalStone(null); setVisualizationStep('stone_upload'); }}
+                                                    className="mt-8 text-[10px] text-white/30 uppercase tracking-[0.2em] hover:text-[#eca413] transition-colors flex items-center gap-2 mx-auto font-black"
+                                                >
+                                                    <RefreshCw size={10} /> Upload Different Stone
+                                                </button>
+                                            )}
                                         </div>
                                     )}
 
@@ -479,11 +617,11 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
                                     <div className="absolute bottom-4 md:bottom-8 left-4 md:left-8 flex items-end gap-4 md:gap-6">
                                         <div className="size-16 md:size-24 rounded-lg overflow-hidden border-2 border-white/20 shadow-2xl">
-                                            <img src={stone?.image_url || 'https://images.unsplash.com/photo-1628595351029-c2bf17511435?auto=format&fit=crop&q=80&w=200'} alt="Texture" className="w-full h-full object-cover" />
+                                            <img src={effectiveStone?.image_url || 'https://images.unsplash.com/photo-1628595351029-c2bf17511435?auto=format&fit=crop&q=80&w=200'} alt="Texture" className="w-full h-full object-cover" />
                                         </div>
                                         <div className="pb-1 md:pb-2">
                                             <p className="text-[8px] md:text-[10px] font-bold text-[#eca413] uppercase tracking-widest mb-0.5 md:mb-1">Material Source</p>
-                                            <h4 className="text-white font-serif text-sm md:text-lg italic">{stone?.name}</h4>
+                                            <h4 className="text-white font-serif text-sm md:text-lg italic">{effectiveStone?.name}</h4>
                                         </div>
                                     </div>
                                 </>
