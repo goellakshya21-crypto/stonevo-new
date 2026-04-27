@@ -185,6 +185,27 @@ function Home({ role }) {
         fetchClients();
     }, [chatRole]);
 
+    // Auto-discover the shared room for clients whose architect has linked them
+    useEffect(() => {
+        if (chatRole !== 'client' || isLinked || !leadId) return;
+        const discoverRoom = async () => {
+            try {
+                const { data: lead } = await supabase.from('leads').select('phone').eq('id', leadId).single();
+                if (!lead?.phone) return;
+                const phone = lead.phone.replace(/\D/g, '').slice(-10);
+                const { data: wl } = await supabase
+                    .from('client_whitelist')
+                    .select('id, client_name')
+                    .ilike('phone_number', `%${phone}`)
+                    .maybeSingle();
+                if (wl?.id) linkToClient(wl.id, wl.client_name || 'Project Room');
+            } catch (err) {
+                console.error('[Chat] Client room discovery error:', err);
+            }
+        };
+        discoverRoom();
+    }, [chatRole, leadId, isLinked]);
+
     // Pending client requests badge
     useEffect(() => {
         if (chatRole !== 'architect' && chatRole !== 'admin') return;
@@ -559,7 +580,7 @@ function Home({ role }) {
                 projectId={activeRoomId || leadId || 'personal_workspace'}
                 role={chatRole}
                 userName={chatName}
-                isLinked={isLinked}
+                isLinked={chatRole === 'client' ? !!leadId : isLinked}
             />
 
             <ClientManager 

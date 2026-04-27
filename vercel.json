@@ -3,10 +3,7 @@
     "api/generate-image.js": {
       "maxDuration": 60
     },
-    "api/notify-message.js": {
-      "maxDuration": 15
-    },
-    "api/health.js": {
+"api/health.js": {
       "maxDuration": 10
     }
   },
