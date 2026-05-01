@@ -102,18 +102,10 @@ const LeadGate = ({ children }) => {
         try {
             const digits = formData.phone.replace(/\D/g, '');
             if (digits.length < 10) throw new Error('Please enter a valid 10-digit phone number');
-            const cleanPhone = digits.slice(-10); // Fast2SMS uses 10-digit number only
+            const cleanPhone = '+91' + digits.slice(-10);
 
-            const { data, error } = await supabase.functions.invoke('send-otp', {
-                body: { phone: cleanPhone },
-            });
-            // Extract real error from edge function response body
-            if (error) {
-                let msg = error.message;
-                try { const b = await error.context?.json?.(); if (b?.error) msg = b.error; } catch {}
-                throw new Error(msg);
-            }
-            if (data?.error) throw new Error(data.error);
+            const { error } = await supabase.auth.signInWithOtp({ phone: cleanPhone });
+            if (error) throw new Error(error.message);
 
             setStep('OTP');
         } catch (err) {
@@ -135,17 +127,15 @@ const LeadGate = ({ children }) => {
             // Normalize: remove all non-digits and take last 10 digits
             const digits = formData.phone.replace(/\D/g, '');
             const cleanPhone = digits.slice(-10);
+            const e164Phone = '+91' + cleanPhone;
 
-            // Verify OTP via Edge Function
-            const { data: verifyData, error: fnError } = await supabase.functions.invoke('verify-otp', {
-                body: { phone: cleanPhone, otp: otp.trim() },
+            // Verify OTP via Supabase Auth (Twilio under the hood)
+            const { error: verifyError } = await supabase.auth.verifyOtp({
+                phone: e164Phone,
+                token: otp.trim(),
+                type: 'sms',
             });
-            if (fnError) {
-                let msg = fnError.message;
-                try { const b = await fnError.context?.json?.(); if (b?.error) msg = b.error; } catch {}
-                throw new Error(msg);
-            }
-            if (verifyData?.error) throw new Error(verifyData.error);
+            if (verifyError) throw new Error(verifyError.message);
 
             // SUPER WHITELIST (Hardcoded Fallback for testing)
             const superWhitelist = {
