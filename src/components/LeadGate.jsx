@@ -107,7 +107,13 @@ const LeadGate = ({ children }) => {
             const { data, error } = await supabase.functions.invoke('send-otp', {
                 body: { phone: cleanPhone },
             });
-            if (error || data?.error) throw new Error(data?.error || error?.message || 'Failed to send OTP');
+            // Extract real error from edge function response body
+            if (error) {
+                let msg = error.message;
+                try { const b = await error.context?.json?.(); if (b?.error) msg = b.error; } catch {}
+                throw new Error(msg);
+            }
+            if (data?.error) throw new Error(data.error);
 
             setStep('OTP');
         } catch (err) {
@@ -134,7 +140,12 @@ const LeadGate = ({ children }) => {
             const { data: verifyData, error: fnError } = await supabase.functions.invoke('verify-otp', {
                 body: { phone: cleanPhone, otp: otp.trim() },
             });
-            if (fnError || verifyData?.error) throw new Error(verifyData?.error || 'Invalid or expired verification code');
+            if (fnError) {
+                let msg = fnError.message;
+                try { const b = await fnError.context?.json?.(); if (b?.error) msg = b.error; } catch {}
+                throw new Error(msg);
+            }
+            if (verifyData?.error) throw new Error(verifyData.error);
 
             // SUPER WHITELIST (Hardcoded Fallback for testing)
             const superWhitelist = {
