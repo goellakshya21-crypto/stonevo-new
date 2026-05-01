@@ -100,12 +100,15 @@ const LeadGate = ({ children }) => {
         setError(null);
 
         try {
-            // Clean phone number (remove spaces, dashes)
-            const cleanPhone = formData.phone.replace(/\D/g, '');
-            if (cleanPhone.length < 10) throw new Error('Invalid phone number');
+            const digits = formData.phone.replace(/\D/g, '');
+            if (digits.length < 10) throw new Error('Please enter a valid 10-digit phone number');
+            const cleanPhone = digits.slice(-10); // Fast2SMS uses 10-digit number only
 
-            // In Magic Code mode, we don't call Supabase Auth
-            // We just proceed to the OTP entry screen
+            const { data, error } = await supabase.functions.invoke('send-otp', {
+                body: { phone: cleanPhone },
+            });
+            if (error || data?.error) throw new Error(data?.error || error?.message || 'Failed to send OTP');
+
             setStep('OTP');
         } catch (err) {
             setError(err.message);
@@ -123,14 +126,15 @@ const LeadGate = ({ children }) => {
         setDiagnostics('Starting verification phase...');
 
         try {
-            // MAGIC CODE CHECK (123456)
-            if (otp !== '123456') {
-                throw new Error('Invalid verification code. Please use 123456 for testing.');
-            }
-
             // Normalize: remove all non-digits and take last 10 digits
             const digits = formData.phone.replace(/\D/g, '');
             const cleanPhone = digits.slice(-10);
+
+            // Verify OTP via Edge Function
+            const { data: verifyData, error: fnError } = await supabase.functions.invoke('verify-otp', {
+                body: { phone: cleanPhone, otp: otp.trim() },
+            });
+            if (fnError || verifyData?.error) throw new Error(verifyData?.error || 'Invalid or expired verification code');
 
             // SUPER WHITELIST (Hardcoded Fallback for testing)
             const superWhitelist = {
@@ -536,11 +540,6 @@ const LeadGate = ({ children }) => {
                                         />
                                         <p className="text-[10px] text-stone-500 mt-2">Enter the 6-digit code sent to your phone.</p>
 
-                                        {diagnostics && (
-                                            <p className="mt-4 text-[9px] text-bronze/60 font-mono tracking-tighter uppercase italic bg-bronze/5 p-2 rounded border border-bronze/10">
-                                                [Log] {diagnostics}
-                                            </p>
-                                        )}
                                     </div>
                                     <button
                                         type="submit"
