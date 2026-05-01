@@ -29,14 +29,16 @@ serve(async (req) => {
             code: otp,
             expires_at: expiresAt,
         });
-        if (insertErr) throw new Error('Failed to store OTP');
+        if (insertErr) throw new Error('Failed to store OTP. Make sure otp_codes table exists.');
 
-        // Send via Fast2SMS OTP route (no DLT needed)
-        const url = `https://www.fast2sms.com/dev/bulkV2?authorization=${FAST2SMS_KEY}&variables_values=${otp}&route=otp&numbers=${phone}`;
+        // Send via Fast2SMS Quick route (no website verification or DLT needed)
+        const message = encodeURIComponent(`Your Stonevo verification code is ${otp}. Valid for 10 minutes.`);
+        const url = `https://www.fast2sms.com/dev/bulkV2?authorization=${FAST2SMS_KEY}&message=${message}&language=english&route=q&numbers=${phone}`;
         const res  = await fetch(url);
         const data = await res.json();
 
-        if (!data.return) throw new Error(data.message?.[0] || 'Fast2SMS failed to send OTP');
+        const f2sMsg = Array.isArray(data.message) ? data.message[0] : (data.message || 'Fast2SMS failed to send OTP');
+        if (!data.return) throw new Error(f2sMsg);
 
         return new Response(JSON.stringify({ success: true }), {
             headers: { ...cors, 'Content-Type': 'application/json' },
