@@ -6,6 +6,7 @@ import AdminChatRooms from '../components/AdminChatRooms';
 import AdminActivity from '../components/AdminActivity';
 import AdminClientLinks from '../components/AdminClientLinks';
 import AdminFormPreview from '../components/AdminFormPreview';
+import AdminDossier from '../components/AdminDossier';
 
 function AdminPage() {
     console.log('AdminPage rendering...');
@@ -45,6 +46,7 @@ function AdminPage() {
                             { id: 'activity',  label: 'Login Activity' },
                             { id: 'links',     label: 'Client Links' },
                             { id: 'preview',   label: 'Form Preview' },
+                            { id: 'dossier',   label: '✦ Stone Dossier' },
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -71,8 +73,10 @@ function AdminPage() {
                     <AdminActivity />
                 ) : activeTab === 'links' ? (
                     <AdminClientLinks />
-                ) : (
+                ) : activeTab === 'preview' ? (
                     <AdminFormPreview />
+                ) : (
+                    <AdminDossier />
                 )}
             </main>
 
