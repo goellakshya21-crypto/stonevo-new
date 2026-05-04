@@ -682,23 +682,23 @@ const LeadGate = ({ children }) => {
                                             <input required type="text" className="w-full bg-white/5 border-b border-white/10 py-2 text-luxury-cream focus:outline-none focus:border-bronze transition-colors" value={formData.full_name} onChange={(e) => handleInputChange('full_name', e.target.value)} />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[10px] uppercase font-bold text-stone-500 tracking-widest flex items-center gap-2"><Mail size={12} className="text-bronze" /> Email</label>
-                                            <input required type="email" className="w-full bg-white/5 border-b border-white/10 py-2 text-luxury-cream focus:outline-none focus:border-bronze transition-colors" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} />
+                                            <label className="text-[10px] uppercase font-bold text-stone-500 tracking-widest flex items-center gap-2"><Mail size={12} className="text-bronze" /> Email <span className="text-stone-600 normal-case font-normal">(optional)</span></label>
+                                            <input type="email" className="w-full bg-white/5 border-b border-white/10 py-2 text-luxury-cream focus:outline-none focus:border-bronze transition-colors" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} />
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-1">
-                                            <label className="text-[10px] uppercase font-bold text-stone-500 tracking-widest flex items-center gap-2"><Building size={12} className="text-bronze" /> Firm Name</label>
-                                            <input required type="text" className="w-full bg-white/5 border-b border-white/10 py-2 text-luxury-cream focus:outline-none focus:border-bronze transition-colors" value={formData.company_name} onChange={(e) => handleInputChange('company_name', e.target.value)} />
+                                            <label className="text-[10px] uppercase font-bold text-stone-500 tracking-widest flex items-center gap-2"><Building size={12} className="text-bronze" /> Firm Name <span className="text-stone-600 normal-case font-normal">(optional)</span></label>
+                                            <input type="text" className="w-full bg-white/5 border-b border-white/10 py-2 text-luxury-cream focus:outline-none focus:border-bronze transition-colors" value={formData.company_name} onChange={(e) => handleInputChange('company_name', e.target.value)} />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[10px] uppercase font-bold text-stone-500 tracking-widest flex items-center gap-2">GST Number</label>
-                                            <input required type="text" placeholder="22AAAAA0000A1Z5" className="w-full bg-white/5 border-b border-white/10 py-2 text-luxury-cream focus:outline-none focus:border-bronze transition-colors" value={formData.gst_number} onChange={(e) => handleInputChange('gst_number', e.target.value)} />
+                                            <label className="text-[10px] uppercase font-bold text-stone-500 tracking-widest flex items-center gap-2">GST Number <span className="text-stone-600 normal-case font-normal">(optional)</span></label>
+                                            <input type="text" placeholder="22AAAAA0000A1Z5" className="w-full bg-white/5 border-b border-white/10 py-2 text-luxury-cream focus:outline-none focus:border-bronze transition-colors" value={formData.gst_number} onChange={(e) => handleInputChange('gst_number', e.target.value)} />
                                         </div>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[10px] uppercase font-bold text-stone-500 tracking-widest flex items-center gap-2"><Globe size={12} className="text-bronze" /> Website</label>
-                                        <input required type="url" className="w-full bg-white/5 border-b border-white/10 py-2 text-luxury-cream focus:outline-none focus:border-bronze transition-colors" value={formData.website} onChange={(e) => handleInputChange('website', e.target.value)} />
+                                        <label className="text-[10px] uppercase font-bold text-stone-500 tracking-widest flex items-center gap-2"><Globe size={12} className="text-bronze" /> Website <span className="text-stone-600 normal-case font-normal">(optional)</span></label>
+                                        <input type="url" placeholder="https://" className="w-full bg-white/5 border-b border-white/10 py-2 text-luxury-cream focus:outline-none focus:border-bronze transition-colors placeholder:text-stone-700" value={formData.website} onChange={(e) => handleInputChange('website', e.target.value)} />
                                     </div>
                                     <button type="submit" disabled={submitting} className="w-full py-5 bg-bronze text-white font-serif tracking-[0.2em] uppercase text-sm hover:bg-white hover:text-stone-950 transition-all shadow-xl shadow-bronze/10">
                                         {submitting ? "Submitting..." : "Complete Registration"}
