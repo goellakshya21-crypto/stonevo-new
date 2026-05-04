@@ -161,49 +161,6 @@ const LeadGate = ({ children }) => {
             const digits = formData.phone.replace(/\D/g, '');
             const cleanPhone = digits.slice(-10);
 
-            // ── DEV BYPASS: master test OTP skips edge function ──────────────
-            const MASTER_TEST_OTP = '000000';
-            if (otp.trim() === MASTER_TEST_OTP) {
-                setDiagnostics('DEV BYPASS: Skipping OTP verification...');
-                // Jump straight to whitelist/login logic below
-                // (fall through by not throwing — set verifyData to success)
-                // We handle this by going directly to the lookup block
-                const superWhitelist = {
-                    '7678320944': { name: 'Lakshya', role: 'architect' },
-                    '7042353166': { name: 'JJ', role: 'builder' }
-                };
-                let whitelistData = null;
-                let finalName = '';
-                if (superWhitelist[cleanPhone]) {
-                    finalName = superWhitelist[cleanPhone].name;
-                    whitelistData = { full_name: finalName, role: superWhitelist[cleanPhone].role };
-                } else {
-                    const { data: dbData } = await supabase.from('architect_whitelist').select('*').eq('phone_number', cleanPhone).single();
-                    if (dbData) { whitelistData = dbData; finalName = dbData.full_name; }
-                }
-                const { data: existingLead } = await supabase.from('leads').select('*').eq('phone', cleanPhone).eq('status', 'approved').maybeSingle();
-                if (existingLead?.role) {
-                    await supabase.from('leads').update({ last_active: new Date().toISOString() }).eq('id', existingLead.id);
-                    await logLogin(cleanPhone, existingLead.full_name, existingLead.role);
-                    localStorage.setItem('stonevo_lead_id', existingLead.id);
-                    localStorage.setItem('stonevo_user_phone', existingLead.phone || cleanPhone);
-                    localStorage.setItem('stonevo_user_name', existingLead.full_name);
-                    setContextLeadId(existingLead.id);
-                    setRoleState(existingLead.role);
-                    setWelcomeName(existingLead.full_name);
-                    setStatus('welcome');
-                    setTimeout(() => setStatus('approved'), 2500);
-                } else if (whitelistData || existingLead) {
-                    setPendingLead(existingLead || { phone: cleanPhone, full_name: finalName, email: `${cleanPhone}@stonevo.pro` });
-                    setWelcomeName(finalName || existingLead?.full_name);
-                    setStep('ROLE_SELECTION');
-                } else {
-                    setStep('NEW_USER_ROLE');
-                }
-                return;
-            }
-            // ────────────────────────────────────────────────────────────────
-
             // Verify OTP via Edge Function
             const { data: verifyData, error: fnError } = await supabase.functions.invoke('verify-otp', {
                 body: { phone: cleanPhone, otp: otp.trim() },
