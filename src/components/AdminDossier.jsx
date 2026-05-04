@@ -1,42 +1,32 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, Sparkles, FileText, Trash2, Plus, Loader2, ChevronDown, X, Download, ImagePlus } from 'lucide-react';
+import { Sparkles, FileText, Trash2, Plus, Loader2, ChevronDown, X, Download, ImagePlus, IndianRupee, Ruler } from 'lucide-react';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { aiVisualizer } from '../lib/aiVisualizer';
 
-// ─── Application options (mirrors the main visualizer) ───────────────────────
+// ─── Application options — identical to AIVisualizationModal ─────────────────
 const APPLICATION_OPTIONS = [
-    { value: 'flooring',        label: 'Flooring',           room: 'living room',    style: 'contemporary' },
-    { value: 'kitchen counter', label: 'Kitchen Counter',     room: 'kitchen',        style: 'modern' },
-    { value: 'bathroom wall',   label: 'Bathroom Wall',       room: 'bathroom',       style: 'luxury spa' },
-    { value: 'feature wall',    label: 'Feature Wall',        room: 'living room',    style: 'modern luxury' },
-    { value: 'dining table',    label: 'Dining Table',        room: 'dining room',    style: 'contemporary' },
-    { value: 'bathroom floor',  label: 'Bathroom Floor',      room: 'bathroom',       style: 'minimalist' },
-    { value: 'staircase',       label: 'Staircase',           room: 'foyer',          style: 'grand classical' },
-    { value: 'outdoor terrace', label: 'Outdoor Terrace',     room: 'terrace',        style: 'resort luxury' },
+    { value: 'flooring',        label: 'Flooring',           room: 'Living Room',     style: 'Contemporary' },
+    { value: 'kitchen counter', label: 'Kitchen Counter',     room: 'Kitchen',         style: 'Modern' },
+    { value: 'bathroom wall',   label: 'Bathroom Wall',       room: 'Bathroom',        style: 'Luxury Spa' },
+    { value: 'feature wall',    label: 'Feature Wall',        room: 'Living Room',     style: 'Modern Luxury' },
+    { value: 'dining table',    label: 'Dining Table',        room: 'Dining Room',     style: 'Contemporary' },
+    { value: 'bathroom floor',  label: 'Bathroom Floor',      room: 'Bathroom',        style: 'Minimalist' },
+    { value: 'staircase',       label: 'Staircase',           room: 'Foyer',           style: 'Grand Classical' },
+    { value: 'outdoor terrace', label: 'Outdoor Terrace',     room: 'Terrace',         style: 'Resort Luxury' },
 ];
 
-// ─── Generate one AI render via the existing API ─────────────────────────────
+// ─── Generate one render — exact same method as architect visualizer ──────────
 async function generateRender(stoneImageUrl, stoneName, application) {
     const appObj = APPLICATION_OPTIONS.find(a => a.value === application) || APPLICATION_OPTIONS[0];
-    const res = await fetch('/api/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            stoneImageUrl,
-            stoneName,
-            roomType: appObj.room,
-            roomStyle: appObj.style,
-            application: appObj.value,
-            modelId: 'gemini-2.5-flash-preview-05-20'
-        })
-    });
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `HTTP ${res.status}`);
-    }
-    const data = await res.json();
-    return data.url; // base64 data URL
+    return aiVisualizer.generateRoomImage(
+        stoneName,
+        appObj.room,
+        'Natural Stone',
+        appObj.value,
+        stoneImageUrl,
+        appObj.style
+    );
 }
 
 // ─── Helper: load image as base64 from File or URL ───────────────────────────
@@ -189,6 +179,8 @@ async function buildPDF(stones) {
 
         specRow('STONE NAME', stone.name);
         specRow('APPLICATIONS', stone.applications.map(a => a.label || a.application).join(', '));
+        if (stone.lotSize) specRow('LOT SIZE', stone.lotSize);
+        if (stone.price)   specRow('PRICE', stone.price);
         if (stone.description) specRow('NOTES', stone.description);
 
         y += slabH + 10;
@@ -245,6 +237,8 @@ const AdminDossier = () => {
             id: Date.now(),
             name: '',
             description: '',
+            lotSize: '',
+            price: '',
             imageFile: null,
             imageDataUrl: null,
             imageUrl: null,
@@ -503,13 +497,39 @@ const AdminDossier = () => {
                                     </label>
                                 )}
 
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest flex items-center gap-1">
+                                            <Ruler size={10} /> Lot Size
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={stone.lotSize}
+                                            onChange={e => updateStone(stone.id, { lotSize: e.target.value })}
+                                            placeholder="e.g. 120×60 cm"
+                                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 focus:outline-none focus:border-bronze"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest flex items-center gap-1">
+                                            <IndianRupee size={10} /> Price
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={stone.price}
+                                            onChange={e => updateStone(stone.id, { price: e.target.value })}
+                                            placeholder="e.g. ₹450/sq.ft"
+                                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 focus:outline-none focus:border-bronze"
+                                        />
+                                    </div>
+                                </div>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Notes (optional)</label>
                                     <textarea
                                         value={stone.description}
                                         onChange={e => updateStone(stone.id, { description: e.target.value })}
-                                        placeholder="Finish, origin, size, etc."
-                                        rows={3}
+                                        placeholder="Finish, origin, etc."
+                                        rows={2}
                                         className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 focus:outline-none focus:border-bronze resize-none"
                                     />
                                 </div>
