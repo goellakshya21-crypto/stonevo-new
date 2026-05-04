@@ -313,39 +313,46 @@ const LeadGate = ({ children }) => {
         try {
             const cleanPhone = formData.phone.replace(/\D/g, '');
             const cleanArchPhone = clientRequest.architect_phone.replace(/\D/g, '').slice(-10);
-            if (cleanArchPhone.length < 10) throw new Error('Please enter a valid 10-digit architect phone number');
 
-            // Silently check if architect exists — flag unverified ones for admin review
-            const { data: archCheck } = await supabase
-                .from('leads')
-                .select('id')
-                .eq('phone', cleanArchPhone)
-                .eq('role', 'architect')
-                .maybeSingle();
+            let requestTag = null;
+            if (cleanArchPhone.length === 10) {
+                // Silently check if architect exists — flag unverified ones for admin review
+                const { data: archCheck } = await supabase
+                    .from('leads')
+                    .select('id')
+                    .eq('phone', cleanArchPhone)
+                    .eq('role', 'architect')
+                    .maybeSingle();
 
-            const requestTag = archCheck
-                ? `PENDING_REQUEST:${cleanArchPhone}`
-                : `UNVERIFIED_ARCHITECT:${cleanArchPhone}`;
+                requestTag = archCheck
+                    ? `PENDING_REQUEST:${cleanArchPhone}`
+                    : `UNVERIFIED_ARCHITECT:${cleanArchPhone}`;
+            }
+
+            const upsertPayload = {
+                phone: cleanPhone,
+                full_name: clientRequest.full_name,
+                email: `${cleanPhone}@stonevo.pro`,
+                role: 'builder',
+                status: 'approved',   // no architect needed to browse
+            };
+            if (requestTag) upsertPayload.company_name = requestTag;
 
             const { data, error } = await supabase
                 .from('leads')
-                .upsert({
-                    phone: cleanPhone,
-                    full_name: clientRequest.full_name,
-                    email: `${cleanPhone}@stonevo.pro`,
-                    role: 'builder',
-                    status: 'pending',
-                    company_name: requestTag
-                }, { onConflict: 'phone' })
+                .upsert(upsertPayload, { onConflict: 'phone' })
                 .select()
                 .single();
 
             if (error) throw error;
+            await logLogin(cleanPhone, clientRequest.full_name, 'builder');
             localStorage.setItem('stonevo_lead_id', data.id);
+            localStorage.setItem('stonevo_user_phone', cleanPhone);
+            localStorage.setItem('stonevo_user_name', clientRequest.full_name);
             setContextLeadId(data.id);
             setRoleState('builder');
             setWelcomeName(clientRequest.full_name);
-            setShowPendingBanner(true);
+            if (requestTag) setShowPendingBanner(true);
             setStatus('welcome');
             setTimeout(() => setStatus('approved'), 2500);
         } catch (err) {
@@ -664,8 +671,11 @@ const LeadGate = ({ children }) => {
                                         <input required type="text" className="w-full bg-white/5 border-b border-white/10 py-3 text-luxury-cream focus:outline-none focus:border-bronze transition-colors" value={clientRequest.full_name} onChange={(e) => setClientRequest(p => ({ ...p, full_name: e.target.value }))} />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[10px] uppercase font-bold text-stone-500 tracking-widest flex items-center gap-2"><Phone size={12} className="text-bronze" /> Architect's Phone Number</label>
-                                        <input required type="tel" placeholder="Enter your architect's mobile number" className="w-full bg-white/5 border-b border-white/10 py-3 text-luxury-cream focus:outline-none focus:border-bronze transition-colors placeholder:text-stone-700" value={clientRequest.architect_phone} onChange={(e) => setClientRequest(p => ({ ...p, architect_phone: e.target.value }))} />
+                                        <label className="text-[10px] uppercase font-bold text-stone-500 tracking-widest flex items-center gap-2">
+                                            <Phone size={12} className="text-bronze" /> Architect's Phone Number
+                                            <span className="text-stone-600 normal-case font-normal">(optional)</span>
+                                        </label>
+                                        <input type="tel" placeholder="You can add this later from the site" className="w-full bg-white/5 border-b border-white/10 py-3 text-luxury-cream focus:outline-none focus:border-bronze transition-colors placeholder:text-stone-700" value={clientRequest.architect_phone} onChange={(e) => setClientRequest(p => ({ ...p, architect_phone: e.target.value }))} />
                                     </div>
                                     <button type="submit" disabled={submitting} className="w-full py-5 bg-bronze text-white font-serif tracking-[0.2em] uppercase text-sm hover:bg-white hover:text-stone-950 transition-all shadow-xl shadow-bronze/10">
                                         {submitting ? 'Sending Request...' : 'Send Access Request'}

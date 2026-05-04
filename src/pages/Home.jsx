@@ -13,7 +13,90 @@ import StoneSelectionForm from '../components/StoneSelectionForm';
 import { useRequirements } from '../context/RequirementsContext';
 import ProjectChat from '../components/ProjectChat';
 import ClientManager from '../components/ClientManager';
-import { PowerOff, ChevronDown, Link as LinkIcon, Upload, Sparkles, Trash2, Pencil, Check, X as XIcon } from 'lucide-react';
+import { PowerOff, ChevronDown, Link as LinkIcon, Upload, Sparkles, Trash2, Pencil, Check, X as XIcon, Phone } from 'lucide-react';
+
+// Floating prompt for clients who haven't linked an architect yet
+const LinkArchitectPrompt = ({ leadId, onLinked }) => {
+    const [open, setOpen] = useState(false);
+    const [phone, setPhone] = useState('');
+    const [saving, setSaving] = useState(false);
+    const [err, setErr] = useState('');
+    const [done, setDone] = useState(false);
+
+    const submit = async (e) => {
+        e.preventDefault();
+        const clean = phone.replace(/\D/g, '').slice(-10);
+        if (clean.length < 10) { setErr('Enter a valid 10-digit number'); return; }
+        setSaving(true); setErr('');
+        try {
+            // Check if architect exists
+            const { data: arch } = await supabase
+                .from('leads').select('id').eq('phone', clean).eq('role', 'architect').maybeSingle();
+            const tag = arch ? `PENDING_REQUEST:${clean}` : `UNVERIFIED_ARCHITECT:${clean}`;
+            await supabase.from('leads').update({ company_name: tag }).eq('id', leadId);
+            setDone(true);
+            setTimeout(() => { setOpen(false); if (onLinked) onLinked(); }, 1500);
+        } catch (e) {
+            setErr(e.message);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    if (done) return null;
+
+    return (
+        <div className="fixed bottom-24 left-4 z-[290]">
+            {open ? (
+                <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    className="bg-stone-900 border border-white/10 rounded-2xl p-5 shadow-2xl w-72"
+                >
+                    <div className="flex items-center justify-between mb-4">
+                        <p className="text-white text-sm font-serif italic">Link your Architect</p>
+                        <button onClick={() => setOpen(false)} className="text-stone-500 hover:text-white">
+                            <XIcon size={16} />
+                        </button>
+                    </div>
+                    <p className="text-stone-400 text-xs mb-4 leading-relaxed">
+                        Enter your architect's phone number to connect your project room.
+                    </p>
+                    <form onSubmit={submit} className="space-y-3">
+                        <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
+                            <Phone size={14} className="text-bronze shrink-0" />
+                            <input
+                                type="tel"
+                                placeholder="Architect's mobile number"
+                                value={phone}
+                                onChange={e => setPhone(e.target.value)}
+                                className="flex-1 bg-transparent text-white text-sm focus:outline-none placeholder:text-stone-600"
+                            />
+                        </div>
+                        {err && <p className="text-red-400 text-xs">{err}</p>}
+                        <button
+                            type="submit"
+                            disabled={saving}
+                            className="w-full py-2.5 bg-bronze text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-white hover:text-stone-900 transition-all"
+                        >
+                            {saving ? 'Linking…' : 'Send Request'}
+                        </button>
+                    </form>
+                </motion.div>
+            ) : (
+                <motion.button
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    onClick={() => setOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-stone-900/90 border border-white/10 rounded-full text-[10px] text-stone-400 hover:text-bronze uppercase tracking-widest transition-all backdrop-blur-md shadow-xl"
+                >
+                    <LinkIcon size={12} className="text-bronze" />
+                    Link your Architect
+                </motion.button>
+            )}
+        </div>
+    );
+};
 
 const ITEMS_PER_PAGE = 50;
 const SYNTHETIC_MARBLES = [];
@@ -583,10 +666,15 @@ function Home({ role }) {
                 isLinked={chatRole === 'client' ? !!leadId : isLinked}
             />
 
-            <ClientManager 
-                isOpen={isClientManagerOpen} 
-                onClose={() => setIsClientManagerOpen(false)} 
+            <ClientManager
+                isOpen={isClientManagerOpen}
+                onClose={() => setIsClientManagerOpen(false)}
             />
+
+            {/* Prompt unlinked clients to connect their architect */}
+            {chatRole === 'client' && !isLinked && leadId && (
+                <LinkArchitectPrompt leadId={leadId} onLinked={() => window.location.reload()} />
+            )}
         </div>
     );
 }
