@@ -100,6 +100,10 @@ const LeadGate = ({ children }) => {
             if ((data.role === 'architect' || !data.role) && data.phone) {
                 promoteUnverifiedRequests(data.phone);
             }
+            // Log every visit where the session is already active
+            if (data.status === 'approved') {
+                logLogin(data.phone, data.full_name, data.role || 'architect');
+            }
             setStatus(data.status);
         } catch (err) {
             console.error('Status check failed:', err);
