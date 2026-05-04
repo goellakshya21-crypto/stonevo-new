@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import AdminUpload from '../components/AdminUpload';
 import AdminWhitelist from '../components/AdminWhitelist';
 import AdminChatRooms from '../components/AdminChatRooms';
+import AdminActivity from '../components/AdminActivity';
+import AdminClientLinks from '../components/AdminClientLinks';
 
 function AdminPage() {
     console.log('AdminPage rendering...');
@@ -34,25 +36,22 @@ function AdminPage() {
                     </div>
 
                     {/* Tabs */}
-                    <div className="flex items-center space-x-2 bg-stone-200/50 p-1 rounded-lg">
-                        <button
-                            onClick={() => setActiveTab('inventory')}
-                            className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-md ${activeTab === 'inventory' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
-                        >
-                            Stone Inventory
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('whitelist')}
-                            className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-md ${activeTab === 'whitelist' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
-                        >
-                            Whitelist Registry
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('chat')}
-                            className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-md ${activeTab === 'chat' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
-                        >
-                            Project Rooms
-                        </button>
+                    <div className="flex flex-wrap items-center gap-1 bg-stone-200/50 p-1 rounded-lg">
+                        {[
+                            { id: 'inventory', label: 'Stone Inventory' },
+                            { id: 'whitelist', label: 'Whitelist Registry' },
+                            { id: 'chat',      label: 'Project Rooms' },
+                            { id: 'activity',  label: 'Login Activity' },
+                            { id: 'links',     label: 'Client Links' },
+                        ].map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-md ${activeTab === tab.id ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
 
@@ -64,8 +63,12 @@ function AdminPage() {
                     <div className="border-2 border-dashed border-bronze/20 p-4 min-h-[400px]">
                         <AdminWhitelist />
                     </div>
-                ) : (
+                ) : activeTab === 'chat' ? (
                     <AdminChatRooms />
+                ) : activeTab === 'activity' ? (
+                    <AdminActivity />
+                ) : (
+                    <AdminClientLinks />
                 )}
             </main>
 

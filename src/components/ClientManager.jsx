@@ -142,11 +142,19 @@ const ClientManager = ({ isOpen, onClose }) => {
 
     const handleAddClient = async (e) => {
         e.preventDefault();
-        if (!architectPhone) return;
-        
+
+        if (!architectPhone) {
+            setError("Could not detect your architect phone number. Please close and reopen this panel.");
+            return;
+        }
+
         const cleanPhone = newClient.phone.replace(/\D/g, '').slice(-10);
         if (cleanPhone.length < 10) {
-            setError("Please enter a valid 10-digit number");
+            setError("Please enter a valid 10-digit number.");
+            return;
+        }
+        if (!newClient.name.trim()) {
+            setError("Client name is required.");
             return;
         }
 
@@ -160,15 +168,16 @@ const ClientManager = ({ isOpen, onClose }) => {
                 .insert([{
                     phone_number: cleanPhone,
                     architect_phone: architectPhone,
-                    client_name: newClient.name,
-                    project_address: newClient.address
+                    client_name: newClient.name.trim(),
+                    project_address: newClient.address.trim() || null
                 }])
                 .select('id')
                 .single();
 
             if (insErr) {
-                if (insErr.code === '42P01') throw new Error("Database table not created yet. Ask Administrator to create 'client_whitelist'.");
-                throw insErr;
+                if (insErr.code === '42P01') throw new Error("Table 'client_whitelist' not found. Ask admin to create it.");
+                if (insErr.code === '23505') throw new Error(`Phone ${cleanPhone} is already whitelisted.`);
+                throw new Error(insErr.message || JSON.stringify(insErr));
             }
 
             // 2. Stamp room_id on the client's leads record if they already exist
@@ -180,7 +189,7 @@ const ClientManager = ({ isOpen, onClose }) => {
             setNewClient({ name: '', phone: '', address: '' });
             await fetchClients(architectPhone);
         } catch (err) {
-            setError(err.message);
+            setError(err.message || 'Unknown error occurred');
         } finally {
             setAdding(false);
         }
@@ -331,6 +340,11 @@ const ClientManager = ({ isOpen, onClose }) => {
                         <h3 className="text-sm font-bold text-[#eca413] uppercase tracking-widest mb-4 flex items-center gap-2">
                             <UserPlus size={16} /> Whitelist New Client
                         </h3>
+                        {!architectPhone && !loading && (
+                            <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/20 text-yellow-300 text-xs rounded">
+                                ⚠ Could not load your architect credentials. Close and reopen this panel.
+                            </div>
+                        )}
                         <form onSubmit={handleAddClient} className="space-y-4">
                             <div className="space-y-1">
                                 <label className="text-[10px] text-stone-400 uppercase tracking-widest">Client Name</label>

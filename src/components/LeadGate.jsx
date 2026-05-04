@@ -29,6 +29,19 @@ const LeadGate = ({ children }) => {
         checkLeadStatus();
     }, []);
 
+    const logLogin = async (phone, name, role) => {
+        try {
+            await supabase.from('login_events').insert({
+                phone_number: phone,
+                user_name: name,
+                role,
+                logged_in_at: new Date().toISOString()
+            });
+        } catch {
+            // Silently skip — table may not exist yet
+        }
+    };
+
     const promoteUnverifiedRequests = async (archPhone) => {
         try {
             const { data: unverified } = await supabase
@@ -188,6 +201,7 @@ const LeadGate = ({ children }) => {
                 // Already registered with a role — skip role selection, log straight in
                 setDiagnostics(`RETURNING USER: ${existingLead.full_name} (${existingLead.role})`);
                 await supabase.from('leads').update({ last_active: new Date().toISOString() }).eq('id', existingLead.id);
+                await logLogin(cleanPhone, existingLead.full_name, existingLead.role);
                 localStorage.setItem('stonevo_lead_id', existingLead.id);
                 localStorage.setItem('stonevo_user_phone', existingLead.phone || cleanPhone);
                 localStorage.setItem('stonevo_user_name', existingLead.full_name);
@@ -236,6 +250,7 @@ const LeadGate = ({ children }) => {
 
             if (upsertError) throw upsertError;
 
+            await logLogin(data.phone || pendingLead.phone, data.full_name || pendingLead.full_name, chosenRole);
             localStorage.setItem('stonevo_lead_id', data.id);
             localStorage.setItem('stonevo_user_phone', data.phone || pendingLead.phone || '');
             localStorage.setItem('stonevo_user_name', data.full_name || pendingLead.full_name || '');
