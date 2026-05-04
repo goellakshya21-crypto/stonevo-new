@@ -5,6 +5,7 @@ import AdminWhitelist from '../components/AdminWhitelist';
 import AdminChatRooms from '../components/AdminChatRooms';
 import AdminActivity from '../components/AdminActivity';
 import AdminClientLinks from '../components/AdminClientLinks';
+import AdminFormPreview from '../components/AdminFormPreview';
 
 function AdminPage() {
     console.log('AdminPage rendering...');
@@ -43,6 +44,7 @@ function AdminPage() {
                             { id: 'chat',      label: 'Project Rooms' },
                             { id: 'activity',  label: 'Login Activity' },
                             { id: 'links',     label: 'Client Links' },
+                            { id: 'preview',   label: 'Form Preview' },
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -67,8 +69,10 @@ function AdminPage() {
                     <AdminChatRooms />
                 ) : activeTab === 'activity' ? (
                     <AdminActivity />
-                ) : (
+                ) : activeTab === 'links' ? (
                     <AdminClientLinks />
+                ) : (
+                    <AdminFormPreview />
                 )}
             </main>
 
