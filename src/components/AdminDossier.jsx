@@ -106,7 +106,24 @@ async function buildPDF(stones) {
     pdf.setTextColor(100, 95, 85);
     pdf.text(new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }), W / 2, 106, { align: 'center' });
 
-    // Table of contents
+    // ── Build flat list of (stone, application) pairs with renders ───────────
+    const pairs = []; // { stone, app }
+    stones.forEach(stone => {
+        stone.applications.forEach(app => {
+            if (app.renderUrl) pairs.push({ stone, app });
+        });
+    });
+
+    // ── Group pairs by application label, preserving first-seen order ─────────
+    const order = [];
+    const groups = {};
+    pairs.forEach(({ stone, app }) => {
+        const key = (app.label || app.application).toUpperCase();
+        if (!groups[key]) { groups[key] = []; order.push(key); }
+        groups[key].push({ stone, app });
+    });
+
+    // ── Table of contents ─────────────────────────────────────────────────────
     let tocY = 125;
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(7);
@@ -114,28 +131,47 @@ async function buildPDF(stones) {
     pdf.text('CONTENTS', margin, tocY);
     tocY += 6;
 
-    stones.forEach((s, i) => {
-        pdf.setFont('helvetica', 'normal');
+    order.forEach((appKey, gi) => {
+        pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(8);
         pdf.setTextColor(200, 190, 170);
-        pdf.text(`${String(i + 1).padStart(2, '0')}.  ${s.name}`, margin + 4, tocY);
+        pdf.text(`${String(gi + 1).padStart(2, '0')}.  ${appKey}`, margin + 4, tocY);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7);
         pdf.setTextColor(100, 95, 85);
-        pdf.text(s.applications.map(a => a.label || a.application).join(', '), W - margin, tocY, { align: 'right' });
+        pdf.text(`${groups[appKey].length} stone${groups[appKey].length > 1 ? 's' : ''}`, W - margin, tocY, { align: 'right' });
         tocY += 7;
     });
 
-    // ── One page per stone ───────────────────────────────────────────────────
-    for (let i = 0; i < stones.length; i++) {
-        const stone = stones[i];
+    // ── Section divider page ──────────────────────────────────────────────────
+    const addDivider = (appLabel) => {
         addPage();
-
-        let y = 18;
-
-        // Stone number + name
+        // Big centered application name
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(7);
         pdf.setTextColor(180, 138, 70);
-        pdf.text(`SPECIMEN ${String(i + 1).padStart(2, '0')}`, margin, y);
+        pdf.text('APPLICATION', W / 2, H / 2 - 22, { align: 'center' });
+
+        pdf.setFont('times', 'italic');
+        pdf.setFontSize(40);
+        pdf.setTextColor(230, 215, 185);
+        pdf.text(appLabel, W / 2, H / 2 - 8, { align: 'center' });
+
+        pdf.setDrawColor(180, 138, 70);
+        pdf.setLineWidth(0.4);
+        pdf.line(W / 2 - 40, H / 2 + 2, W / 2 + 40, H / 2 + 2);
+    };
+
+    // ── Stone + application page ──────────────────────────────────────────────
+    const addStonePage = (stone, app) => {
+        addPage();
+        let y = 18;
+
+        // Stone name header
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(7);
+        pdf.setTextColor(180, 138, 70);
+        pdf.text((app.label || app.application).toUpperCase(), margin, y);
 
         y += 5;
         pdf.setFont('times', 'italic');
@@ -147,18 +183,16 @@ async function buildPDF(stones) {
         pdf.setDrawColor(180, 138, 70);
         pdf.setLineWidth(0.3);
         pdf.line(margin, y, margin + 60, y);
+        y += 8;
 
-        y += 6;
-
-        // ── Stone slab image (left column) ──
-        const slabW = 80;
-        const slabH = 55;
+        // ── Slab image (left) ──
+        const slabW = 75;
+        const slabH = 52;
         if (stone.imageDataUrl) {
             embedImage(stone.imageDataUrl, margin, y, slabW, slabH);
-            // Label
             pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(6);
-            pdf.setTextColor(120, 110, 100);
+            pdf.setTextColor(100, 95, 85);
             pdf.text('RAW SLAB', margin + slabW / 2, y + slabH + 4, { align: 'center' });
         }
 
@@ -172,50 +206,42 @@ async function buildPDF(stones) {
             pdf.setTextColor(120, 110, 100);
             pdf.text(label, specX, specY);
             pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(7.5);
             pdf.setTextColor(200, 190, 170);
-            pdf.text(value, specX, specY + 4);
-            specY += 11;
+            // Wrap long values
+            const maxW = W - specX - margin;
+            const lines = pdf.splitTextToSize(value, maxW);
+            pdf.text(lines, specX, specY + 4);
+            specY += 10 + (lines.length - 1) * 4;
         };
 
         specRow('STONE NAME', stone.name);
-        specRow('APPLICATIONS', stone.applications.map(a => a.label || a.application).join(', '));
-        if (stone.lotSize) specRow('LOT SIZE', stone.lotSize);
-        if (stone.price)   specRow('PRICE', stone.price);
+        specRow('APPLICATION', app.label || app.application);
+        if (stone.lotSize)     specRow('LOT SIZE', stone.lotSize);
+        if (stone.price)       specRow('PRICE', stone.price);
         if (stone.description) specRow('NOTES', stone.description);
 
-        y += slabH + 10;
+        y += slabH + 12;
 
-        // ── AI renders ──
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(6.5);
-        pdf.setTextColor(180, 138, 70);
-        pdf.text('AI-RENDERED APPLICATIONS', margin, y);
-        y += 5;
+        // ── Full-width AI render ──
+        if (app.renderUrl) {
+            const renderW = W - margin * 2;
+            const renderH = renderW * 0.58;
+            embedImage(app.renderUrl, margin, y, renderW, renderH);
 
-        const renders = stone.applications.filter(a => a.renderUrl);
-        const renderW = (W - margin * 2 - (renders.length > 1 ? 5 : 0)) / Math.min(renders.length, 2);
-        const renderH = renderW * 0.62;
-
-        let rx = margin;
-        let rowStartY = y;
-        renders.forEach((app, idx) => {
-            if (idx > 0 && idx % 2 === 0) {
-                // New row
-                rx = margin;
-                rowStartY += renderH + 10;
-            }
-            embedImage(app.renderUrl, rx, rowStartY, renderW, renderH);
-
-            // Application label bar
-            pdf.setFillColor(0, 0, 0, 0.6);
+            // Caption bar
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(6);
             pdf.setTextColor(180, 138, 70);
-            pdf.text((app.label || app.application).toUpperCase(), rx + renderW / 2, rowStartY + renderH + 3.5, { align: 'center' });
+            pdf.text('AI-RENDERED · ' + (app.label || app.application).toUpperCase(), margin, y + renderH + 4);
+        }
+    };
 
-            rx += renderW + 5;
-        });
-    }
+    // ── Emit all pages grouped by application ─────────────────────────────────
+    order.forEach(appKey => {
+        addDivider(appKey);
+        groups[appKey].forEach(({ stone, app }) => addStonePage(stone, app));
+    });
 
     return pdf;
 }
