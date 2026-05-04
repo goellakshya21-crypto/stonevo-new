@@ -111,6 +111,9 @@ const LeadGate = ({ children }) => {
         }
     };
 
+    // ── Numbers that skip SMS entirely — no charge, use OTP 000000 ────────────
+    const DEV_NUMBERS = ['7678320944', '7042353166'];
+
     const handleSendOTP = async (e) => {
         e.preventDefault();
         setSubmitting(true);
@@ -120,6 +123,12 @@ const LeadGate = ({ children }) => {
             const digits = formData.phone.replace(/\D/g, '');
             if (digits.length < 10) throw new Error('Please enter a valid 10-digit phone number');
             const cleanPhone = digits.slice(-10);
+
+            // Dev numbers — skip SMS, go straight to OTP screen
+            if (DEV_NUMBERS.includes(cleanPhone)) {
+                setStep('OTP');
+                return;
+            }
 
             const { data, error } = await supabase.functions.invoke('send-otp', {
                 body: { phone: cleanPhone },
