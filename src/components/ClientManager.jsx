@@ -163,14 +163,18 @@ const ClientManager = ({ isOpen, onClose }) => {
 
         try {
             // 1. Create the whitelist entry — get the new room UUID back
+            const insertPayload = {
+                phone_number: cleanPhone,
+                architect_phone: architectPhone,
+                client_name: newClient.name.trim(),
+            };
+            if (newClient.address.trim()) {
+                insertPayload.project_address = newClient.address.trim();
+            }
+
             const { data: newRoom, error: insErr } = await supabase
                 .from('client_whitelist')
-                .insert([{
-                    phone_number: cleanPhone,
-                    architect_phone: architectPhone,
-                    client_name: newClient.name.trim(),
-                    project_address: newClient.address.trim() || null
-                }])
+                .insert([insertPayload])
                 .select('id')
                 .single();
 
