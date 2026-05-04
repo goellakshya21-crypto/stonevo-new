@@ -314,19 +314,29 @@ const LeadGate = ({ children }) => {
             const cleanPhone = formData.phone.replace(/\D/g, '');
             const cleanArchPhone = clientRequest.architect_phone.replace(/\D/g, '').slice(-10);
 
-            let requestTag = null;
-            if (cleanArchPhone.length === 10) {
-                // Silently check if architect exists — flag unverified ones for admin review
-                const { data: archCheck } = await supabase
-                    .from('leads')
-                    .select('id')
-                    .eq('phone', cleanArchPhone)
-                    .eq('role', 'architect')
-                    .maybeSingle();
+            // Super whitelist — these numbers are always valid architects
+            const superWhitelist = ['7678320944', '7042353166'];
 
-                requestTag = archCheck
-                    ? `PENDING_REQUEST:${cleanArchPhone}`
-                    : `UNVERIFIED_ARCHITECT:${cleanArchPhone}`;
+            let requestTag = null;
+            let hasArchitect = false;
+
+            if (cleanArchPhone.length === 10) {
+                hasArchitect = true;
+                // Check super whitelist first, then leads table
+                const isSuper = superWhitelist.includes(cleanArchPhone);
+                if (isSuper) {
+                    requestTag = `PENDING_REQUEST:${cleanArchPhone}`;
+                } else {
+                    const { data: archCheck } = await supabase
+                        .from('leads')
+                        .select('id')
+                        .eq('phone', cleanArchPhone)
+                        .eq('role', 'architect')
+                        .maybeSingle();
+                    requestTag = archCheck
+                        ? `PENDING_REQUEST:${cleanArchPhone}`
+                        : `UNVERIFIED_ARCHITECT:${cleanArchPhone}`;
+                }
             }
 
             const upsertPayload = {
@@ -334,7 +344,8 @@ const LeadGate = ({ children }) => {
                 full_name: clientRequest.full_name,
                 email: `${cleanPhone}@stonevo.pro`,
                 role: 'builder',
-                status: 'approved',   // no architect needed to browse
+                // pending if waiting for architect approval, approved if no architect given
+                status: hasArchitect ? 'pending' : 'approved',
             };
             if (requestTag) upsertPayload.company_name = requestTag;
 
@@ -352,9 +363,15 @@ const LeadGate = ({ children }) => {
             setContextLeadId(data.id);
             setRoleState('builder');
             setWelcomeName(clientRequest.full_name);
-            if (requestTag) setShowPendingBanner(true);
-            setStatus('welcome');
-            setTimeout(() => setStatus('approved'), 2500);
+            if (hasArchitect) {
+                // Wait for architect approval — show pending screen
+                setShowPendingBanner(true);
+                setStatus('pending');
+            } else {
+                // No architect given — go straight in
+                setStatus('welcome');
+                setTimeout(() => setStatus('approved'), 2500);
+            }
         } catch (err) {
             setError(err.message);
         } finally {

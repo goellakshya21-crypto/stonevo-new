@@ -29,11 +29,17 @@ const LinkArchitectPrompt = ({ leadId, onLinked }) => {
         if (clean.length < 10) { setErr('Enter a valid 10-digit number'); return; }
         setSaving(true); setErr('');
         try {
-            // Check if architect exists
-            const { data: arch } = await supabase
-                .from('leads').select('id').eq('phone', clean).eq('role', 'architect').maybeSingle();
-            const tag = arch ? `PENDING_REQUEST:${clean}` : `UNVERIFIED_ARCHITECT:${clean}`;
-            await supabase.from('leads').update({ company_name: tag }).eq('id', leadId);
+            const superWhitelist = ['7678320944', '7042353166'];
+            const isSuper = superWhitelist.includes(clean);
+            let tag;
+            if (isSuper) {
+                tag = `PENDING_REQUEST:${clean}`;
+            } else {
+                const { data: arch } = await supabase
+                    .from('leads').select('id').eq('phone', clean).eq('role', 'architect').maybeSingle();
+                tag = arch ? `PENDING_REQUEST:${clean}` : `UNVERIFIED_ARCHITECT:${clean}`;
+            }
+            await supabase.from('leads').update({ company_name: tag, status: 'pending' }).eq('id', leadId);
             setDone(true);
             setTimeout(() => { setOpen(false); if (onLinked) onLinked(); }, 1500);
         } catch (e) {
