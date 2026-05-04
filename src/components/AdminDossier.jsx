@@ -216,7 +216,6 @@ async function buildPDF(stones) {
         };
 
         specRow('STONE NAME', stone.name);
-        specRow('APPLICATION', app.label || app.application);
         if (stone.lotSize)     specRow('LOT SIZE', stone.lotSize);
         if (stone.price)       specRow('PRICE', stone.price);
         if (stone.description) specRow('NOTES', stone.description);
@@ -479,24 +478,36 @@ const AdminDossier = () => {
                     >
                         {/* Stone header */}
                         <div className="bg-stone-50 border-b border-stone-200 px-6 py-4 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <span className="w-6 h-6 rounded-full bg-stone-900 text-white text-[10px] font-bold flex items-center justify-center">
+                            <div className="flex items-center gap-2">
+                                <span className="w-6 h-6 rounded-full bg-stone-900 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
                                     {si + 1}
                                 </span>
-                                <input
-                                    type="text"
-                                    placeholder="Stone Name (e.g. Carrara Bianco)"
-                                    value={stone.name}
-                                    onChange={e => updateStone(stone.id, { name: e.target.value })}
-                                    className="text-stone-800 font-semibold text-sm bg-transparent border-b border-transparent focus:border-bronze outline-none transition-colors w-64 placeholder:text-stone-400"
-                                />
+                                <span className="text-stone-400 text-xs uppercase tracking-widest font-bold">Stone {si + 1}</span>
+                                {!stone.name && <span className="text-xs text-amber-500 font-medium">← Enter name below</span>}
+                                {stone.name && <span className="text-stone-700 font-semibold text-sm">— {stone.name}</span>}
                             </div>
                             <button onClick={() => removeStone(stone.id)} className="p-2 text-stone-400 hover:text-red-500 transition-colors">
                                 <Trash2 size={16} />
                             </button>
                         </div>
 
-                        <div className="p-6 grid grid-cols-1 md:grid-cols-[220px,1fr] gap-8">
+                        <div className="p-6 space-y-5">
+                            {/* Stone Name — prominent, required */}
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest flex items-center gap-1">
+                                    Stone Name <span className="text-red-400">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="e.g. Carrara Bianco, Silver Travertine…"
+                                    value={stone.name}
+                                    onChange={e => updateStone(stone.id, { name: e.target.value })}
+                                    className={`w-full border rounded-lg px-4 py-2.5 text-stone-800 font-semibold text-sm focus:outline-none focus:border-bronze transition-colors ${!stone.name ? 'border-amber-300 bg-amber-50' : 'border-stone-200 bg-white'}`}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-[220px,1fr] gap-8">
                             {/* Left: image upload */}
                             <div className="space-y-4">
                                 <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Stone Slab Image</label>
@@ -653,6 +664,7 @@ const AdminDossier = () => {
                                     })}
                                 </div>
                             </div>
+                            </div> {/* close inner grid */}
                         </div>
                     </motion.div>
                 ))}
