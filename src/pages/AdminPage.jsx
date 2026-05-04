@@ -7,6 +7,100 @@ import AdminActivity from '../components/AdminActivity';
 import AdminClientLinks from '../components/AdminClientLinks';
 import AdminFormPreview from '../components/AdminFormPreview';
 import AdminDossier from '../components/AdminDossier';
+import { supabase } from '../lib/supabaseClient';
+
+// ── Dev Tools panel ───────────────────────────────────────────────────────────
+const DEV_NUMBERS = ['7678320944', '7042353166'];
+
+function DevTools() {
+    const [phone, setPhone] = useState('');
+    const [status, setStatus] = useState(null); // null | 'loading' | { ok, msg }
+
+    const resetLead = async (numToReset) => {
+        const clean = (numToReset || phone).replace(/\D/g, '').slice(-10);
+        if (clean.length < 10) { setStatus({ ok: false, msg: 'Enter a valid 10-digit number' }); return; }
+        setStatus('loading');
+        try {
+            // Delete from leads table so they become a brand-new user
+            const { error } = await supabase.from('leads').delete().eq('phone', clean);
+            if (error) throw error;
+            // Also clear from client_whitelist in case they were whitelisted
+            await supabase.from('client_whitelist').delete().eq('phone_number', clean);
+            setStatus({ ok: true, msg: `✓ ${clean} reset — they are now a new user` });
+        } catch (err) {
+            setStatus({ ok: false, msg: err.message });
+        }
+    };
+
+    return (
+        <div className="space-y-8 max-w-xl">
+            <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4">
+                <div>
+                    <h3 className="text-lg font-serif text-stone-800 flex items-center gap-2">
+                        🧪 Reset a Number to New User
+                    </h3>
+                    <p className="text-stone-500 text-sm mt-1">
+                        Deletes the leads record so the number goes through full onboarding again. Use with the <span className="font-mono bg-stone-100 px-1 rounded">000000</span> OTP bypass.
+                    </p>
+                </div>
+
+                {/* Quick-reset buttons for dev numbers */}
+                <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Quick Reset</p>
+                    <div className="flex gap-3 flex-wrap">
+                        {DEV_NUMBERS.map(n => (
+                            <button
+                                key={n}
+                                onClick={() => resetLead(n)}
+                                className="px-4 py-2 bg-stone-100 hover:bg-red-50 hover:border-red-200 border border-stone-200 rounded-lg text-sm font-mono text-stone-700 hover:text-red-600 transition-all"
+                            >
+                                Reset {n}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Custom number */}
+                <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Or enter any number</p>
+                    <div className="flex gap-3">
+                        <input
+                            type="tel"
+                            placeholder="10-digit phone number"
+                            value={phone}
+                            onChange={e => { setPhone(e.target.value); setStatus(null); }}
+                            className="flex-1 border border-stone-200 rounded-lg px-4 py-2 text-sm font-mono focus:outline-none focus:border-red-400"
+                        />
+                        <button
+                            onClick={() => resetLead()}
+                            className="px-5 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-bold uppercase tracking-widest transition-colors"
+                        >
+                            Reset
+                        </button>
+                    </div>
+                </div>
+
+                {status === 'loading' && <p className="text-stone-400 text-sm">Resetting…</p>}
+                {status && status !== 'loading' && (
+                    <p className={`text-sm font-medium ${status.ok ? 'text-green-600' : 'text-red-500'}`}>
+                        {status.msg}
+                    </p>
+                )}
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-sm text-amber-800 space-y-2">
+                <p className="font-bold">Testing flow reminder:</p>
+                <ol className="list-decimal list-inside space-y-1 text-amber-700">
+                    <li>Click <strong>Quick Reset</strong> on the number you want to test with</li>
+                    <li>Go to <strong>stonevo.in</strong>, enter that number</li>
+                    <li>Type <strong>000000</strong> as the OTP — no SMS sent</li>
+                    <li>You'll see the full new architect / new client onboarding flow</li>
+                    <li>When done testing, reset again to start fresh</li>
+                </ol>
+            </div>
+        </div>
+    );
+}
 
 function AdminPage() {
     console.log('AdminPage rendering...');
@@ -47,6 +141,7 @@ function AdminPage() {
                             { id: 'links',     label: 'Client Links' },
                             { id: 'preview',   label: 'Form Preview' },
                             { id: 'dossier',   label: '✦ Stone Dossier' },
+                            { id: 'devtools',  label: '🧪 Dev Tools' },
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -75,8 +170,10 @@ function AdminPage() {
                     <AdminClientLinks />
                 ) : activeTab === 'preview' ? (
                     <AdminFormPreview />
-                ) : (
+                ) : activeTab === 'dossier' ? (
                     <AdminDossier />
+                ) : (
+                    <DevTools />
                 )}
             </main>
 
