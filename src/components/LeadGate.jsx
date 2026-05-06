@@ -443,36 +443,39 @@ const LeadGate = ({ children }) => {
                                     </motion.div>
 
                                     <div className="space-y-4 relative z-10">
-                                        <motion.h2 
+                                        <motion.p
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 0.4, duration: 0.8 }}
+                                            transition={{ delay: 0.3, duration: 0.8 }}
+                                            className="text-bronze/80 font-display text-[11px] uppercase tracking-[0.6em] font-semibold"
+                                        >
+                                            Welcome to Stonevo
+                                        </motion.p>
+                                        <motion.h2
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.5, duration: 0.8 }}
                                             className="text-5xl md:text-6xl font-serif text-white italic drop-shadow-sm"
                                         >
-                                            Welcome
+                                            {welcomeName?.split(' ')[0]}
                                         </motion.h2>
-                                        <motion.p 
+                                        <motion.p
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
-                                            transition={{ delay: 0.7, duration: 1 }}
-                                            className="text-3xl md:text-4xl font-light text-luxury-cream tracking-tight drop-shadow-md"
+                                            transition={{ delay: 0.9, duration: 1 }}
+                                            className="text-base text-stone-400 font-light tracking-wide"
                                         >
-                                            {welcomeName}
+                                            Let's simplify your stone selection
                                         </motion.p>
                                     </div>
 
-                                    <motion.div 
-                                        initial={{ opacity: 0, width: 0 }}
-                                        animate={{ opacity: 1, width: '100%' }}
-                                        transition={{ delay: 1, duration: 1.2 }}
-                                        className="pt-10 space-y-4"
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ delay: 1.2, duration: 1 }}
+                                        className="pt-6"
                                     >
-                                        <div className="flex flex-col items-center gap-3">
-                                            <p className="text-bronze/80 font-display text-[11px] uppercase tracking-[0.6em] font-semibold leading-none">
-                                                Access Granted
-                                            </p>
-                                            <div className="w-48 h-[1px] bg-gradient-to-r from-transparent via-bronze/60 to-transparent"></div>
-                                        </div>
+                                        <div className="w-48 h-[1px] bg-gradient-to-r from-transparent via-bronze/60 to-transparent mx-auto"></div>
                                     </motion.div>
                                 </div>
                             </motion.div>
