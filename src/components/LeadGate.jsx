@@ -636,7 +636,7 @@ const LeadGate = ({ children }) => {
                                             <div className="w-12 h-12 bg-bronze/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                                 <Compass size={24} className="text-bronze" />
                                             </div>
-                                            <h4 className="text-lg font-serif text-white mb-2">Architect</h4>
+                                            <h4 className="text-lg font-serif text-white mb-2">Design Professional</h4>
                                             <p className="text-[10px] text-stone-500 leading-relaxed uppercase tracking-tighter">Manage clients, curate collections, and visualize institutional projects.</p>
                                         </button>
 
@@ -647,7 +647,7 @@ const LeadGate = ({ children }) => {
                                             <div className="w-12 h-12 bg-bronze/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                                 <User size={24} className="text-bronze" />
                                             </div>
-                                            <h4 className="text-lg font-serif text-white mb-2">Private Client</h4>
+                                            <h4 className="text-lg font-serif text-white mb-2">Project Owner</h4>
                                             <p className="text-[10px] text-stone-500 leading-relaxed uppercase tracking-tighter">Explore curated stones and visualize choices for your personal space.</p>
                                         </button>
                                     </div>
@@ -672,7 +672,7 @@ const LeadGate = ({ children }) => {
                                             <div className="w-12 h-12 bg-bronze/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                                 <Compass size={24} className="text-bronze" />
                                             </div>
-                                            <h4 className="text-lg font-serif text-white mb-2">Architect</h4>
+                                            <h4 className="text-lg font-serif text-white mb-2">Design Professional</h4>
                                             <p className="text-[10px] text-stone-500 leading-relaxed uppercase tracking-tighter">Register your firm to manage clients and curate collections.</p>
                                         </button>
                                         <button
@@ -682,7 +682,7 @@ const LeadGate = ({ children }) => {
                                             <div className="w-12 h-12 bg-bronze/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                                 <User size={24} className="text-bronze" />
                                             </div>
-                                            <h4 className="text-lg font-serif text-white mb-2">Private Client</h4>
+                                            <h4 className="text-lg font-serif text-white mb-2">Project Owner</h4>
                                             <p className="text-[10px] text-stone-500 leading-relaxed uppercase tracking-tighter">Request access through your architect to explore the collection.</p>
                                         </button>
                                     </div>
