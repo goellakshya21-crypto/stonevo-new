@@ -7,9 +7,21 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "app:sync": "npx cap sync",
+    "app:open:android": "npx cap open android",
+    "app:open:ios": "npx cap open ios",
+    "app:run:android": "npx cap run android",
+    "app:build": "vite build && npx cap sync"
   },
   "dependencies": {
+    "@capacitor/android": "^8.3.2",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/cli": "^8.3.2",
+    "@capacitor/core": "^8.3.2",
+    "@capacitor/ios": "^8.3.2",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2",
     "@google-cloud/vertexai": "^1.10.3",
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.95.3",
