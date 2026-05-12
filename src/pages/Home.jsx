@@ -399,6 +399,17 @@ function Home({ role }) {
     const handleStoneClick = (stone, contextStones = []) => {
         setStoneContextList(contextStones.length > 0 ? contextStones : [stone]);
         setSelectedStone(stone);
+        // Log stone view for lead intelligence
+        import('../utils/activityTracker').then(({ logActivity }) => {
+            logActivity('view_stone', {
+                stone_name: stone?.name,
+                stone_type: stone?.type || stone?.marble,
+                color: stone?.colour || stone?.color,
+                finish: stone?.finish,
+                pattern: stone?.pattern,
+                stone_id: stone?.id
+            });
+        });
     };
 
     return (

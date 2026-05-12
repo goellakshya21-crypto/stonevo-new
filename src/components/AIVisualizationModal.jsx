@@ -224,6 +224,19 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         setError(null);
         setVisualizationStep(null);
 
+        // Log visualization request for lead intelligence
+        import('../utils/activityTracker').then(({ logActivity }) => {
+            logActivity('visualize', {
+                stone_name: effectiveStone?.name || 'Custom Upload',
+                stone_type: effectiveStone?.type || effectiveStone?.marble,
+                color: effectiveStone?.colour || effectiveStone?.color,
+                application: appToUse,
+                style: styleToUse,
+                used_custom_room: !!userImgToUse,
+                stone_id: effectiveStone?.id
+            });
+        });
+
         // Determine roomType from Mapping
         let roomType = 'Living Room'; // Global Default
         

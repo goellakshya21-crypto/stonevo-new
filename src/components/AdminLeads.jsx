@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { UserCheck, UserX, ExternalLink, Calendar, Building, Globe, Mail, Phone, Search, Eye, Activity, MessageSquare, Search as SearchIcon, Clock } from 'lucide-react';
+import { UserCheck, UserX, ExternalLink, Calendar, Building, Globe, Mail, Phone, Search, Eye, Activity, MessageSquare, Search as SearchIcon, Clock, Sparkles } from 'lucide-react';
 
 const AdminLeads = () => {
     const [leads, setLeads] = useState([]);
@@ -169,7 +169,29 @@ const AdminLeads = () => {
         if (actionType === 'ai_query') {
             return `"${details.query}"`;
         }
+        if (actionType === 'view_stone') {
+            const parts = [];
+            if (details.stone_name) parts.push(details.stone_name);
+            if (details.stone_type) parts.push(details.stone_type);
+            if (details.color) parts.push(`(${details.color})`);
+            return parts.join(' · ') || 'Stone detail viewed';
+        }
+        if (actionType === 'visualize') {
+            const parts = [];
+            if (details.stone_name) parts.push(details.stone_name);
+            if (details.application) parts.push(`as ${details.application}`);
+            if (details.style) parts.push(`/ ${details.style}`);
+            if (details.used_custom_room) parts.push('· custom room');
+            return parts.join(' ') || 'AI visualization generated';
+        }
         return JSON.stringify(details);
+    };
+
+    const ACTION_LABELS = {
+        search: 'Refined Collection Filters',
+        ai_query: 'Inquired Stonevo Archivist',
+        view_stone: 'Viewed Stone Specimen',
+        visualize: 'Generated AI Visualization'
     };
 
     if (loading) {
@@ -417,16 +439,26 @@ const AdminLeads = () => {
                                         <p className="text-xs text-stone-400 italic py-2">No activity recorded yet.</p>
                                     ) : (
                                         <div className="space-y-3 relative before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-[1px] before:bg-stone-200">
-                                            {activities.slice(0, 10).map((act) => (
+                                            {activities.slice(0, 10).map((act) => {
+                                                const dotColor =
+                                                    act.action_type === 'ai_query' ? 'bg-amber-400' :
+                                                    act.action_type === 'view_stone' ? 'bg-emerald-500' :
+                                                    act.action_type === 'visualize' ? 'bg-violet-500' :
+                                                    'bg-stone-800';
+                                                const Icon =
+                                                    act.action_type === 'ai_query' ? MessageSquare :
+                                                    act.action_type === 'view_stone' ? Eye :
+                                                    act.action_type === 'visualize' ? Sparkles :
+                                                    SearchIcon;
+                                                return (
                                                 <div key={act.id} className="pl-6 relative">
-                                                    <div className={`absolute left-0 top-1.5 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm flex items-center justify-center ${act.action_type === 'ai_query' ? 'bg-amber-400' : 'bg-stone-800'
-                                                        }`}>
-                                                        {act.action_type === 'ai_query' ? <MessageSquare size={8} className="text-white" /> : <SearchIcon size={8} className="text-white" />}
+                                                    <div className={`absolute left-0 top-1.5 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm flex items-center justify-center ${dotColor}`}>
+                                                        <Icon size={8} className="text-white" />
                                                     </div>
                                                     <div className="flex flex-col md:flex-row md:items-center gap-2 justify-between">
                                                         <div className="space-y-0.5">
                                                             <p className="text-xs font-medium text-stone-800">
-                                                                {act.action_type === 'ai_query' ? 'Inquired Stonevo Archivist' : 'Refined Collection Filters'}
+                                                                {ACTION_LABELS[act.action_type] || act.action_type}
                                                             </p>
                                                             <p className="text-[10px] text-stone-500 italic">
                                                                 {formatActivityDetails(act.action_type, act.details)}
@@ -440,7 +472,8 @@ const AdminLeads = () => {
                                                         </div>
                                                     </div>
                                                 </div>
-                                            ))}
+                                                );
+                                            })}
                                             {activities.length > 10 && (
                                                 <p className="text-[9px] text-stone-400 font-bold uppercase tracking-[0.2em] pl-6 pt-2 italic">
                                                     + {activities.length - 10} more historical movements in Supabase database
