@@ -14,11 +14,19 @@ const ChatAssistant = ({ marbles, onStoneClick, onVisualizeRequest }) => {
     const inputRef = useRef(null);
     const containerRef = useRef(null);
 
+    // Flooring and Washroom are interchangeable — expand application tags so AI sees both
+    const LINKED_APPS = { 'Flooring': 'Washroom', 'Washroom': 'Flooring' };
+    const expandApps = (apps) => {
+        const arr = [].concat(apps || []);
+        const extras = arr.flatMap(v => LINKED_APPS[v] ? [LINKED_APPS[v]] : []);
+        return [...new Set([...arr, ...extras])];
+    };
+
     // Stone context for AI
     const stoneContext = marbles.map(m => ({
         id: m.id,
         name: m.name,
-        application: m.physical_properties?.application || 'Unknown',
+        application: expandApps(m.physical_properties?.application),
         color: m.physical_properties?.color || 'Unknown',
         pattern: m.physical_properties?.pattern || 'No',
         brightness: m.physical_properties?.brightness || 'N/A',
