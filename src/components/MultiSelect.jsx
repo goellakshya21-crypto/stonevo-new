@@ -79,7 +79,7 @@ const MultiSelect = ({ label, name, options, selectedValues, onChange, variant =
                             {isPremium ? (
                                 <span className="text-luxury-cream font-display text-sm leading-tight transition-all duration-500 italic">
                                     {isSwatch
-                                        ? (selectedValues.length === 1 ? colorSwatches[selectedValues[0]]?.label || selectedValues[0] : (multiple ? `${selectedValues.length} Selected` : (colorSwatches[selectedValues[0]]?.label || selectedValues[0])))
+                                        ? (selectedValues.length === 1 ? selectedValues[0] : (multiple ? `${selectedValues.length} Selected` : selectedValues[0]))
                                         : (multiple ? selectedValues.join(', ') : selectedValues[0])
                                     }
                                 </span>
