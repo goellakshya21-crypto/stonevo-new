@@ -15,7 +15,7 @@ const ChatAssistant = ({ marbles, onStoneClick, onVisualizeRequest }) => {
     const containerRef = useRef(null);
 
     // Flooring and Washroom are interchangeable — expand application tags so AI sees both
-    const LINKED_APPS = { 'Flooring': 'Washroom', 'Washroom': 'Flooring' };
+    const LINKED_APPS = { 'Flooring': 'Washroom' }; // Flooring stones also appear for washroom queries, not vice versa
     const expandApps = (apps) => {
         const arr = [].concat(apps || []);
         const extras = arr.flatMap(v => LINKED_APPS[v] ? [LINKED_APPS[v]] : []);
