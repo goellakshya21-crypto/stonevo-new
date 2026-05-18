@@ -5,7 +5,13 @@ import { X, Sparkles, Box, Camera, Download, Share2, Expand, ArrowRight, Upload,
 import { aiVisualizer } from '../lib/aiVisualizer';
 import { supabase } from '../lib/supabaseClient';
 
-const CUSTOM_STONE_APPS = ['Kitchen', 'Counter Top', 'Bathroom', 'Flooring', 'Wall Cladding', 'Feature Wall', 'Facade', 'Balcony'];
+// Full list of all possible room / application options shown to every user
+const ALL_ROOM_APPS = [
+    'Kitchen', 'Counter Top', 'Bathroom', 'Washroom', 'Vanity', 'Powder Room',
+    'Flooring', 'Wall Cladding', 'Feature Wall', 'Staircase',
+    'Dining', 'Table Top', 'Bedroom',
+    'Balcony', 'Facade', 'Exterior', 'Driveway'
+];
 
 const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, intendedApp, allowCustomStone, onStoneUploaded }) => {
     const [loading, setLoading] = useState(false);
@@ -87,25 +93,17 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
 
         console.log("[AI Modal] Stone loaded:", stone.name, "Apps:", stone.application);
 
-        // Normalize application to array
-        const apps = Array.isArray(stone.application)
-            ? stone.application
-            : (stone.application ? [stone.application] : []);
-
-        setNormalizedApps(apps);
+        // Always show the full room options list so users can visualize any application
+        setNormalizedApps(ALL_ROOM_APPS);
 
         if (intendedApp) {
+            // Pre-select the intended application and skip straight to method step
             setSelectedApp(intendedApp);
             setVisualizationStep('method');
-        } else if (apps.length === 1) {
-            setSelectedApp(apps[0]);
-            setVisualizationStep('method');
-        } else if (apps.length > 1) {
+        } else {
+            // Let the user pick from all room options
             setVisualizationStep('app');
             setLoading(false);
-        } else {
-            setSelectedApp('Surface');
-            setVisualizationStep('method');
         }
     }, [isOpen, stone?.id, intendedApp, allowCustomStone]);
 
@@ -153,12 +151,12 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                 id: 'custom_' + Date.now(),
                 name: prettyName,
                 image_url: publicUrl,
-                application: CUSTOM_STONE_APPS,
+                application: ALL_ROOM_APPS,
                 colour: 'Natural',
                 description: 'Custom uploaded stone sample'
             };
             setLocalStone(newStone);
-            setNormalizedApps(CUSTOM_STONE_APPS);
+            setNormalizedApps(ALL_ROOM_APPS);
             setVisualizationStep('app');
             // Notify parent so it can save the stone to the gallery
             onStoneUploaded?.(newStone);

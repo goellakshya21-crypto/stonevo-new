@@ -125,10 +125,19 @@ function Home({ role }) {
 
     const [customStones, setCustomStones] = useState([]);
 
+    // Persist stones to both localStorage (fast cache) and Supabase (cross-device sync)
+    const syncCustomStones = async (updated, currentLeadId) => {
+        const key = `stonevo_custom_stones_${currentLeadId || 'guest'}`;
+        try { localStorage.setItem(key, JSON.stringify(updated)); } catch {}
+        if (currentLeadId && !currentLeadId.startsWith('GUEST_')) {
+            await supabase.from('leads').update({ custom_stones: updated }).eq('id', currentLeadId);
+        }
+    };
+
     const saveCustomStone = (stone) => {
         setCustomStones(prev => {
             const updated = [stone, ...prev.filter(s => s.id !== stone.id)];
-            try { localStorage.setItem(customStonesKey, JSON.stringify(updated)); } catch {}
+            syncCustomStones(updated, leadId);
             return updated;
         });
     };
@@ -136,7 +145,7 @@ function Home({ role }) {
     const deleteCustomStone = (id) => {
         setCustomStones(prev => {
             const updated = prev.filter(s => s.id !== id);
-            try { localStorage.setItem(customStonesKey, JSON.stringify(updated)); } catch {}
+            syncCustomStones(updated, leadId);
             return updated;
         });
     };
@@ -145,7 +154,7 @@ function Home({ role }) {
         if (!newName.trim()) return;
         setCustomStones(prev => {
             const updated = prev.map(s => s.id === id ? { ...s, name: newName.trim() } : s);
-            try { localStorage.setItem(customStonesKey, JSON.stringify(updated)); } catch {}
+            syncCustomStones(updated, leadId);
             return updated;
         });
         setRenamingId(null);
@@ -169,10 +178,28 @@ function Home({ role }) {
     const customStonesKey = `stonevo_custom_stones_${leadId || 'guest'}`;
 
     useEffect(() => {
-        try {
-            setCustomStones(JSON.parse(localStorage.getItem(customStonesKey) || '[]'));
-        } catch { setCustomStones([]); }
-    }, [customStonesKey]);
+        const loadCustomStones = async () => {
+            // Try Supabase first (cross-device), fall back to localStorage cache
+            if (leadId && !leadId.startsWith('GUEST_')) {
+                const { data } = await supabase
+                    .from('leads')
+                    .select('custom_stones')
+                    .eq('id', leadId)
+                    .single();
+                if (data?.custom_stones?.length > 0) {
+                    setCustomStones(data.custom_stones);
+                    // Keep localStorage in sync as cache
+                    try { localStorage.setItem(customStonesKey, JSON.stringify(data.custom_stones)); } catch {}
+                    return;
+                }
+            }
+            // Fallback: localStorage (guest or first load before Supabase responds)
+            try {
+                setCustomStones(JSON.parse(localStorage.getItem(customStonesKey) || '[]'));
+            } catch { setCustomStones([]); }
+        };
+        loadCustomStones();
+    }, [customStonesKey, leadId]);
 
     // Resolve Chat Identity Safely
     let isAdmin = false;
