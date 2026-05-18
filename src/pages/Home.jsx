@@ -394,6 +394,13 @@ function Home({ role }) {
             const searchResults = fuse.search(filters.name);
             result = searchResults.map(res => res.item);
         }
+        // Linked applications: filtering by one also shows stones tagged with the other
+        const LINKED_APPS = { 'Flooring': 'Washroom', 'Washroom': 'Flooring' };
+        const expandAppFilter = (arr) => {
+            const extra = arr.flatMap(v => LINKED_APPS[v] ? [LINKED_APPS[v]] : []);
+            return [...new Set([...arr, ...extra])];
+        };
+
         return result.filter(marble => {
             const p = marble.physical_properties;
             const hasOverlap = (filterArr, stoneArr) =>
@@ -402,7 +409,7 @@ function Home({ role }) {
             if (!hasOverlap(filters.color, p.color)) return false;
             if (!hasOverlap(filters.finish, p.finish)) return false;
             if (!hasOverlap(filters.priceRange, p.priceRange)) return false;
-            if (!hasOverlap(filters.application, p.application)) return false;
+            if (!hasOverlap(expandAppFilter(filters.application), p.application)) return false;
             if (!hasOverlap(filters.pattern, p.pattern)) return false;
             if (!hasOverlap(filters.temperature, p.temperature)) return false;
             return true;
