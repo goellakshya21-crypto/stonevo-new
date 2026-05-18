@@ -5,13 +5,8 @@ import { X, Sparkles, Box, Camera, Download, Share2, Expand, ArrowRight, Upload,
 import { aiVisualizer } from '../lib/aiVisualizer';
 import { supabase } from '../lib/supabaseClient';
 
-// Full list of all possible room / application options shown to every user
-const ALL_ROOM_APPS = [
-    'Kitchen', 'Counter Top', 'Bathroom', 'Washroom', 'Vanity', 'Powder Room',
-    'Flooring', 'Wall Cladding', 'Feature Wall', 'Staircase',
-    'Dining', 'Table Top', 'Bedroom',
-    'Balcony', 'Facade', 'Exterior', 'Driveway'
-];
+// Room / application options shown during visualization
+const ALL_ROOM_APPS = ['Flooring', 'Washroom', 'Feature Wall', 'Counter Top', 'Outdoor', 'Façade'];
 
 const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, intendedApp, allowCustomStone, onStoneUploaded }) => {
     const [loading, setLoading] = useState(false);
