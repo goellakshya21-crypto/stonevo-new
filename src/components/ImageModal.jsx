@@ -136,25 +136,21 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
 
                         {bookmatchMode === '4way' && (() => {
                             const isUp = flipDir === 'up';
-                            // Transforms for each quadrant
-                            const tl = isUp ? 'scaleY(-1)'        : 'none';
-                            const tr = isUp ? 'scale(-1,-1)'      : 'scaleX(-1)';
-                            const bl = isUp ? 'none'              : 'scaleY(-1)';
-                            const br = isUp ? 'scaleX(-1)'        : 'scale(-1,-1)';
+                            const tl = isUp ? 'scaleY(-1)'   : 'none';
+                            const tr = isUp ? 'scale(-1,-1)' : 'scaleX(-1)';
+                            const bl = isUp ? 'none'         : 'scaleY(-1)';
+                            const br = isUp ? 'scaleX(-1)'   : 'scale(-1,-1)';
+                            const cell = (transform, pos) => (
+                                <div style={{ position: 'absolute', overflow: 'hidden', ...pos }}>
+                                    <img src={stone.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', transform, display: 'block' }} />
+                                </div>
+                            );
                             return (
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', width: '100%', height: '100%', gap: 0 }} className="animate-fade-in">
-                                    <div style={{ overflow: 'hidden' }}>
-                                        <img src={stone.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: tl, display: 'block' }} />
-                                    </div>
-                                    <div style={{ overflow: 'hidden' }}>
-                                        <img src={stone.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: tr, display: 'block' }} />
-                                    </div>
-                                    <div style={{ overflow: 'hidden' }}>
-                                        <img src={stone.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: bl, display: 'block' }} />
-                                    </div>
-                                    <div style={{ overflow: 'hidden' }}>
-                                        <img src={stone.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: br, display: 'block' }} />
-                                    </div>
+                                <div style={{ position: 'relative', width: '100%', height: '100%' }} className="animate-fade-in">
+                                    {cell(tl, { top: 0,    left: 0,    width: '50%', height: '50%' })}
+                                    {cell(tr, { top: 0,    left: '50%', width: '50%', height: '50%' })}
+                                    {cell(bl, { top: '50%', left: 0,   width: '50%', height: '50%' })}
+                                    {cell(br, { top: '50%', left: '50%', width: '50%', height: '50%' })}
                                 </div>
                             );
                         })()}
