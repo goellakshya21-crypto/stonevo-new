@@ -7,7 +7,8 @@ import AIVisualizationModal from './AIVisualizationModal';
  */
 function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true, onAddToRequirements }) {
     const [isVisualizing, setIsVisualizing] = useState(false);
-    const [isBookmatched, setIsBookmatched] = useState(false);
+    // null = off | '2way' = side-by-side mirror | '4way' = 2×2 quad mirror
+    const [bookmatchMode, setBookmatchMode] = useState(null);
 
     if (!stone || !isOpen) return null;
 
@@ -111,26 +112,43 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
 
                     {/* Image Container */}
                     <div className="w-full md:flex-1 bg-stone-900 flex items-center justify-center overflow-hidden relative h-[50vh] md:h-full shrink-0">
-                        {!isBookmatched ? (
+                        {!bookmatchMode && (
                             <img
                                 key={stone.id}
                                 src={stone.imageUrl}
                                 alt={stone.name}
                                 className="w-full h-full object-contain animate-fade-in"
                             />
-                        ) : (
+                        )}
+
+                        {bookmatchMode === '2way' && (
                             <div className="flex w-full h-full animate-fade-in">
                                 <div className="flex-1 h-full overflow-hidden mr-[-1px] relative z-10">
-                                    <img
-                                        src={stone.imageUrl}
-                                        className="w-full h-full object-cover"
-                                    />
+                                    <img src={stone.imageUrl} className="w-full h-full object-cover" />
                                 </div>
                                 <div className="flex-1 h-full overflow-hidden relative z-0">
-                                    <img
-                                        src={stone.imageUrl}
-                                        className="w-full h-full object-cover scale-x-[-1]"
-                                    />
+                                    <img src={stone.imageUrl} className="w-full h-full object-cover scale-x-[-1]" />
+                                </div>
+                            </div>
+                        )}
+
+                        {bookmatchMode === '4way' && (
+                            <div className="grid grid-cols-2 grid-rows-2 w-full h-full animate-fade-in">
+                                {/* Top-left: original */}
+                                <div className="overflow-hidden">
+                                    <img src={stone.imageUrl} className="w-full h-full object-cover" />
+                                </div>
+                                {/* Top-right: mirror horizontal */}
+                                <div className="overflow-hidden">
+                                    <img src={stone.imageUrl} className="w-full h-full object-cover scale-x-[-1]" />
+                                </div>
+                                {/* Bottom-left: mirror vertical */}
+                                <div className="overflow-hidden">
+                                    <img src={stone.imageUrl} className="w-full h-full object-cover scale-y-[-1]" />
+                                </div>
+                                {/* Bottom-right: mirror both */}
+                                <div className="overflow-hidden">
+                                    <img src={stone.imageUrl} className="w-full h-full object-cover scale-x-[-1] scale-y-[-1]" />
                                 </div>
                             </div>
                         )}
@@ -169,18 +187,34 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
                                 </button>
                             )}
 
+                            {/* 2-Way Bookmatch */}
                             <button
-                                onClick={(e) => { e.stopPropagation(); setIsBookmatched(!isBookmatched); }}
+                                onClick={(e) => { e.stopPropagation(); setBookmatchMode(bookmatchMode === '2way' ? null : '2way'); }}
                                 className={`w-full py-2.5 md:py-3 px-4 text-[9px] font-bold uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 border relative overflow-hidden active:scale-[0.98] ${
-                                    isBookmatched 
-                                    ? 'bg-stone-900 text-white border-stone-800' 
+                                    bookmatchMode === '2way'
+                                    ? 'bg-stone-900 text-white border-stone-800'
                                     : 'bg-white text-stone-900 border-stone-200 hover:bg-stone-50'
                                 }`}
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h2m0-16h2a2 2 0 012 2v12a2 2 0 01-2 2h-2m-6-16l6 6m0 0l6-6m-6 6v12" />
                                 </svg>
-                                {isBookmatched ? 'Disable Bookmatch' : 'Bookmatch View'}
+                                {bookmatchMode === '2way' ? 'Disable Bookmatch' : 'Bookmatch View'}
+                            </button>
+
+                            {/* 4-Way Bookmatch */}
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setBookmatchMode(bookmatchMode === '4way' ? null : '4way'); }}
+                                className={`w-full py-2.5 md:py-3 px-4 text-[9px] font-bold uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 border relative overflow-hidden active:scale-[0.98] ${
+                                    bookmatchMode === '4way'
+                                    ? 'bg-stone-900 text-white border-stone-800'
+                                    : 'bg-white text-stone-900 border-stone-200 hover:bg-stone-50'
+                                }`}
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                                </svg>
+                                {bookmatchMode === '4way' ? 'Disable 4-Way' : '4-Way Bookmatch'}
                             </button>
 
                             {onAddToRequirements && (
