@@ -55,7 +55,7 @@ export const aiVisualizer = {
      * The server fetches the image (no CORS), then uses Gemini's image editing
      * to composite the EXACT stone texture into the room scene.
      */
-    async generateRoomImage(stoneName, roomType, stoneType, application, imageUrl, roomStyle = 'Modern', userRoomImage = null, stonePattern = '', bookmatchDir = null) {
+    async generateRoomImage(stoneName, roomType, stoneType, application, imageUrl, roomStyle = 'Modern', userRoomImage = null, stonePattern = '', bookmatchDir = null, bookmatchMode = null) {
         const isOutdoor = (roomType.toLowerCase().includes('exterior') ||
                           roomType.toLowerCase().includes('facade') ||
                           roomType.toLowerCase().includes('balcony') ||
@@ -72,31 +72,33 @@ export const aiVisualizer = {
                         (stonePattern || '').toLowerCase().includes('solid') ||
                         (stonePattern || '').toLowerCase().includes('uniform');
 
-        // ── 4-Way Bookmatch logic ──────────────────────────────────────────
-        // Surface/wall applications — bookmatch doesn't apply to these
-        const isNonFloorApp =
-            appLower.includes('counter') ||
-            appLower.includes('table') ||
+        // ── Bookmatch rendering logic ──────────────────────────────────────
+        const isWallApp =
             appLower.includes('wall') ||
-            appLower.includes('cladding');
+            appLower.includes('cladding') ||
+            appLower.includes('feature');
 
-        // Small bathrooms — single slab looks better, no bookmatch
         const isSmallBathroom =
             appLower.includes('powder') ||
             appLower.includes('vanity');
 
-        // Use bookmatch on floor/ground-level big-room applications
-        // Disabled when user uploads their own room photo (can't re-lay their floor)
-        const useBookmatch = !isNonFloorApp && !isSmallBathroom && !userRoomImage;
-
-        // Direction-specific bookmatch description
+        // Direction detail for 4-way floor bookmatch
         const directionDetail = bookmatchDir === 'up'
             ? `The original slab sits at the BOTTOM; its mirror reflection fans UPWARD — the veining opens upward like a fountain or cathedral arch, creating a vertical symmetry where patterns rise toward the ceiling.`
             : `The original slab sits at the TOP; its mirror reflection fans DOWNWARD — the veining opens downward like a reflection in still water, creating a grounded, downward symmetry.`;
 
-        const bookmatchInstruction = useBookmatch
-            ? `4-WAY BOOKMATCH FLOOR: The floor MUST be rendered with a 4-way book-match layout — four mirrored slabs of this exact stone placed symmetrically, creating a perfect diamond/butterfly pattern that radiates from the centre of the room. The stone veining must mirror precisely both left-right and top-bottom across all four quadrants. ${bookmatchDir ? directionDetail : ''} This is the standard installation method for high-end natural stone in luxury architectural projects. This is MANDATORY — do not render the floor as a single slab or repeating tile.`
-            : '';
+        let bookmatchInstruction = '';
+
+        if (!userRoomImage && !isSmallBathroom && bookmatchMode) {
+            if (isWallApp || bookmatchMode === '2way') {
+                // Wall applications or explicit 2-way selection → side-by-side mirror
+                bookmatchInstruction = `2-WAY BOOKMATCH: The ${application} surface MUST be rendered as two mirrored slabs placed side by side — the right half is the perfect horizontal mirror of the left half, with veining meeting symmetrically at the centre seam. This is MANDATORY.`;
+            } else if (bookmatchMode === '4way') {
+                // Floor/big-room 4-way
+                bookmatchInstruction = `4-WAY BOOKMATCH FLOOR: The floor MUST be rendered with a 4-way book-match layout — four mirrored slabs placed symmetrically, creating a perfect diamond/butterfly pattern radiating from the centre. The veining must mirror precisely both left-right and top-bottom across all four quadrants. ${directionDetail} This is the standard installation method for high-end natural stone in luxury projects. This is MANDATORY — do not render the floor as a single slab or repeating tile.`;
+            }
+        }
+        // If bookmatchMode is null → no instruction → single slab as-is
         // ──────────────────────────────────────────────────────────────────
 
         const fidelityRule = isPlain
