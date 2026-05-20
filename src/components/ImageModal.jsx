@@ -134,26 +134,30 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
                             </div>
                         )}
 
-                        {bookmatchMode === '4way' && (
-                            <div className="grid grid-cols-2 grid-rows-2 w-full h-full animate-fade-in">
-                                {/* Top-left */}
-                                <div className="overflow-hidden">
-                                    <img src={stone.imageUrl} className={`w-full h-full object-cover ${flipDir === 'up' ? 'scale-y-[-1]' : ''}`} />
+                        {bookmatchMode === '4way' && (() => {
+                            const isUp = flipDir === 'up';
+                            // Transforms for each quadrant
+                            const tl = isUp ? 'scaleY(-1)'        : 'none';
+                            const tr = isUp ? 'scale(-1,-1)'      : 'scaleX(-1)';
+                            const bl = isUp ? 'none'              : 'scaleY(-1)';
+                            const br = isUp ? 'scaleX(-1)'        : 'scale(-1,-1)';
+                            return (
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', width: '100%', height: '100%', gap: 0 }} className="animate-fade-in">
+                                    <div style={{ overflow: 'hidden' }}>
+                                        <img src={stone.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: tl, display: 'block' }} />
+                                    </div>
+                                    <div style={{ overflow: 'hidden' }}>
+                                        <img src={stone.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: tr, display: 'block' }} />
+                                    </div>
+                                    <div style={{ overflow: 'hidden' }}>
+                                        <img src={stone.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: bl, display: 'block' }} />
+                                    </div>
+                                    <div style={{ overflow: 'hidden' }}>
+                                        <img src={stone.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: br, display: 'block' }} />
+                                    </div>
                                 </div>
-                                {/* Top-right */}
-                                <div className="overflow-hidden">
-                                    <img src={stone.imageUrl} className={`w-full h-full object-cover scale-x-[-1] ${flipDir === 'up' ? 'scale-y-[-1]' : ''}`} />
-                                </div>
-                                {/* Bottom-left */}
-                                <div className="overflow-hidden">
-                                    <img src={stone.imageUrl} className={`w-full h-full object-cover ${flipDir === 'down' ? 'scale-y-[-1]' : ''}`} />
-                                </div>
-                                {/* Bottom-right */}
-                                <div className="overflow-hidden">
-                                    <img src={stone.imageUrl} className={`w-full h-full object-cover scale-x-[-1] ${flipDir === 'down' ? 'scale-y-[-1]' : ''}`} />
-                                </div>
-                            </div>
-                        )}
+                            );
+                        })()}
 
                         {/* Counter for context */}
                         {hasMultiple && (
