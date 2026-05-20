@@ -157,12 +157,11 @@ Answer with ONLY the word "yes" or "no".`
         const effectiveBookmatchMode = isAlreadyBookmatched ? null : bookmatchMode;
 
         if (!isSmallBathroom && effectiveBookmatchMode) {
-            if (isWallApp || bookmatchMode === '2way') {
-                // Wall applications or explicit 2-way selection → side-by-side mirror
-                bookmatchInstruction = `2-WAY BOOKMATCH: The ${application} surface MUST be rendered as two mirrored slabs placed side by side — the right half is the perfect horizontal mirror of the left half, with veining meeting symmetrically at the centre seam. This is MANDATORY.`;
+            if (isWallApp || effectiveBookmatchMode === '2way') {
+                bookmatchInstruction = `2-WAY BOOKMATCH: The ${application} surface MUST show two mirrored slabs placed side by side — the right half is the exact horizontal mirror of the left half, veining meeting symmetrically at the centre. STRICTLY FORBIDDEN: Do NOT draw any grout line, seam line, or visible joint at the mirror axis — the join must be invisible, with only the natural stone veining showing the symmetry. This is MANDATORY.`;
             } else if (effectiveBookmatchMode === '4way') {
-                // Floor/big-room 4-way
-                bookmatchInstruction = `4-WAY BOOKMATCH FLOOR: The floor MUST be rendered with a 4-way book-match layout — four mirrored slabs placed symmetrically, creating a perfect diamond/butterfly pattern radiating from the centre. The veining must mirror precisely both left-right and top-bottom across all four quadrants. ${directionDetail} This is the standard installation method for high-end natural stone in luxury projects. This is MANDATORY — do not render the floor as a single slab or repeating tile.`;
+                bookmatchInstruction = `4-WAY BOOKMATCH FLOOR: The floor must show a 4-way book-match — the stone's veining mirrors both horizontally and vertically from the centre point, forming a natural diamond/butterfly symmetry. ${directionDetail}
+CRITICAL — ABSOLUTELY NO LINES: Do NOT draw any grout lines, cross lines, kite outlines, tile borders, seam marks, grid marks, or any visible joints where the four quadrants meet. The only visible pattern at the joins must be the natural stone veining meeting symmetrically — nothing else. The floor must look like one large seamless stone surface whose veining happens to be symmetrical, NOT four separate tiles with borders.`;
             }
         }
         // If bookmatchMode is null → no instruction → single slab as-is
@@ -172,9 +171,12 @@ Answer with ONLY the word "yes" or "no".`
             ? `TEXTURE FIDELITY: This stone is a solid, uniform material. STRICTLY FORBIDDEN: Do NOT add any synthetic veins, patterns, grain, or textures. Maintain the smooth, consistent, and mono-chromatic appearance of the source image exactly.`
             : `TEXTURE FIDELITY: Respect the natural vein structure and grain. Do NOT add extra synthetic veins that are not in the source image.`;
 
-        const seamlessInstruction = isPlain
-            ? `SEAMLESS ARCHITECTURE: This is a large-format natural stone slab, NOT a floor tile. STRICTLY FORBIDDEN: Do NOT add any grout lines, grid patterns, square segregations, or tile seams. The entire ${application} must appear as one continuous, seamless mono-block surface with the uniform, consistent texture flowing uninterrupted from edge to edge.`
-            : `SEAMLESS ARCHITECTURE: This is a large-format natural stone slab, NOT a floor tile. STRICTLY FORBIDDEN: Do NOT add any grout lines, grid patterns, square segregations, or tile seams. The entire ${application} must appear as one continuous, seamless mono-block surface with uninterrupted natural veining and patterns flowing from edge to edge.`;
+        // When bookmatch is active the surface IS multiple slabs — use a join-aware instruction instead
+        const seamlessInstruction = effectiveBookmatchMode
+            ? `SURFACE CONTINUITY: The ${application} must appear as one large, continuous stone surface. STRICTLY FORBIDDEN: Do NOT add grout lines, tile seams, grid marks, kite outlines, cross lines, or any borders of any kind. The only visual variation across the surface must come from the natural stone texture and its mirrored veining pattern.`
+            : isPlain
+                ? `SEAMLESS ARCHITECTURE: This is a large-format natural stone slab, NOT a floor tile. STRICTLY FORBIDDEN: Do NOT add any grout lines, grid patterns, square segregations, or tile seams. The entire ${application} must appear as one continuous, seamless mono-block surface with the uniform, consistent texture flowing uninterrupted from edge to edge.`
+                : `SEAMLESS ARCHITECTURE: This is a large-format natural stone slab, NOT a floor tile. STRICTLY FORBIDDEN: Do NOT add any grout lines, grid patterns, square segregations, or tile seams. The entire ${application} must appear as one continuous, seamless mono-block surface with uninterrupted natural veining and patterns flowing from edge to edge.`;
 
         const contextShot = isOutdoor
             ? `photorealistic, wide-angle residential exterior shot — luxury home architecture, bright natural daylight, 8K resolution, architectural magazine style.`
