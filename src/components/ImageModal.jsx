@@ -147,9 +147,9 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
                             );
                             return (
                                 <div style={{ position: 'relative', width: '100%', height: '100%' }} className="animate-fade-in">
-                                    {cell(tl, { top: 0,    left: 0,    width: '50%', height: '50%' })}
-                                    {cell(tr, { top: 0,    left: '50%', width: '50%', height: '50%' })}
-                                    {cell(bl, { top: '50%', left: 0,   width: '50%', height: '50%' })}
+                                    {cell(tl, { top: 0,    left: 0,     width: '50%', height: 'calc(50% + 1px)' })}
+                                    {cell(tr, { top: 0,    left: '50%', width: '50%', height: 'calc(50% + 1px)' })}
+                                    {cell(bl, { top: '50%', left: 0,    width: '50%', height: '50%' })}
                                     {cell(br, { top: '50%', left: '50%', width: '50%', height: '50%' })}
                                 </div>
                             );
