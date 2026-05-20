@@ -10,6 +10,44 @@ const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
  * for true image-based compositing (server fetches image, no CORS issues).
  */
 export const aiVisualizer = {
+
+    /**
+     * Analyse a custom-uploaded stone image.
+     * Returns { isBookmatched: bool }
+     * isBookmatched = true  → image already shows two mirrored slabs; don't bookmatch again
+     */
+    async detectCustomStoneInfo(imageUrl) {
+        if (!genAI || !imageUrl) return { isBookmatched: false };
+        try {
+            // Fetch the image and convert to base64 for Gemini inline data
+            const resp = await fetch(imageUrl);
+            const blob = await resp.blob();
+            const base64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload  = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+
+            const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+            const result = await model.generateContent([
+                {
+                    text: `Look at this stone/marble image carefully.
+Does it show a BOOKMATCH pattern — two slabs placed side by side (or top-to-bottom) that are mirror images of each other, with veining that meets symmetrically at a central seam?
+Answer with ONLY the word "yes" or "no".`
+                },
+                { inlineData: { mimeType: blob.type || 'image/jpeg', data: base64 } }
+            ]);
+
+            const answer = (result.response.text() || '').toLowerCase().trim();
+            console.log('[AI Visualizer] Bookmatch detection result:', answer);
+            return { isBookmatched: answer.startsWith('yes') };
+        } catch (err) {
+            console.error('[AI Visualizer] detectCustomStoneInfo failed:', err);
+            return { isBookmatched: false };
+        }
+    },
+
     async generateVisualDescription(stoneName, roomType, stoneType, application, roomStyle = 'Modern') {
         const fallback = {
             description: `A stunning ${roomType} featuring the elegant ${stoneName}. The natural veining of the ${stoneType} as a ${application} creates a unique sense of movement and luxury.`,
@@ -55,7 +93,7 @@ export const aiVisualizer = {
      * The server fetches the image (no CORS), then uses Gemini's image editing
      * to composite the EXACT stone texture into the room scene.
      */
-    async generateRoomImage(stoneName, roomType, stoneType, application, imageUrl, roomStyle = 'Modern', userRoomImage = null, stonePattern = '', bookmatchDir = null, bookmatchMode = null) {
+    async generateRoomImage(stoneName, roomType, stoneType, application, imageUrl, roomStyle = 'Modern', userRoomImage = null, stonePattern = '', bookmatchDir = null, bookmatchMode = null, isCustomStone = false, isAlreadyBookmatched = false) {
         const isOutdoor = (roomType.toLowerCase().includes('exterior') ||
                           roomType.toLowerCase().includes('facade') ||
                           roomType.toLowerCase().includes('balcony') ||
@@ -87,13 +125,21 @@ export const aiVisualizer = {
             ? `The original slab sits at the BOTTOM; its mirror reflection fans UPWARD — the veining opens upward like a fountain or cathedral arch, creating a vertical symmetry where patterns rise toward the ceiling.`
             : `The original slab sits at the TOP; its mirror reflection fans DOWNWARD — the veining opens downward like a reflection in still water, creating a grounded, downward symmetry.`;
 
+        // When the user uploaded their own stone photo, tell the AI to strip the background
+        const backgroundExtractionInstruction = isCustomStone
+            ? `STONE ISOLATION: The source image is a photo taken by a user and may contain background surfaces, hands, floors, walls, or other surroundings. Extract and use ONLY the pure stone/marble texture from the centre of the image. Completely ignore and discard any non-stone background elements, shadows cast by surroundings, or edges where the stone meets other surfaces.`
+            : '';
+
         let bookmatchInstruction = '';
 
-        if (!isSmallBathroom && bookmatchMode) {
+        // If the uploaded stone image already shows a bookmatch, don't bookmatch again
+        const effectiveBookmatchMode = isAlreadyBookmatched ? null : bookmatchMode;
+
+        if (!isSmallBathroom && effectiveBookmatchMode) {
             if (isWallApp || bookmatchMode === '2way') {
                 // Wall applications or explicit 2-way selection → side-by-side mirror
                 bookmatchInstruction = `2-WAY BOOKMATCH: The ${application} surface MUST be rendered as two mirrored slabs placed side by side — the right half is the perfect horizontal mirror of the left half, with veining meeting symmetrically at the centre seam. This is MANDATORY.`;
-            } else if (bookmatchMode === '4way') {
+            } else if (effectiveBookmatchMode === '4way') {
                 // Floor/big-room 4-way
                 bookmatchInstruction = `4-WAY BOOKMATCH FLOOR: The floor MUST be rendered with a 4-way book-match layout — four mirrored slabs placed symmetrically, creating a perfect diamond/butterfly pattern radiating from the centre. The veining must mirror precisely both left-right and top-bottom across all four quadrants. ${directionDetail} This is the standard installation method for high-end natural stone in luxury projects. This is MANDATORY — do not render the floor as a single slab or repeating tile.`;
             }
@@ -116,6 +162,7 @@ export const aiVisualizer = {
         const compositePrompt = `This is a high-resolution source photograph of the natural stone "${stoneName}".
 CRITICAL REQUIREMENT: Use the EXACT texture, grain, and colors from this specific image. ${fidelityRule}
 Do NOT generate a new stone pattern. Do NOT re-interpret the stone's appearance.
+${backgroundExtractionInstruction}
 Map this precise slab onto the ${application} in a ${roomStyle} ${roomType} using pixel-perfect perspective.
 The stone in the final render must be the IDENTICAL twin of the source image: same hue, same grain, same translucency.
 ${seamlessInstruction}
@@ -126,6 +173,7 @@ Maintain 100% structural faithfulness to the material source.`;
 
         const fallbackPrompt = `A ultra-high-end, photorealistic wide-angle ${isOutdoor ? 'exterior' : 'interior'} shot of a ${roomType}.
 The focal point is the ${application} made of "${stoneName}" — a natural ${stoneType} with authentic textures and patterns. ${fidelityRule}
+${backgroundExtractionInstruction}
 ${seamlessInstruction}
 ${bookmatchInstruction}
 STRICTLY FORBIDDEN: Do NOT place any rugs, mats, carpets, or floor coverings in the scene. The entire ${application} MUST be completely exposed.

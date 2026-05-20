@@ -22,6 +22,8 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
     const [uploadingStone, setUploadingStone] = useState(false);
     const [stoneUploadError, setStoneUploadError] = useState(null);
     const [isDraggingStone, setIsDraggingStone] = useState(false);
+    const [detectingStone, setDetectingStone] = useState(false);
+    const [uploadedStoneIsBookmatched, setUploadedStoneIsBookmatched] = useState(false);
 
     // The stone to use for visualization (custom upload takes priority)
     const effectiveStone = localStone || stone;
@@ -152,9 +154,18 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
             };
             setLocalStone(newStone);
             setNormalizedApps(ALL_ROOM_APPS);
-            setVisualizationStep('app');
-            // Notify parent so it can save the stone to the gallery
             onStoneUploaded?.(newStone);
+
+            // Detect if the uploaded image already shows a bookmatch pattern
+            setDetectingStone(true);
+            try {
+                const { isBookmatched } = await aiVisualizer.detectCustomStoneInfo(publicUrl);
+                setUploadedStoneIsBookmatched(isBookmatched);
+                console.log('[AI Modal] Uploaded stone is already bookmatched:', isBookmatched);
+            } catch { setUploadedStoneIsBookmatched(false); }
+            finally { setDetectingStone(false); }
+
+            setVisualizationStep('app');
         } catch (err) {
             console.error('[AI Modal] Stone upload error:', err);
             setStoneUploadError(err.message?.includes('bucket') || err.message?.includes('not found')
@@ -283,7 +294,9 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                     effectiveStone?.name || 'Natural Stone', roomType, effectiveStone?.colour || 'Natural', appToUse, styleToUse
                 ),
                 aiVisualizer.generateRoomImage(
-                    effectiveStone?.name || 'Natural Stone', roomType, effectiveStone?.colour || 'Natural', appToUse, effectiveStone?.image_url, styleToUse, userImgToUse, '', bookmatchDir, bookmatchMode
+                    effectiveStone?.name || 'Natural Stone', roomType, effectiveStone?.colour || 'Natural', appToUse, effectiveStone?.image_url, styleToUse, userImgToUse, '', bookmatchDir, bookmatchMode,
+                    !!localStone,            // isCustomStone
+                    uploadedStoneIsBookmatched // isAlreadyBookmatched
                 )
             ]);
 
@@ -391,10 +404,12 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                                 Upload a clear photo of your stone sample. The AI will capture its exact texture, veining, and colour.
                                             </p>
 
-                                            {uploadingStone ? (
+                                            {(uploadingStone || detectingStone) ? (
                                                 <div className="flex flex-col items-center gap-4 py-12">
                                                     <div className="w-12 h-12 border-2 border-[#eca413]/20 border-t-[#eca413] rounded-full animate-spin" />
-                                                    <p className="text-white/40 text-xs uppercase tracking-widest">Uploading stone sample…</p>
+                                                    <p className="text-white/40 text-xs uppercase tracking-widest">
+                                                        {detectingStone ? 'Analysing stone pattern…' : 'Uploading stone sample…'}
+                                                    </p>
                                                 </div>
                                             ) : (
                                                 <div
