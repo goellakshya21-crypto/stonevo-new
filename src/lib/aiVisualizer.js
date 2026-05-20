@@ -56,21 +56,45 @@ export const aiVisualizer = {
      * to composite the EXACT stone texture into the room scene.
      */
     async generateRoomImage(stoneName, roomType, stoneType, application, imageUrl, roomStyle = 'Modern', userRoomImage = null, stonePattern = '') {
-        const isOutdoor = (roomType.toLowerCase().includes('exterior') || 
-                          roomType.toLowerCase().includes('facade') || 
-                          roomType.toLowerCase().includes('balcony') || 
+        const isOutdoor = (roomType.toLowerCase().includes('exterior') ||
+                          roomType.toLowerCase().includes('facade') ||
+                          roomType.toLowerCase().includes('balcony') ||
                           roomType.toLowerCase().includes('entrance'));
 
         const name = (stoneName || '').toLowerCase();
         const type = (stoneType || '').toLowerCase();
-        const isPlain = name.includes('plain') || name.includes('solid') || name.includes('uniform') || 
+        const appLower = (application || '').toLowerCase();
+
+        const isPlain = name.includes('plain') || name.includes('solid') || name.includes('uniform') ||
                         type.includes('plain') || name.includes('pure') || name.includes('limestone') ||
                         name.includes('homogenous') || name.includes('minimal') ||
-                        (stonePattern || '').toLowerCase().includes('plain') || 
+                        (stonePattern || '').toLowerCase().includes('plain') ||
                         (stonePattern || '').toLowerCase().includes('solid') ||
                         (stonePattern || '').toLowerCase().includes('uniform');
 
-        const fidelityRule = isPlain 
+        // ── 4-Way Bookmatch logic ──────────────────────────────────────────
+        // Surface/wall applications — bookmatch doesn't apply to these
+        const isNonFloorApp =
+            appLower.includes('counter') ||
+            appLower.includes('table') ||
+            appLower.includes('wall') ||
+            appLower.includes('cladding');
+
+        // Small bathrooms — single slab looks better, no bookmatch
+        const isSmallBathroom =
+            appLower.includes('powder') ||
+            appLower.includes('vanity');
+
+        // Use bookmatch on floor/ground-level big-room applications
+        // Disabled when user uploads their own room photo (can't re-lay their floor)
+        const useBookmatch = !isNonFloorApp && !isSmallBathroom && !userRoomImage;
+
+        const bookmatchInstruction = useBookmatch
+            ? `4-WAY BOOKMATCH FLOOR: The floor MUST be rendered with a 4-way book-match layout — four mirrored slabs of this exact stone placed symmetrically, creating a perfect diamond/butterfly pattern that radiates from the centre of the room. The stone veining must mirror precisely both left-right and top-bottom across all four quadrants. This is the standard installation method for high-end natural stone in luxury architectural projects. This is MANDATORY — do not render the floor as a single slab or repeating tile.`
+            : '';
+        // ──────────────────────────────────────────────────────────────────
+
+        const fidelityRule = isPlain
             ? `TEXTURE FIDELITY: This stone is a solid, uniform material. STRICTLY FORBIDDEN: Do NOT add any synthetic veins, patterns, grain, or textures. Maintain the smooth, consistent, and mono-chromatic appearance of the source image exactly.`
             : `TEXTURE FIDELITY: Respect the natural vein structure and grain. Do NOT add extra synthetic veins that are not in the source image.`;
 
@@ -78,16 +102,17 @@ export const aiVisualizer = {
             ? `SEAMLESS ARCHITECTURE: This is a large-format natural stone slab, NOT a floor tile. STRICTLY FORBIDDEN: Do NOT add any grout lines, grid patterns, square segregations, or tile seams. The entire ${application} must appear as one continuous, seamless mono-block surface with the uniform, consistent texture flowing uninterrupted from edge to edge.`
             : `SEAMLESS ARCHITECTURE: This is a large-format natural stone slab, NOT a floor tile. STRICTLY FORBIDDEN: Do NOT add any grout lines, grid patterns, square segregations, or tile seams. The entire ${application} must appear as one continuous, seamless mono-block surface with uninterrupted natural veining and patterns flowing from edge to edge.`;
 
-        const contextShot = isOutdoor 
+        const contextShot = isOutdoor
             ? `photorealistic, wide-angle residential exterior shot — luxury home architecture, bright natural daylight, 8K resolution, architectural magazine style.`
             : `photorealistic, wide-angle architectural interior shot — high-end design, soft ambient lighting, 8K resolution, architectural magazine style.`;
 
         const compositePrompt = `This is a high-resolution source photograph of the natural stone "${stoneName}".
 CRITICAL REQUIREMENT: Use the EXACT texture, grain, and colors from this specific image. ${fidelityRule}
-Do NOT generate a new stone pattern. Do NOT re-interpret the stone's appearance. 
+Do NOT generate a new stone pattern. Do NOT re-interpret the stone's appearance.
 Map this precise slab onto the ${application} in a ${roomStyle} ${roomType} using pixel-perfect perspective.
 The stone in the final render must be the IDENTICAL twin of the source image: same hue, same grain, same translucency.
 ${seamlessInstruction}
+${bookmatchInstruction}
 STRICTLY FORBIDDEN: Do NOT place any rugs, mats, carpets, or floor coverings in the scene. The entire ${application} MUST be 100% exposed and completely visible, from corner to corner. Do not obscure the stone with furniture unless strictly structural.
 The rest of the scene should be a ${contextShot}.
 Maintain 100% structural faithfulness to the material source.`;
@@ -95,6 +120,7 @@ Maintain 100% structural faithfulness to the material source.`;
         const fallbackPrompt = `A ultra-high-end, photorealistic wide-angle ${isOutdoor ? 'exterior' : 'interior'} shot of a ${roomType}.
 The focal point is the ${application} made of "${stoneName}" — a natural ${stoneType} with authentic textures and patterns. ${fidelityRule}
 ${seamlessInstruction}
+${bookmatchInstruction}
 STRICTLY FORBIDDEN: Do NOT place any rugs, mats, carpets, or floor coverings in the scene. The entire ${application} MUST be completely exposed.
 Maintain strict adherence to the visual characteristics of this specific luxury material.
 ${isOutdoor ? 'Bright sunlight' : 'Soft architectural lighting'}, 8k resolution, architectural magazine style, realistic natural stone texture.`;
