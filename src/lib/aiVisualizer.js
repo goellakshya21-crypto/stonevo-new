@@ -55,7 +55,7 @@ export const aiVisualizer = {
      * The server fetches the image (no CORS), then uses Gemini's image editing
      * to composite the EXACT stone texture into the room scene.
      */
-    async generateRoomImage(stoneName, roomType, stoneType, application, imageUrl, roomStyle = 'Modern', userRoomImage = null, stonePattern = '') {
+    async generateRoomImage(stoneName, roomType, stoneType, application, imageUrl, roomStyle = 'Modern', userRoomImage = null, stonePattern = '', bookmatchDir = null) {
         const isOutdoor = (roomType.toLowerCase().includes('exterior') ||
                           roomType.toLowerCase().includes('facade') ||
                           roomType.toLowerCase().includes('balcony') ||
@@ -89,8 +89,13 @@ export const aiVisualizer = {
         // Disabled when user uploads their own room photo (can't re-lay their floor)
         const useBookmatch = !isNonFloorApp && !isSmallBathroom && !userRoomImage;
 
+        // Direction-specific bookmatch description
+        const directionDetail = bookmatchDir === 'up'
+            ? `The original slab sits at the BOTTOM; its mirror reflection fans UPWARD — the veining opens upward like a fountain or cathedral arch, creating a vertical symmetry where patterns rise toward the ceiling.`
+            : `The original slab sits at the TOP; its mirror reflection fans DOWNWARD — the veining opens downward like a reflection in still water, creating a grounded, downward symmetry.`;
+
         const bookmatchInstruction = useBookmatch
-            ? `4-WAY BOOKMATCH FLOOR: The floor MUST be rendered with a 4-way book-match layout — four mirrored slabs of this exact stone placed symmetrically, creating a perfect diamond/butterfly pattern that radiates from the centre of the room. The stone veining must mirror precisely both left-right and top-bottom across all four quadrants. This is the standard installation method for high-end natural stone in luxury architectural projects. This is MANDATORY — do not render the floor as a single slab or repeating tile.`
+            ? `4-WAY BOOKMATCH FLOOR: The floor MUST be rendered with a 4-way book-match layout — four mirrored slabs of this exact stone placed symmetrically, creating a perfect diamond/butterfly pattern that radiates from the centre of the room. The stone veining must mirror precisely both left-right and top-bottom across all four quadrants. ${bookmatchDir ? directionDetail : ''} This is the standard installation method for high-end natural stone in luxury architectural projects. This is MANDATORY — do not render the floor as a single slab or repeating tile.`
             : '';
         // ──────────────────────────────────────────────────────────────────
 

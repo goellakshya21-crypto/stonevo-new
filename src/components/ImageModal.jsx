@@ -290,7 +290,9 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
                         image_url: stone.imageUrl || stone.image_url,
                         application: stone?.physical_properties?.application || []
                     }}
-                    roomName={null} // Let the modal determine room from application
+                    roomName={null}
+                    // Pass the user's chosen bookmatch direction so the AI renders accordingly
+                    bookmatchDir={bookmatchMode === '4way' ? flipDir : null}
                     onClose={() => setIsVisualizing(false)}
                 />
             )}

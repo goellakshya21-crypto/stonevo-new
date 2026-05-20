@@ -8,7 +8,7 @@ import { supabase } from '../lib/supabaseClient';
 // Room / application options shown during visualization
 const ALL_ROOM_APPS = ['Flooring', 'Washroom', 'Feature Wall', 'Counter Top', 'Outdoor', 'Façade'];
 
-const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, intendedApp, allowCustomStone, onStoneUploaded }) => {
+const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, intendedApp, allowCustomStone, onStoneUploaded, bookmatchDir = null }) => {
     const [loading, setLoading] = useState(false);
     const [visualData, setVisualData] = useState(null);
     const [roomImage, setRoomImage] = useState(null);
@@ -283,7 +283,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                     effectiveStone?.name || 'Natural Stone', roomType, effectiveStone?.colour || 'Natural', appToUse, styleToUse
                 ),
                 aiVisualizer.generateRoomImage(
-                    effectiveStone?.name || 'Natural Stone', roomType, effectiveStone?.colour || 'Natural', appToUse, effectiveStone?.image_url, styleToUse, userImgToUse
+                    effectiveStone?.name || 'Natural Stone', roomType, effectiveStone?.colour || 'Natural', appToUse, effectiveStone?.image_url, styleToUse, userImgToUse, '', bookmatchDir
                 )
             ]);
 
