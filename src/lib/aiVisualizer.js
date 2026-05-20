@@ -89,7 +89,7 @@ export const aiVisualizer = {
 
         let bookmatchInstruction = '';
 
-        if (!userRoomImage && !isSmallBathroom && bookmatchMode) {
+        if (!isSmallBathroom && bookmatchMode) {
             if (isWallApp || bookmatchMode === '2way') {
                 // Wall applications or explicit 2-way selection → side-by-side mirror
                 bookmatchInstruction = `2-WAY BOOKMATCH: The ${application} surface MUST be rendered as two mirrored slabs placed side by side — the right half is the perfect horizontal mirror of the left half, with veining meeting symmetrically at the centre seam. This is MANDATORY.`;
