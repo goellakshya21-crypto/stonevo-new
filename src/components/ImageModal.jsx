@@ -9,6 +9,8 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
     const [isVisualizing, setIsVisualizing] = useState(false);
     // null = off | '2way' = side-by-side mirror | '4way' = 2×2 quad mirror
     const [bookmatchMode, setBookmatchMode] = useState(null);
+    // '4way' vertical direction: 'down' = original on top, mirror below | 'up' = mirror on top, original below
+    const [flipDir, setFlipDir] = useState('down');
 
     if (!stone || !isOpen) return null;
 
@@ -134,21 +136,21 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
 
                         {bookmatchMode === '4way' && (
                             <div className="grid grid-cols-2 grid-rows-2 w-full h-full animate-fade-in">
-                                {/* Top-left: original */}
+                                {/* Top-left */}
                                 <div className="overflow-hidden">
-                                    <img src={stone.imageUrl} className="w-full h-full object-cover" />
+                                    <img src={stone.imageUrl} className={`w-full h-full object-cover ${flipDir === 'up' ? 'scale-y-[-1]' : ''}`} />
                                 </div>
-                                {/* Top-right: mirror horizontal */}
+                                {/* Top-right */}
                                 <div className="overflow-hidden">
-                                    <img src={stone.imageUrl} className="w-full h-full object-cover scale-x-[-1]" />
+                                    <img src={stone.imageUrl} className={`w-full h-full object-cover scale-x-[-1] ${flipDir === 'up' ? 'scale-y-[-1]' : ''}`} />
                                 </div>
-                                {/* Bottom-left: mirror vertical */}
+                                {/* Bottom-left */}
                                 <div className="overflow-hidden">
-                                    <img src={stone.imageUrl} className="w-full h-full object-cover scale-y-[-1]" />
+                                    <img src={stone.imageUrl} className={`w-full h-full object-cover ${flipDir === 'down' ? 'scale-y-[-1]' : ''}`} />
                                 </div>
-                                {/* Bottom-right: mirror both */}
+                                {/* Bottom-right */}
                                 <div className="overflow-hidden">
-                                    <img src={stone.imageUrl} className="w-full h-full object-cover scale-x-[-1] scale-y-[-1]" />
+                                    <img src={stone.imageUrl} className={`w-full h-full object-cover scale-x-[-1] ${flipDir === 'down' ? 'scale-y-[-1]' : ''}`} />
                                 </div>
                             </div>
                         )}
@@ -216,6 +218,30 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
                                 </svg>
                                 {bookmatchMode === '4way' ? 'Disable 4-Way' : '4-Way Bookmatch'}
                             </button>
+
+                            {/* Direction toggle — only visible when 4-way is active */}
+                            {bookmatchMode === '4way' && (
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setFlipDir('down'); }}
+                                        className={`flex-1 py-2 px-3 text-[9px] font-bold uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-1.5 border active:scale-[0.98] ${
+                                            flipDir === 'down' ? 'bg-stone-900 text-white border-stone-800' : 'bg-white text-stone-400 border-stone-200 hover:bg-stone-50'
+                                        }`}
+                                    >
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                                        Mirror Down
+                                    </button>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setFlipDir('up'); }}
+                                        className={`flex-1 py-2 px-3 text-[9px] font-bold uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-1.5 border active:scale-[0.98] ${
+                                            flipDir === 'up' ? 'bg-stone-900 text-white border-stone-800' : 'bg-white text-stone-400 border-stone-200 hover:bg-stone-50'
+                                        }`}
+                                    >
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" /></svg>
+                                        Mirror Up
+                                    </button>
+                                </div>
+                            )}
 
                             {onAddToRequirements && (
                                 <button
