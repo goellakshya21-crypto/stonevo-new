@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { stoneImageUrl, roomType, application, stoneName, roomStyle, promptText, userRoomImage, modelId = 'gemini-2.5-flash-image' } = req.body;
+        const { stoneImageUrl, roomType, application, stoneName, roomStyle, promptText, userRoomImage, modelId = 'gemini-2.5-flash-image', cropMode = false } = req.body;
 
         if (!stoneImageUrl) {
             return res.status(400).json({ error: 'Stone image URL is required.' });
@@ -35,7 +35,16 @@ export default async function handler(req, res) {
 
         // Refined Prompt for Multi-Modal Inpainting
         let finalPrompt;
-        if (userRoomImage) {
+
+        if (cropMode) {
+            // Stone isolation mode — extract only the stone surface, remove all background
+            finalPrompt = `You are given a photograph of a natural stone or marble sample taken by a user.
+Your task: Extract and display ONLY the pure stone/marble surface texture.
+Fill the ENTIRE image frame with just the stone material — no background, no hands, no floor, no surrounding props, no shadows from other objects.
+Preserve the EXACT colours, veining, grain, and natural patterns of the stone with 100% fidelity.
+The output must be a clean, flat, catalogue-quality stone texture swatch suitable for material selection.
+If the stone has natural veining, keep it exactly as it appears. Do not add or remove any patterns.`;
+        } else if (userRoomImage) {
             finalPrompt = `
             CONTEXT: You are performing high-end architectural inpainting and material replacement. 
             MATERIAL SOURCE: The first attached image is the natural stone slab "${stoneName}". Use this EXACT texture, vein structure, and color.

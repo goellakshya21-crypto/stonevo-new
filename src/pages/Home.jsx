@@ -560,13 +560,27 @@ function Home({ role }) {
                         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                             {customStones.map(cs => (
                                 <div key={cs.id} className="group/cs relative flex-shrink-0 w-44 rounded-2xl overflow-hidden border border-white/10 hover:border-[#eca413]/40 bg-stone-950 transition-all duration-300">
-                                    {/* Thumbnail */}
+                                    {/* Thumbnail — shows AI-cropped version if available */}
                                     <div className="relative aspect-square overflow-hidden">
                                         <img
-                                            src={cs.image_url}
+                                            src={cs.cropped_image_url || cs.image_url}
                                             alt={cs.name}
                                             className="w-full h-full object-cover group-hover/cs:scale-105 transition-transform duration-500"
                                         />
+                                        {/* On hover: split original vs cropped comparison */}
+                                        {cs.cropped_image_url && (
+                                            <div className="absolute inset-0 opacity-0 group-hover/cs:opacity-100 transition-opacity duration-300 pointer-events-none">
+                                                <div className="absolute inset-y-0 left-0 w-1/2 overflow-hidden">
+                                                    <img src={cs.image_url} alt="Original" className="w-[200%] h-full object-cover" />
+                                                    <span className="absolute bottom-1 left-1 text-[7px] font-bold uppercase tracking-wider bg-black/70 text-white/80 px-1 rounded">Original</span>
+                                                </div>
+                                                <div className="absolute inset-y-0 left-1/2 w-px bg-white/60 z-10" />
+                                                <span className="absolute bottom-1 right-1 text-[7px] font-bold uppercase tracking-wider bg-[#eca413]/90 text-black px-1 rounded">AI Crop</span>
+                                            </div>
+                                        )}
+                                        {cs.cropped_image_url && (
+                                            <span className="absolute top-2 left-2 text-[7px] font-bold uppercase tracking-wider bg-[#eca413]/80 text-black px-1.5 py-0.5 rounded">✂</span>
+                                        )}
                                         {/* Hover overlay with Visualize button */}
                                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/cs:opacity-100 transition-opacity flex items-center justify-center">
                                             <button

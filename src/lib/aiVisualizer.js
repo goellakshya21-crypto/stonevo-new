@@ -48,6 +48,27 @@ Answer with ONLY the word "yes" or "no".`
         }
     },
 
+    /**
+     * Generate a clean cropped-stone preview image (background removed).
+     * Returns a data-URL string or null on failure.
+     */
+    async generateCroppedStonePreview(imageUrl) {
+        if (!imageUrl) return null;
+        try {
+            const response = await fetch('/api/generate-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stoneImageUrl: imageUrl, cropMode: true, stoneName: 'Stone Sample' })
+            });
+            if (!response.ok) return null;
+            const data = await response.json();
+            return data.url || null;
+        } catch (err) {
+            console.error('[AI Visualizer] Crop preview generation failed:', err);
+            return null;
+        }
+    },
+
     async generateVisualDescription(stoneName, roomType, stoneType, application, roomStyle = 'Modern') {
         const fallback = {
             description: `A stunning ${roomType} featuring the elegant ${stoneName}. The natural veining of the ${stoneType} as a ${application} creates a unique sense of movement and luxury.`,

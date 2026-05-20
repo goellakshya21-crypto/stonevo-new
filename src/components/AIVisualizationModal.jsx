@@ -144,10 +144,28 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                 .replace(/\b\w/g, l => l.toUpperCase()) // title case
                 .trim() || 'My Stone';
 
+            // Run bookmatch detection + crop preview generation in parallel
+            setDetectingStone(true);
+            let isBookmatched = false;
+            let croppedUrl = null;
+            try {
+                const [detection, cropped] = await Promise.all([
+                    aiVisualizer.detectCustomStoneInfo(publicUrl).catch(() => ({ isBookmatched: false })),
+                    aiVisualizer.generateCroppedStonePreview(publicUrl).catch(() => null)
+                ]);
+                isBookmatched = detection.isBookmatched;
+                croppedUrl = cropped;
+                setUploadedStoneIsBookmatched(isBookmatched);
+                console.log('[AI Modal] Bookmatch detected:', isBookmatched, '| Crop URL ready:', !!croppedUrl);
+            } finally {
+                setDetectingStone(false);
+            }
+
             const newStone = {
                 id: 'custom_' + Date.now(),
                 name: prettyName,
                 image_url: publicUrl,
+                cropped_image_url: croppedUrl || null,
                 application: ALL_ROOM_APPS,
                 colour: 'Natural',
                 description: 'Custom uploaded stone sample'
@@ -155,16 +173,6 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
             setLocalStone(newStone);
             setNormalizedApps(ALL_ROOM_APPS);
             onStoneUploaded?.(newStone);
-
-            // Detect if the uploaded image already shows a bookmatch pattern
-            setDetectingStone(true);
-            try {
-                const { isBookmatched } = await aiVisualizer.detectCustomStoneInfo(publicUrl);
-                setUploadedStoneIsBookmatched(isBookmatched);
-                console.log('[AI Modal] Uploaded stone is already bookmatched:', isBookmatched);
-            } catch { setUploadedStoneIsBookmatched(false); }
-            finally { setDetectingStone(false); }
-
             setVisualizationStep('app');
         } catch (err) {
             console.error('[AI Modal] Stone upload error:', err);
@@ -408,7 +416,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                                 <div className="flex flex-col items-center gap-4 py-12">
                                                     <div className="w-12 h-12 border-2 border-[#eca413]/20 border-t-[#eca413] rounded-full animate-spin" />
                                                     <p className="text-white/40 text-xs uppercase tracking-widest">
-                                                        {detectingStone ? 'Analysing stone pattern…' : 'Uploading stone sample…'}
+                                                        {detectingStone ? 'Analysing & generating preview…' : 'Uploading stone sample…'}
                                                     </p>
                                                 </div>
                                             ) : (
