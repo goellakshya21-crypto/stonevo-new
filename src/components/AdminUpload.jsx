@@ -47,6 +47,17 @@ const AdminUpload = ({ onCancel }) => {
 
     const fileInputRef = useRef(null);
 
+    // ── Manage / Search existing stones ─────────────────────────────────
+    const [showManage, setShowManage] = useState(false);
+    const [manageSearch, setManageSearch] = useState('');
+    const [manageResults, setManageResults] = useState([]);
+    const [manageLoading, setManageLoading] = useState(false);
+    const [manageError, setManageError] = useState(null);
+    const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+    const [editingStone, setEditingStone] = useState(null);
+    const [editSaveLoading, setEditSaveLoading] = useState(false);
+    // ─────────────────────────────────────────────────────────────────────
+
     const getOptionsForCategory = (category) => {
         const unspecified = { value: '', label: '— Unspecified —' };
         switch (category) {
@@ -600,6 +611,104 @@ const AdminUpload = ({ onCancel }) => {
         setBatchResults(prev => prev.filter(r => r.success || r.fileName !== fileName));
     };
 
+    // ── Manage stones helpers ─────────────────────────────────────────────
+    const handleManageSearch = async () => {
+        setManageLoading(true);
+        setManageError(null);
+        try {
+            let query = supabase.from('stones').select('*').order('name');
+            if (manageSearch.trim()) {
+                query = query.ilike('name', `%${manageSearch.trim()}%`);
+            }
+            const { data, error } = await query.limit(60);
+            if (error) throw error;
+            setManageResults(data || []);
+        } catch (err) {
+            setManageError(err.message);
+        } finally {
+            setManageLoading(false);
+        }
+    };
+
+    const handleDeleteStone = async (stone) => {
+        try {
+            const { error: dbError } = await supabase.from('stones').delete().eq('id', stone.id);
+            if (dbError) throw dbError;
+            // Best-effort: delete from storage
+            if (stone.image_url) {
+                const parts = stone.image_url.split('/marble-images/');
+                if (parts[1]) {
+                    const filePath = decodeURIComponent(parts[1].split('?')[0]);
+                    await supabase.storage.from('marble-images').remove([filePath]);
+                }
+            }
+            setManageResults(prev => prev.filter(s => s.id !== stone.id));
+            setDeleteConfirmId(null);
+        } catch (err) {
+            setManageError(`Delete failed: ${err.message}`);
+            setDeleteConfirmId(null);
+        }
+    };
+
+    const startEditing = (stone) => {
+        setEditingStone({
+            ...stone,
+            physical_properties: {
+                marble: toArr(stone.type),
+                finish: toArr(stone.finish),
+                color: toArr(stone.color),
+                temperature: toArr(stone.temperature),
+                application: toArr(stone.application),
+                pattern: toArr(stone.pattern),
+                priceRange: toArr(stone.price_range),
+            }
+        });
+    };
+
+    const handleEditFieldChange = (field, value, isPhysical = false) => {
+        setEditingStone(prev => {
+            if (isPhysical) {
+                const current = toArr(prev.physical_properties?.[field]);
+                const updated = current.includes(value)
+                    ? current.filter(v => v !== value)
+                    : [...current, value];
+                return { ...prev, physical_properties: { ...prev.physical_properties, [field]: updated } };
+            }
+            return { ...prev, [field]: value };
+        });
+    };
+
+    const handleEditSave = async () => {
+        setEditSaveLoading(true);
+        setManageError(null);
+        try {
+            const pp = editingStone.physical_properties || {};
+            const payload = {
+                name: editingStone.name,
+                description: editingStone.description || '',
+                tags: editingStone.tags || [],
+                type: toArr(pp.marble),
+                application: toArr(pp.application),
+                finish: toArr(pp.finish),
+                color: toArr(pp.color),
+                pattern: toArr(pp.pattern),
+                temperature: toArr(pp.temperature),
+                price_range: toArr(pp.priceRange),
+            };
+            const { error } = await supabase.from('stones').update(payload).eq('id', editingStone.id);
+            if (error) throw error;
+            setManageResults(prev => prev.map(s =>
+                s.id === editingStone.id ? { ...s, ...payload } : s
+            ));
+            setEditingStone(null);
+        } catch (err) {
+            setManageError(`Save failed: ${err.message}`);
+        } finally {
+            setEditSaveLoading(false);
+        }
+    };
+    // ─────────────────────────────────────────────────────────────────────
+
     return (
         <div className="bg-white p-8 rounded-xl shadow-lg border border-stone-200 max-w-4xl mx-auto my-8">
             <div className="flex justify-between items-center mb-6">
@@ -726,25 +835,29 @@ const AdminUpload = ({ onCancel }) => {
                     </div>
 
                     {/* Mode Toggle */}
-                    <div className="flex gap-2 border-b border-stone-200 pb-4">
+                    <div className="flex gap-2 border-b border-stone-200 pb-4 flex-wrap">
                         <button
-                            onClick={() => setBatchMode(false)}
-                            className={`px-4 py-2 rounded-md font-medium transition-colors ${!batchMode ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                                }`}
+                            onClick={() => { setBatchMode(false); setShowManage(false); }}
+                            className={`px-4 py-2 rounded-md font-medium transition-colors ${!batchMode && !showManage ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
                         >
                             Single Image
                         </button>
                         <button
-                            onClick={() => setBatchMode(true)}
-                            className={`px-4 py-2 rounded-md font-medium transition-colors ${batchMode ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                                }`}
+                            onClick={() => { setBatchMode(true); setShowManage(false); }}
+                            className={`px-4 py-2 rounded-md font-medium transition-colors ${batchMode && !showManage ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
                         >
                             Batch Upload 🚀
+                        </button>
+                        <button
+                            onClick={() => { setShowManage(true); if (manageResults.length === 0) handleManageSearch(); }}
+                            className={`px-4 py-2 rounded-md font-medium transition-colors ml-auto ${showManage ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
+                        >
+                            🔍 Manage Stones
                         </button>
                     </div>
 
                     {/* Single Image Mode */}
-                    {!batchMode && (
+                    {!batchMode && !showManage && (
                         <>
                             <div className="border-2 border-dashed border-stone-300 rounded-lg p-6 text-center hover:bg-stone-50 transition-colors">
                                 <input
@@ -911,7 +1024,7 @@ const AdminUpload = ({ onCancel }) => {
                     )}
 
                     {/* Batch Mode */}
-                    {batchMode && (
+                    {batchMode && !showManage && (
                         <>
                             <div className="border-2 border-dashed border-stone-300 rounded-lg p-6">
                                 <input
@@ -1202,6 +1315,202 @@ const AdminUpload = ({ onCancel }) => {
                             )}
                         </>
                     )}
+
+                    {/* ── Manage Stones Panel ─────────────────────────────────────────── */}
+                    {showManage && (
+                        <div className="space-y-4">
+                            {/* Search bar */}
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={manageSearch}
+                                    onChange={e => setManageSearch(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && handleManageSearch()}
+                                    placeholder="Search by stone name… (leave empty to show all)"
+                                    className="flex-1 px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-stone-500"
+                                />
+                                <button
+                                    onClick={handleManageSearch}
+                                    disabled={manageLoading}
+                                    className="px-4 py-2 bg-stone-900 text-white rounded-md text-sm font-medium hover:bg-stone-800 disabled:opacity-50"
+                                >
+                                    {manageLoading ? '…' : 'Search'}
+                                </button>
+                            </div>
+
+                            {manageError && (
+                                <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm">{manageError}</div>
+                            )}
+
+                            {/* Edit modal overlay */}
+                            {editingStone && (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <h3 className="text-lg font-serif font-bold text-stone-800">Edit Stone</h3>
+                                            <button onClick={() => setEditingStone(null)} className="text-stone-400 hover:text-stone-700 text-xl font-bold leading-none">✕</button>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3 text-left">
+                                            <div className="col-span-2 p-3 bg-stone-50 rounded-md border border-stone-100">
+                                                <label className="text-[10px] text-stone-400 uppercase font-bold mb-1 block">Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={editingStone.name}
+                                                    onChange={e => handleEditFieldChange('name', e.target.value)}
+                                                    className="w-full bg-transparent border-none p-0 focus:ring-0 font-medium text-stone-900 text-sm"
+                                                />
+                                            </div>
+                                            <div className="p-3 bg-stone-50 rounded-md border border-stone-100">
+                                                <label className="text-[10px] text-stone-400 uppercase font-bold mb-1 block">Stone Type <span className="text-bronze normal-case font-normal">(multi)</span></label>
+                                                <FieldPills category="marble" values={editingStone.physical_properties.marble} onChange={v => handleEditFieldChange('marble', v, true)} />
+                                            </div>
+                                            <div className="p-3 bg-stone-50 rounded-md border border-stone-100">
+                                                <label className="text-[10px] text-stone-400 uppercase font-bold mb-1 block">Finish <span className="text-bronze normal-case font-normal">(multi)</span></label>
+                                                <FieldPills category="finish" values={editingStone.physical_properties.finish} onChange={v => handleEditFieldChange('finish', v, true)} />
+                                            </div>
+                                            <div className="p-3 bg-stone-50 rounded-md border border-stone-100">
+                                                <label className="text-[10px] text-stone-400 uppercase font-bold mb-1 block">Application <span className="text-bronze normal-case font-normal">(multi)</span></label>
+                                                <FieldPills category="application" values={editingStone.physical_properties.application} onChange={v => handleEditFieldChange('application', v, true)} />
+                                            </div>
+                                            <div className="p-3 bg-stone-50 rounded-md border border-stone-100">
+                                                <label className="text-[10px] text-stone-400 uppercase font-bold mb-1 block">Color <span className="text-bronze normal-case font-normal">(multi)</span></label>
+                                                <FieldPills category="color" values={editingStone.physical_properties.color} onChange={v => handleEditFieldChange('color', v, true)} />
+                                            </div>
+                                            <div className="p-3 bg-stone-50 rounded-md border border-stone-100">
+                                                <label className="text-[10px] text-stone-400 uppercase font-bold mb-1 block">Temperature <span className="text-bronze normal-case font-normal">(multi)</span></label>
+                                                <FieldPills category="temperature" values={editingStone.physical_properties.temperature} onChange={v => handleEditFieldChange('temperature', v, true)} />
+                                            </div>
+                                            <div className="p-3 bg-stone-50 rounded-md border border-stone-100">
+                                                <label className="text-[10px] text-stone-400 uppercase font-bold mb-1 block">Pattern <span className="text-bronze normal-case font-normal">(multi)</span></label>
+                                                <FieldPills category="pattern" values={editingStone.physical_properties.pattern} onChange={v => handleEditFieldChange('pattern', v, true)} />
+                                            </div>
+                                            <div className="p-3 bg-stone-50 rounded-md border border-stone-100">
+                                                <label className="text-[10px] text-stone-400 uppercase font-bold mb-1 block">Price Range <span className="text-bronze normal-case font-normal">(multi)</span></label>
+                                                <FieldPills category="priceRange" values={editingStone.physical_properties.priceRange} onChange={v => handleEditFieldChange('priceRange', v, true)} />
+                                            </div>
+                                            <div className="col-span-2 p-3 bg-stone-50 rounded-md border border-stone-100">
+                                                <label className="text-[10px] text-stone-400 uppercase font-bold mb-1 block">Description</label>
+                                                <textarea
+                                                    value={editingStone.description || ''}
+                                                    onChange={e => handleEditFieldChange('description', e.target.value)}
+                                                    rows="2"
+                                                    className="w-full bg-transparent border-none p-0 focus:ring-0 text-sm text-stone-700 italic resize-none"
+                                                />
+                                            </div>
+                                            <div className="col-span-2 p-3 bg-stone-50 rounded-md border border-stone-100">
+                                                <label className="text-[10px] text-stone-400 uppercase font-bold mb-1 block">Tags (comma separated)</label>
+                                                <input
+                                                    type="text"
+                                                    value={(editingStone.tags || []).join(', ')}
+                                                    onChange={e => handleEditFieldChange('tags', e.target.value.split(',').map(t => t.trim()).filter(Boolean))}
+                                                    className="w-full bg-transparent border-none p-0 focus:ring-0 text-sm text-stone-600"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-3 pt-2">
+                                            <button
+                                                onClick={handleEditSave}
+                                                disabled={editSaveLoading}
+                                                className="flex-1 py-2.5 bg-stone-900 text-white rounded-md font-medium text-sm hover:bg-stone-800 disabled:opacity-50"
+                                            >
+                                                {editSaveLoading ? 'Saving…' : '💾 Save Changes'}
+                                            </button>
+                                            <button
+                                                onClick={() => setEditingStone(null)}
+                                                className="px-5 py-2.5 bg-stone-100 text-stone-600 rounded-md font-medium text-sm hover:bg-stone-200"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Results count */}
+                            {manageResults.length > 0 && (
+                                <p className="text-xs text-stone-400 font-medium uppercase tracking-wider">
+                                    {manageResults.length} stone{manageResults.length !== 1 ? 's' : ''} found
+                                </p>
+                            )}
+
+                            {/* Stone cards grid */}
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-1">
+                                {manageResults.map(stone => (
+                                    <div key={stone.id} className="group relative rounded-xl border border-stone-200 bg-stone-50 overflow-hidden hover:shadow-md transition-shadow">
+                                        {/* Thumbnail */}
+                                        <div className="aspect-square overflow-hidden bg-stone-100">
+                                            {stone.image_url ? (
+                                                <img
+                                                    src={stone.image_url}
+                                                    alt={stone.name}
+                                                    className="w-full h-full object-cover"
+                                                    loading="lazy"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-stone-300 text-3xl">🪨</div>
+                                            )}
+                                        </div>
+
+                                        {/* Info */}
+                                        <div className="p-2.5">
+                                            <p className="text-xs font-bold text-stone-800 truncate">{stone.name}</p>
+                                            <div className="flex flex-wrap gap-1 mt-1">
+                                                {toArr(stone.application).slice(0, 2).map(a => (
+                                                    <span key={a} className="px-1.5 py-0.5 bg-stone-200 text-stone-600 rounded text-[9px] font-medium">{a}</span>
+                                                ))}
+                                                {toArr(stone.color).slice(0, 1).map(c => (
+                                                    <span key={c} className="px-1.5 py-0.5 bg-stone-900 text-white rounded text-[9px] font-medium">{c}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Action buttons */}
+                                        <div className="flex border-t border-stone-200">
+                                            <button
+                                                onClick={() => startEditing(stone)}
+                                                className="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider text-stone-600 hover:bg-stone-100 transition-colors"
+                                            >
+                                                ✏️ Edit
+                                            </button>
+                                            <div className="w-px bg-stone-200" />
+                                            {deleteConfirmId === stone.id ? (
+                                                <div className="flex-1 flex">
+                                                    <button
+                                                        onClick={() => handleDeleteStone(stone)}
+                                                        className="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+                                                    >
+                                                        Confirm
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setDeleteConfirmId(null)}
+                                                        className="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider text-stone-400 hover:bg-stone-100 transition-colors"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => setDeleteConfirmId(stone.id)}
+                                                    className="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                                                >
+                                                    🗑 Delete
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {manageResults.length === 0 && !manageLoading && (
+                                    <div className="col-span-3 text-center py-12 text-stone-400 text-sm">
+                                        {manageSearch.trim() ? `No stones found for "${manageSearch}"` : 'Click Search to load stones'}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                    {/* ─────────────────────────────────────────────────────────────── */}
 
                     {/* Error Message */}
                     {error && (
