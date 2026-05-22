@@ -5,6 +5,7 @@ import BuilderPortal from './pages/BuilderPortal';
 import AdminPage from './pages/AdminPage';
 import AdvisoryServices from './pages/AdvisoryServices';
 import AboutPage from './pages/AboutPage';
+import TeamPage from './pages/TeamPage';
 import LeadGate from './components/LeadGate';
 
 import { RequirementsProvider } from './context/RequirementsContext';
@@ -23,6 +24,7 @@ function App() {
           <Route path="/builder" element={<BuilderPortal />} />
           <Route path="/advisory" element={<AdvisoryServices />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/team" element={<TeamPage />} />
           <Route path="/internal-management-stonevo-9921" element={<AdminPage />} />
           <Route path="*" element={<div className="min-h-screen bg-black text-white p-10">404 - Page not found</div>} />
         </Routes>

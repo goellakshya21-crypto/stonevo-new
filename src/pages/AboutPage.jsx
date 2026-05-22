@@ -184,6 +184,10 @@ const AboutPage = () => {
                     onMouseEnter={e=>e.target.style.color='#A37D4B'}
                     onMouseLeave={e=>e.target.style.color='#FDFCF8'}
                 >STONEVO</Link>
+                <Link to="/team" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:'rgba(253,252,248,0.35)', textDecoration:'none', transition:'color 0.3s' }}
+                    onMouseEnter={e=>e.target.style.color='#A37D4B'}
+                    onMouseLeave={e=>e.target.style.color='rgba(253,252,248,0.35)'}
+                >Our Team</Link>
             </nav>
 
             {/* HERO */}
