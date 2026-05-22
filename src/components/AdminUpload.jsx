@@ -632,16 +632,16 @@ const AdminUpload = ({ onCancel }) => {
 
     const handleDeleteStone = async (stone) => {
         try {
-            // Use server-side route so the service-role key (not anon key) is used,
-            // which bypasses Supabase RLS and can actually delete the row.
-            const res = await fetch('/api/admin-delete-stone', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ stoneId: stone.id, imageUrl: stone.image_url })
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || `Server error ${res.status}`);
-
+            const { error: dbError } = await supabase.from('stones').delete().eq('id', stone.id);
+            if (dbError) throw dbError;
+            // Best-effort: delete image from storage
+            if (stone.image_url) {
+                const parts = stone.image_url.split('/marble-images/');
+                if (parts[1]) {
+                    const filePath = decodeURIComponent(parts[1].split('?')[0]);
+                    await supabase.storage.from('marble-images').remove([filePath]);
+                }
+            }
             setManageResults(prev => prev.filter(s => s.id !== stone.id));
             setDeleteConfirmId(null);
         } catch (err) {
