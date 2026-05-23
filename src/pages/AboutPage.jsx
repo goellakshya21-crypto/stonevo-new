@@ -205,10 +205,10 @@ const AboutPage = () => {
                 <div style={{ position:'relative', zIndex:2, padding:'88px 48px 32px', display:'flex', flexDirection:'column', justifyContent:'center' }}>
                     <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.85, marginBottom:16 }}>About Stonevo</p>
                     <h1 className="sv sv-headline sv-d1">
-                        The&nbsp;evolution<br />of <em style={{ fontStyle:'italic', color:'#A37D4B' }}>stone</em><br />selection.
+                        Why<br />Stonevo <em style={{ fontStyle:'italic', color:'#A37D4B' }}>exists.</em>
                     </h1>
-                    <p className="sv sv-d2" style={{ fontFamily:'Manrope, sans-serif', fontSize:15, fontWeight:300, color:'#a89e8d', maxWidth:'38ch', lineHeight:1.7, marginBottom:28 }}>
-                        Redefining how stone is selected, sourced, and experienced — in alignment with design intent.
+                    <p className="sv sv-d2" style={{ fontFamily:'Manrope, sans-serif', fontSize:15, fontWeight:300, color:'#a89e8d', maxWidth:'40ch', lineHeight:1.7, marginBottom:28 }}>
+                        The natural stone industry has extraordinary materials, craftsmanship and possibilities — but the process around selection and coordination often remains unstructured.
                     </p>
                     <div className="sv sv-d3" style={{ display:'flex', alignItems:'center', gap:28, flexWrap:'wrap' }}>
                         <button onClick={enter} className="sv-cta" style={{ display:'inline-flex', alignItems:'center', gap:14, fontFamily:'Manrope, sans-serif', fontSize:12, fontWeight:800, letterSpacing:'0.22em', textTransform:'uppercase', color:'#0d0c0a', background:'#A37D4B', border:'none', cursor:'pointer', padding:'20px 44px', borderRadius:100, transition:'background 0.3s, transform 0.2s, box-shadow 0.3s', boxShadow:'0 8px 48px rgba(163,125,75,0.5), 0 2px 12px rgba(0,0,0,0.4)' }}>
@@ -223,7 +223,7 @@ const AboutPage = () => {
 
                 {/* bottom bar */}
                 <div style={{ position:'relative', zIndex:2, padding:'0 48px 48px', display:'flex', justifyContent:'space-between', alignItems:'flex-end' }}>
-                    <span className="sv" style={{ fontFamily:'Noto Serif, serif', fontSize:11, letterSpacing:'0.3em', color:'#6b6357', textTransform:'uppercase' }}>Chapter I — Origin</span>
+                    <span className="sv" style={{ fontFamily:'Noto Serif, serif', fontSize:11, letterSpacing:'0.3em', color:'#6b6357', textTransform:'uppercase' }}>Chapter I — Purpose</span>
                     <div className="sv" style={{ display:'flex', alignItems:'center', gap:12, fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.3em', textTransform:'uppercase', color:'#6b6357' }}>
                         <div style={{ width:40, height:1, background:'#6b6357' }} />
                         Scroll
@@ -231,39 +231,40 @@ const AboutPage = () => {
                 </div>
             </section>
 
-            {/* MANIFESTO */}
+            {/* MANIFESTO — Why Stonevo Exists */}
             <section style={{ padding:'140px 48px', background:'#0d0c0a' }}>
                 <div className="sv-manifesto-grid" style={{ maxWidth:1400, margin:'0 auto', display:'grid', gridTemplateColumns:'200px 1fr', gap:48, alignItems:'start' }}>
-                    <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.75, paddingTop:14 }}>Our Story</p>
+                    <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.75, paddingTop:14 }}>Why We Exist</p>
                     <div>
                         <p className="sv sv-manifesto-text sv-d1">
-                            Stone is one of the most defining elements of a space. Yet the process of selecting it is&nbsp;<em style={{ fontStyle:'italic', color:'#A37D4B' }}>fragmented, uncertain, and misaligned.</em>
+                            Stonevo aims to bridge that gap — combining advisory thinking, sourcing understanding, design sensitivity and coordination structure into <em style={{ fontStyle:'italic', color:'#A37D4B' }}>one integrated experience.</em>
                         </p>
                         <div className="sv-manifesto-followup" style={{ marginTop:40, borderTop:'1px solid rgba(255,255,255,0.07)', paddingTop:32, display:'grid', gridTemplateColumns:'1fr 1fr', gap:48 }}>
                             <p className="sv sv-d2" style={{ fontFamily:'Manrope, sans-serif', fontSize:15, fontWeight:300, lineHeight:1.75, color:'#a89e8d' }}>
-                                <strong style={{ color:'#FDFCF8', fontWeight:500 }}>Multiple yard visits. Endless options. Unclear pricing.</strong> Decisions made without full design alignment — and outcomes that rarely match the original intent.
+                                <strong style={{ color:'#FDFCF8', fontWeight:500 }}>Advisory thinking. Sourcing understanding.</strong> Two disciplines that rarely sit together — and make all the difference when they do.
                             </p>
                             <p className="sv sv-d3" style={{ fontFamily:'Manrope, sans-serif', fontSize:15, fontWeight:300, lineHeight:1.75, color:'#a89e8d' }}>
-                                Stonevo was created to change this. Not as a marketplace, not as a supplier — but as a <strong style={{ color:'#FDFCF8', fontWeight:500 }}>structured partner</strong> in the design and procurement process.
+                                <strong style={{ color:'#FDFCF8', fontWeight:500 }}>Design sensitivity. Coordination structure.</strong> The two layers that turn a good selection into a successful project.
                             </p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* PROBLEM */}
+            {/* WHAT WE BELIEVE */}
             <section style={{ background:'#171410', borderTop:'1px solid rgba(255,255,255,0.04)', borderBottom:'1px solid rgba(255,255,255,0.04)', padding:'140px 48px', overflow:'hidden', position:'relative' }}>
                 <div className="sv-ghost-num" style={{ position:'absolute', top:60, right:48 }}>02</div>
                 <div style={{ maxWidth:1400, margin:'0 auto' }}>
-                    <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.75, marginBottom:60 }}>The Problem</p>
+                    <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.75, marginBottom:60 }}>What We Believe</p>
                     <ul style={{ listStyle:'none', borderTop:'1px solid rgba(255,255,255,0.06)' }}>
                         {[
-                            ['01.', 'Stone shapes a space more than almost any other material choice.', 'Foundation', false],
-                            ['02.', 'The selection process is fragmented, exhausting, and unclear.', 'Challenge', true],
-                            ['03.', 'Vendor-driven decisions replace design-driven ones.', 'Consequence', true],
-                            ['04.', 'Architecture and material rarely speak the same language.', 'Misalignment', true],
+                            ['01.', 'Natural stone is not simply a material selection.', 'Principle', false],
+                            ['02.', 'It is a long-term architectural decision.', 'Belief', false],
+                            ['03.', 'The right stone should align with the design language of the project.', 'Design', true],
+                            ['04.', 'The functionality of the space and maintenance expectations.', 'Function', true],
+                            ['05.', 'Execution realities and long-term visual experience.', 'Reality', true],
                         ].map(([num, stmt, tag, muted], i) => (
-                            <li key={i} className={`sv sv-prob-item sv-d${i}`} style={{ display:'grid', gridTemplateColumns:'80px 1fr auto', alignItems:'center', gap:32, padding:'36px 0', borderBottom:'1px solid rgba(255,255,255,0.06)', transition:'background 0.3s' }}>
+                            <li key={i} className={`sv sv-prob-item sv-d${Math.min(i,3)}`} style={{ display:'grid', gridTemplateColumns:'80px 1fr auto', alignItems:'center', gap:32, padding:'36px 0', borderBottom:'1px solid rgba(255,255,255,0.06)', transition:'background 0.3s' }}>
                                 <span style={{ fontFamily:'Noto Serif, serif', fontSize:13, color:'#6b6357', fontStyle:'italic' }}>{num}</span>
                                 <span className="sv-problem-stmt" style={{ color: muted ? '#a89e8d' : '#FDFCF8', fontStyle: muted ? 'italic' : 'normal' }}>{stmt}</span>
                                 <span className="sv-prob-tag" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.2em', textTransform:'uppercase', color:'#A37D4B', opacity:0.6, whiteSpace:'nowrap' }}>{tag}</span>
@@ -273,32 +274,32 @@ const AboutPage = () => {
                     <div className="sv sv-d4" style={{ marginTop:80, display:'flex', alignItems:'center', gap:24 }}>
                         <div style={{ width:60, height:1, background:'#A37D4B', flexShrink:0 }} />
                         <p style={{ fontFamily:'Noto Serif, serif', fontSize:'clamp(22px, 2.8vw, 38px)', fontWeight:400, color:'#FDFCF8', lineHeight:1.25, letterSpacing:'-0.01em' }}>
-                            Stonevo was created to <em style={{ fontStyle:'italic', color:'#A37D4B' }}>change this.</em>
+                            Selecting stone should feel <em style={{ fontStyle:'italic', color:'#A37D4B' }}>guided, not overwhelming.</em>
                         </p>
                     </div>
                 </div>
             </section>
 
-            {/* PHILOSOPHY */}
+            {/* WHAT STONEVO DOES */}
             <section style={{ padding:'140px 48px', background:'#0d0c0a' }}>
                 <div style={{ maxWidth:1400, margin:'0 auto' }}>
                     <div className="sv-phil-header" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:48, marginBottom:80, alignItems:'end' }}>
                         <div>
-                            <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.75, marginBottom:20 }}>Our Philosophy</p>
+                            <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.75, marginBottom:20 }}>What Stonevo Does</p>
                             <h2 className="sv sv-phil-h2 sv-d1">
-                                Stone should not be selected<br /><em style={{ fontStyle:'italic', color:'#A37D4B' }}>in isolation.</em>
+                                One integrated<br /><em style={{ fontStyle:'italic', color:'#A37D4B' }}>experience.</em>
                             </h2>
                         </div>
                         <p className="sv sv-d2" style={{ fontFamily:'Manrope, sans-serif', fontSize:15, fontWeight:300, lineHeight:1.75, color:'#a89e8d', alignSelf:'end' }}>
-                            Every selection should reflect the design, the space, and the intent it belongs to. Our approach is guided by clarity — not options, not noise.
+                            A Stone Advisory &amp; Coordination Company helping homeowners, design professionals, builders and project management consultants navigate stone selection more effectively.
                         </p>
                     </div>
                     <div className="sv-phil-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:1, background:'rgba(255,255,255,0.04)', borderRadius:20, overflow:'hidden' }}>
                         {[
-                            ['01', 'In context', 'Every selection should reflect the design, space, and intent it belongs to — not what happens to be available.'],
-                            ['02', 'Design-led', 'Our approach is guided by clarity — not options, not confusion. Material follows vision, not the other way around.'],
-                            ['03', 'End-to-end', 'From validation to sourcing to final slab selection, we coordinate every step so nothing is left to chance.'],
-                            ['04', 'Aligned', 'Architecture and material must speak the same language. We make sure they do, at every stage of the project.'],
+                            ['01', 'Advisory', 'Structured stone advisory that aligns material selections with the design intent and scope of each project.'],
+                            ['02', 'Sourcing', 'Curated sourcing and slab selection guidance — connecting the right lots to the right projects.'],
+                            ['03', 'Coordination', 'Vendor coordination and execution alignment support from brief through to final installation.'],
+                            ['04', 'Guidance', 'Helping homeowners, design professionals, builders and PMCs navigate the full stone journey with clarity.'],
                         ].map(([num, title, body], i) => (
                             <div key={i} className={`sv sv-phil-card sv-d${i}`} style={{ background:'#1c1814', padding:'48px 36px', transition:'background 0.4s' }}>
                                 <span className="sv-phil-num">{num}</span>
@@ -310,21 +311,23 @@ const AboutPage = () => {
                 </div>
             </section>
 
-            {/* WHAT WE DO DIFFERENTLY */}
+            {/* HOW WE HELP */}
             <section style={{ background:'#171410', borderTop:'1px solid rgba(255,255,255,0.04)', padding:'140px 48px' }}>
                 <div style={{ maxWidth:1400, margin:'0 auto' }}>
-                    <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.75, marginBottom:20 }}>What We Do Differently</p>
+                    <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.75, marginBottom:20 }}>How We Help</p>
                     <h2 className="sv sv-diff-title sv-d1">
-                        We bring focus<br /><em style={{ fontStyle:'italic', color:'#A37D4B' }}>where there is noise.</em>
+                        Not hundreds of options.<br /><em style={{ fontStyle:'italic', color:'#A37D4B' }}>Meaningful choices.</em>
                     </h2>
                     <div style={{ borderTop:'1px solid rgba(255,255,255,0.06)' }}>
                         {[
-                            ['Overwhelming you with options', 'We bring focus.'],
-                            ['Vendor-driven decisions', 'We create structure.'],
-                            ['Running across suppliers', 'We coordinate end-to-end.'],
-                            ['Uncertainty at every stage', 'Every step is clear, efficient, aligned.'],
+                            ['Overwhelming clients with random options', 'Understanding project intent first.'],
+                            ['Generic vendor-driven selections', 'Narrowing to meaningful choices.'],
+                            ['Unclear sourcing and pricing', 'Value for money selections.'],
+                            ['Fragmented sourcing process', 'Improving sourcing clarity.'],
+                            ['Complex, disconnected coordination', 'Simplifying coordination throughout.'],
+                            ['Design vision lost in execution', 'Preserving design vision to the end.'],
                         ].map(([before, after], i) => (
-                            <div key={i} className={`sv sv-diff-row sv-d${i}`} style={{ display:'grid', gridTemplateColumns:'1fr 24px 1fr', alignItems:'center', gap:'0 48px', padding:'40px 0', borderBottom:'1px solid rgba(255,255,255,0.06)', transition:'background 0.3s' }}>
+                            <div key={i} className={`sv sv-diff-row sv-d${Math.min(i,3)}`} style={{ display:'grid', gridTemplateColumns:'1fr 24px 1fr', alignItems:'center', gap:'0 48px', padding:'40px 0', borderBottom:'1px solid rgba(255,255,255,0.06)', transition:'background 0.3s' }}>
                                 <span style={{ fontFamily:'Manrope, sans-serif', fontSize:'clamp(14px,1.4vw,17px)', fontWeight:300, color:'#6b6357', textDecoration:'line-through', textDecorationColor:'rgba(107,99,87,0.4)' }}>{before}</span>
                                 <span className="sv-diff-arrow" style={{ fontSize:16, color:'#A37D4B', opacity:0.5, textAlign:'center' }}>→</span>
                                 <span style={{ fontFamily:'Noto Serif, serif', fontSize:'clamp(20px,2vw,28px)', fontStyle:'italic', fontWeight:400, color:'#FDFCF8', letterSpacing:'-0.01em' }}>{after}</span>
@@ -334,23 +337,23 @@ const AboutPage = () => {
                 </div>
             </section>
 
-            {/* BUILT AROUND DESIGN */}
+            {/* THE APPROACH */}
             <section style={{ padding:'140px 48px', background:'#0d0c0a' }}>
                 <div className="sv-built-grid" style={{ maxWidth:1400, margin:'0 auto', display:'grid', gridTemplateColumns:'5fr 4fr', gap:100, alignItems:'start' }}>
                     <div>
-                        <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.75, marginBottom:28 }}>Built Around Design</p>
+                        <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.75, marginBottom:28 }}>Our Approach</p>
                         <h2 className="sv sv-built-h2 sv-d1">
-                            Every space begins<br />with <em style={{ fontStyle:'italic', color:'#A37D4B' }}>intent.</em>
+                            A better overall<br /><em style={{ fontStyle:'italic', color:'#A37D4B' }}>project experience.</em>
                         </h2>
                         <p className="sv sv-d2" style={{ fontFamily:'Manrope, sans-serif', fontSize:15, fontWeight:300, lineHeight:1.8, color:'#a89e8d', maxWidth:'44ch' }}>
-                            Stonevo works in alignment with architects and designers to ensure material selection fits seamlessly into the overall vision, proportions, and detailing of each space. We don't just source stone — we help define its role.
+                            We do not believe in overwhelming clients with hundreds of random options. Our role is to understand, narrow, and align — so the right stone finds the right space.
                         </p>
                     </div>
                     <div style={{ display:'flex', flexDirection:'column', gap:1, background:'rgba(255,255,255,0.04)', borderRadius:20, overflow:'hidden', marginTop:4 }}>
                         {[
-                            ['Better decisions', 'Material choices that reflect design intent, not convenience or availability.'],
-                            ['Faster alignment', 'Fewer back-and-forths. A structured process from day one that keeps teams moving.'],
-                            ['Stronger outcomes', 'The right stone in the right space, every time. Results that match the original vision.'],
+                            ['Meaningful choices', 'We narrow the field to selections that fit the project\'s intent, budget and execution reality.'],
+                            ['Sourcing clarity', 'Fewer back-and-forths with vendors, clearer pricing, and better access to the right lots.'],
+                            ['Design preserved', 'The original vision survives all the way from brief to final slab — not just the first conversation.'],
                         ].map(([title, body], i) => (
                             <div key={i} className={`sv sv-built-card sv-d${i}`} style={{ background:'#1c1814', padding:'36px 32px', display:'flex', gap:20, alignItems:'flex-start', transition:'background 0.3s' }}>
                                 <div style={{ width:2, height:48, background:'linear-gradient(to bottom, #A37D4B, rgba(163,125,75,0.1))', flexShrink:0, borderRadius:2, marginTop:4 }} />
@@ -372,12 +375,12 @@ const AboutPage = () => {
                 </div>
                 <div style={{ position:'relative', zIndex:2, textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center', gap:32 }}>
                     <div className="sv" style={{ width:1, height:60, background:'linear-gradient(to bottom, transparent, #A37D4B)', marginBottom:8 }} />
-                    <p className="sv sv-d1" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.75 }}>Our Intent</p>
+                    <p className="sv sv-d1" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.75 }}>Our Objective</p>
                     <h2 className="sv sv-closing-h2 sv-d2">
-                        Stonevo is not about <em style={{ fontStyle:'italic', color:'#A37D4B' }}>selling stone.</em>
+                        Not just to <em style={{ fontStyle:'italic', color:'#A37D4B' }}>select a stone.</em>
                     </h2>
                     <p className="sv sv-d3" style={{ fontFamily:'Manrope, sans-serif', fontSize:15, fontWeight:300, lineHeight:1.7, color:'#a89e8d', maxWidth:'40ch' }}>
-                        It is about bringing clarity, control, and confidence to every decision — from the first sketch to the final slab.
+                        The objective is to create a better overall project experience — guided, curated, informed, coordinated.
                     </p>
                     <button onClick={enter} className="sv sv-cta sv-d4" style={{ fontFamily:'Manrope, sans-serif', fontSize:11, fontWeight:800, letterSpacing:'0.3em', textTransform:'uppercase', color:'#0d0c0a', background:'#A37D4B', border:'none', cursor:'pointer', padding:'18px 44px', borderRadius:100, marginTop:16, transition:'background 0.3s, transform 0.2s, box-shadow 0.3s', boxShadow:'0 8px 40px rgba(163,125,75,0.35)' }}>
                         Enter the Platform
