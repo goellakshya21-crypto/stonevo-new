@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 const MEMBERS = [
@@ -75,17 +75,18 @@ function StonePortrait({ tone = "ridge", index = 0, name = "" }) {
     moss:  ["#1f2a1c", "#3d4a32", "#6b7556", "#a8ad8e"],
   };
   const pal = palettes[tone] || palettes.ridge;
-  const id = `grad-${tone}-${index}`;
-  const veinId = `vein-${tone}-${index}`;
+  const gId = `grad-${tone}-${index}`;
+  const vId = `vein-${tone}-${index}`;
+  const vigId = `vig-${index}`;
   return (
-    <svg viewBox="0 0 400 520" preserveAspectRatio="xMidYMid slice" style={{ width: "100%", height: "100%", display: "block" }}>
+    <svg viewBox="0 0 400 520" preserveAspectRatio="xMidYMid slice" style={{ width:"100%", height:"100%", display:"block" }}>
       <defs>
-        <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id={gId} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor={pal[0]} />
           <stop offset="45%" stopColor={pal[1]} />
           <stop offset="100%" stopColor={pal[2]} />
         </linearGradient>
-        <pattern id={veinId} width="400" height="520" patternUnits="userSpaceOnUse">
+        <pattern id={vId} width="400" height="520" patternUnits="userSpaceOnUse">
           <path d="M -20 80 C 100 60, 180 120, 280 90 S 420 140, 460 110" stroke={pal[3]} strokeWidth="0.7" fill="none" opacity="0.55" />
           <path d="M -20 180 C 120 200, 200 150, 300 200 S 440 230, 460 210" stroke={pal[3]} strokeWidth="0.5" fill="none" opacity="0.4" />
           <path d="M -20 280 C 80 260, 200 330, 320 290 S 440 320, 460 300" stroke={pal[3]} strokeWidth="0.9" fill="none" opacity="0.5" />
@@ -94,76 +95,101 @@ function StonePortrait({ tone = "ridge", index = 0, name = "" }) {
           <path d="M 80 0 C 90 80, 60 160, 110 240 S 80 400, 130 520" stroke={pal[3]} strokeWidth="0.4" fill="none" opacity="0.35" />
           <path d="M 260 0 C 240 90, 290 180, 250 270 S 290 420, 270 520" stroke={pal[3]} strokeWidth="0.4" fill="none" opacity="0.3" />
         </pattern>
-        <radialGradient id={`vig-${index}`} cx="0.5" cy="0.5" r="0.7">
+        <radialGradient id={vigId} cx="0.5" cy="0.5" r="0.7">
           <stop offset="60%" stopColor="#000" stopOpacity="0" />
-          <stop offset="100%" stopColor="#000" stopOpacity="0.6" />
+          <stop offset="100%" stopColor="#000" stopOpacity="0.55" />
         </radialGradient>
       </defs>
-      <rect width="400" height="520" fill={`url(#${id})`} />
-      <rect width="400" height="520" fill={`url(#${veinId})`} />
-      <rect width="400" height="520" fill={`url(#vig-${index})`} opacity="0.2" />
-      <text x="20" y="494" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={pal[3]} letterSpacing="1.2">
-        {`SLAB · ${String(index + 1).padStart(2, "0")} · ${tone.toUpperCase()}`}
+      <rect width="400" height="520" fill={`url(#${gId})`} />
+      <rect width="400" height="520" fill={`url(#${vId})`} />
+      <rect width="400" height="520" fill={`url(#${vigId})`} />
+      <text x="20" y="494" fontFamily="Manrope, sans-serif" fontSize="9" fill={pal[3]} letterSpacing="2" opacity="0.7">
+        {`SLAB · ${String(index + 1).padStart(2,"0")} · ${tone.toUpperCase()}`}
       </text>
-      <text x="380" y="494" textAnchor="end" fontFamily="JetBrains Mono, monospace" fontSize="10" fill={pal[3]} letterSpacing="1.2">
+      <text x="380" y="494" textAnchor="end" fontFamily="Manrope, sans-serif" fontSize="9" fill={pal[3]} letterSpacing="2" opacity="0.7">
         {name.toUpperCase()}
       </text>
     </svg>
   );
 }
 
+// ─── Scroll reveal ────────────────────────────────────────────────────────────
+function useScrollReveal(dep) {
+  useEffect(() => {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('sv-vis'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.10, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.sv').forEach(el => io.observe(el));
+    return () => io.disconnect();
+  }, [dep]);
+}
+
 // ─── Member card ──────────────────────────────────────────────────────────────
 function Member({ member, index, registerRef }) {
   const [openTask, setOpenTask] = useState(0);
   const ref = useRef(null);
-
-  useEffect(() => {
-    if (ref.current) registerRef(member.id, ref.current);
-  }, []);
+  useEffect(() => { if (ref.current) registerRef(member.id, ref.current); }, []);
 
   return (
-    <article ref={ref} id={`m-${member.id}`} className="tp-member" data-tone={member.tone}>
-      <div className="tp-member-frame">
-        {/* Stone portrait */}
-        <div className="tp-portrait">
+    <article ref={ref} id={`m-${member.id}`} style={{ borderTop: index === 0 ? 'none' : '1px solid rgba(255,255,255,0.06)', padding: index === 0 ? '0 0 80px' : '80px 0' }}>
+      <div style={{ display:'grid', gridTemplateColumns:'260px 1fr', gap:56, alignItems:'start' }}>
+
+        {/* Portrait */}
+        <div className="sv" style={{ aspectRatio:'4/5.2', overflow:'hidden', border:'1px solid rgba(255,255,255,0.08)', borderRadius:4 }}>
           <StonePortrait tone={member.tone} index={index} name={`${member.first} ${member.last}`.trim()} />
         </div>
 
         {/* Body */}
-        <div className="tp-member-body">
-          <div className="tp-member-meta tp-mono">
-            <span>FIG. {String(index + 1).padStart(2, "0")}</span>
-            <span className="tp-dot-sep">·</span>
-            <span>{member.role.toUpperCase()}</span>
+        <div>
+          <div className="sv" style={{ display:'flex', gap:10, alignItems:'baseline', marginBottom:18, fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.3em', textTransform:'uppercase', color:'#6b6357' }}>
+            <span>FIG. {String(index + 1).padStart(2,"0")}</span>
+            <span style={{ color:'rgba(255,255,255,0.1)' }}>·</span>
+            <span>{member.focus}</span>
           </div>
-          <h2 className="tp-member-name">
-            {member.first}
-            {member.last && <> <span className="tp-name-last">{member.last}</span></>}
-          </h2>
-          <p className="tp-member-role">{member.role}</p>
-          <p className="tp-member-tagline">{member.tagline}</p>
 
-          <div className="tp-tasks">
-            <div className="tp-tasks-head tp-mono">
-              <span>RESPONSIBILITIES</span>
-              <span>04</span>
+          <h2 className="sv" style={{ fontFamily:'Noto Serif, serif', fontWeight:300, fontSize:'clamp(40px,5vw,72px)', lineHeight:0.98, letterSpacing:'-0.02em', margin:'0 0 12px', color:'#FDFCF8' }}>
+            {member.first}
+            {member.last && <span style={{ color:'#6b6357', fontStyle:'italic' }}> {member.last}</span>}
+          </h2>
+          <p className="sv" style={{ fontFamily:'Noto Serif, serif', fontStyle:'italic', fontSize:'clamp(16px,1.4vw,20px)', margin:'0 0 20px', color:'#A37D4B' }}>
+            {member.role}
+          </p>
+          <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:14, fontWeight:300, lineHeight:1.7, color:'#a89e8d', margin:'0 0 36px', maxWidth:'58ch' }}>
+            {member.tagline}
+          </p>
+
+          {/* Tasks */}
+          <div style={{ borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:18 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8, fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.3em', textTransform:'uppercase', color:'#6b6357' }}>
+              <span>Responsibilities</span><span>04</span>
             </div>
-            <ul className="tp-task-list">
+            <ul style={{ listStyle:'none', padding:0, margin:0 }}>
               {member.tasks.map((t, ti) => {
                 const isOpen = openTask === ti;
                 return (
-                  <li key={ti} className={`tp-task${isOpen ? " is-open" : ""}`}>
-                    <button className="tp-task-head" onClick={() => setOpenTask(isOpen ? -1 : ti)}>
-                      <span className="tp-task-index tp-mono">{String(ti + 1).padStart(2, "0")}</span>
-                      <span className="tp-task-label">{t.label}</span>
-                      <span className="tp-task-toggle" aria-hidden="true">
-                        <svg viewBox="0 0 16 16" width="14" height="14">
+                  <li key={ti} style={{ borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+                    <button
+                      onClick={() => setOpenTask(isOpen ? -1 : ti)}
+                      style={{ display:'grid', gridTemplateColumns:'36px 1fr 20px', alignItems:'center', gap:16, width:'100%', padding:'18px 0', textAlign:'left', background:'none', border:'none', cursor:'pointer', color: isOpen ? '#A37D4B' : '#FDFCF8', transition:'color .2s' }}
+                    >
+                      <span style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.2em', color: isOpen ? '#A37D4B' : '#6b6357', transition:'color .2s' }}>
+                        {String(ti + 1).padStart(2,"0")}
+                      </span>
+                      <span style={{ fontFamily:'Noto Serif, serif', fontSize:'clamp(18px,1.6vw,24px)', letterSpacing:'-0.005em', fontWeight:400 }}>
+                        {t.label}
+                      </span>
+                      <span style={{ color:'#6b6357', display:'flex', justifyContent:'flex-end' }} aria-hidden="true">
+                        <svg viewBox="0 0 16 16" width="13" height="13">
                           <path d={isOpen ? "M3 8 L13 8" : "M3 8 L13 8 M8 3 L8 13"} stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
                         </svg>
                       </span>
                     </button>
-                    <div className="tp-task-body-wrap">
-                      <p className="tp-task-body">{t.body}</p>
+                    <div style={{ display:'grid', gridTemplateRows: isOpen ? '1fr' : '0fr', transition:'grid-template-rows .35s ease' }}>
+                      <p style={{ overflow:'hidden', margin:0, padding: isOpen ? '0 0 22px 52px' : '0 0 0 52px', fontFamily:'Manrope, sans-serif', fontSize:14, fontWeight:300, lineHeight:1.7, color:'#a89e8d', maxWidth:'60ch', transition:'padding .35s ease' }}>
+                        {t.body}
+                      </p>
                     </div>
                   </li>
                 );
@@ -178,313 +204,202 @@ function Member({ member, index, registerRef }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function TeamPage() {
+  const navigate = useNavigate();
   const [activeIndex, setActiveIndex] = useState(0);
   const refs = useRef({});
-
-  // Inject Google Fonts
-  useEffect(() => {
-    const existing = document.getElementById('tp-fonts');
-    if (existing) return;
-    const link = document.createElement('link');
-    link.id = 'tp-fonts';
-    link.rel = 'stylesheet';
-    link.href = 'https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap';
-    document.head.appendChild(link);
-  }, []);
+  useScrollReveal(activeIndex);
 
   const registerRef = (id, el) => { refs.current[id] = el; };
 
-  // Active roster tracking via IntersectionObserver
+  // Active roster tracking
   useEffect(() => {
     const obs = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
+      entries.forEach(e => {
         if (e.isIntersecting) {
           const id = e.target.id.replace("m-", "");
-          const idx = MEMBERS.findIndex((m) => m.id === id);
+          const idx = MEMBERS.findIndex(m => m.id === id);
           if (idx >= 0) setActiveIndex(idx);
         }
       });
     }, { rootMargin: "-40% 0px -55% 0px", threshold: 0 });
-    Object.values(refs.current).forEach((el) => el && obs.observe(el));
+    Object.values(refs.current).forEach(el => el && obs.observe(el));
     return () => obs.disconnect();
   }, []);
 
   const jumpTo = (id) => {
     const el = refs.current[id] || document.getElementById(`m-${id}`);
-    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 80, behavior: "smooth" });
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 90, behavior: "smooth" });
   };
+
+  const enter = () => { sessionStorage.setItem('sv_enter','1'); navigate('/'); };
 
   return (
     <>
       <style>{`
-        /* ── Reset / tokens ─────────────────────────────── */
-        .tp-root {
-          --bg: #f1ece2;
-          --ink: #1b1814;
-          --muted: #7a6f5e;
-          --rule: #d8d0bf;
-          --accent: #8a3a1f;
-          --display: "Instrument Serif", "Cormorant Garamond", Georgia, serif;
-          --body: "Geist", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-          --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-          background: var(--bg);
-          color: var(--ink);
-          font-family: var(--body);
-          font-weight: 400;
-          font-size: 15.5px;
-          line-height: 1.55;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-          letter-spacing: 0.005em;
-          min-height: 100vh;
-        }
-        .tp-root * { box-sizing: border-box; }
-        .tp-root a { color: inherit; text-decoration: none; }
-        .tp-root button { background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; }
+        .sv { opacity:0; transform:translateY(26px); transition:opacity 0.9s cubic-bezier(0.22,1,0.36,1), transform 0.9s cubic-bezier(0.22,1,0.36,1); }
+        .sv.sv-vis { opacity:1; transform:none; }
+        .sv-d1 { transition-delay:0.10s; }
+        .sv-d2 { transition-delay:0.22s; }
+        .sv-d3 { transition-delay:0.34s; }
 
-        .tp-mono { font-family: var(--mono); font-size: 11px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted); }
+        @keyframes sv-drift {
+          from { transform: scale(1.08) translateX(0); }
+          to   { transform: scale(1.08) translateX(-1.5%); }
+        }
+        .sv-drift { animation: sv-drift 18s ease-in-out infinite alternate; }
 
-        /* ── Header ─────────────────────────────────────── */
-        .tp-header {
-          position: sticky; top: 0; z-index: 50;
-          display: grid; grid-template-columns: 1fr auto 1fr;
-          align-items: center; padding: 18px 40px;
-          background: rgba(241,236,226,0.88);
-          backdrop-filter: saturate(140%) blur(10px);
-          -webkit-backdrop-filter: saturate(140%) blur(10px);
-          border-bottom: 1px solid var(--rule);
+        .tp-watermark {
+          font-family: 'Noto Serif', serif;
+          font-size: clamp(120px, 20vw, 280px);
+          font-weight: 700;
+          letter-spacing: -0.04em;
+          line-height: 1;
+          color: transparent;
+          -webkit-text-stroke: 1px rgba(253,252,248,0.045);
+          user-select: none;
+          pointer-events: none;
         }
-        .tp-brand { display: flex; align-items: center; gap: 10px; }
-        .tp-brand-word { font-family: var(--display); font-size: 22px; letter-spacing: 0.005em; }
-        .tp-nav { display: flex; gap: 28px; }
-        .tp-nav a { font-size: 13px; color: var(--ink); position: relative; padding: 4px 0; opacity: 0.78; transition: opacity .2s; }
-        .tp-nav a:hover { opacity: 1; }
-        .tp-header-meta { display: flex; justify-content: flex-end; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
-        .tp-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #5b8c5a; box-shadow: 0 0 0 3px rgba(91,140,90,0.22); }
 
-        /* ── Hero ───────────────────────────────────────── */
-        .tp-hero {
-          max-width: 1400px; margin: 0 auto;
-          padding: 110px 40px 80px;
-          position: relative;
-        }
-        .tp-hero::after {
-          content: ""; position: absolute; left: 40px; right: 40px; bottom: 0; height: 1px; background: var(--rule);
-        }
-        .tp-hero-eyebrow { display: flex; gap: 14px; margin-bottom: 60px; }
-        .tp-hero-title {
-          font-family: var(--display); font-weight: 400;
-          font-size: clamp(56px, 9vw, 132px);
-          line-height: 0.96; letter-spacing: -0.015em;
-          margin: 0 0 40px; max-width: 14ch;
-        }
-        .tp-hero-title em { font-style: italic; color: var(--accent); }
-        .tp-hero-lede {
-          font-family: var(--display);
-          font-size: clamp(20px, 2vw, 26px);
-          line-height: 1.35; max-width: 56ch; margin: 0 0 70px;
-        }
-        .tp-hero-meta {
-          display: grid; grid-template-columns: repeat(3, 1fr);
-          gap: 40px; border-top: 1px solid var(--rule); padding-top: 28px;
-        }
-        .tp-meta-num {
-          font-family: var(--display); font-size: 44px; color: var(--ink);
-          letter-spacing: -0.01em; font-weight: 400; line-height: 1;
-        }
-        .tp-meta-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted); margin-top: 12px; }
+        .tp-cta-btn:hover { background: #FDFCF8 !important; transform: scale(1.04); box-shadow: 0 12px 64px rgba(163,125,75,0.65) !important; }
 
-        /* ── People section ─────────────────────────────── */
-        .tp-people { max-width: 1400px; margin: 0 auto; padding: 80px 40px 40px; }
-        .tp-people-grid { display: grid; grid-template-columns: 200px 1fr; gap: 60px; align-items: start; }
-        .tp-stream-head { padding-bottom: 36px; border-bottom: 1px solid var(--rule); margin-bottom: 12px; }
-        .tp-stream-title { font-family: var(--display); font-size: clamp(28px, 3vw, 40px); margin: 0 0 12px; font-weight: 400; letter-spacing: -0.01em; }
-        .tp-stream-sub { color: var(--muted); margin: 0; max-width: 56ch; }
+        .tp-roster-btn { opacity: 0.45; transition: opacity .2s; }
+        .tp-roster-btn:hover { opacity: 1; }
+        .tp-roster-li.is-active .tp-roster-btn { opacity: 1; }
+        .tp-roster-li.is-active .tp-roster-name::before { content: "→ "; color: #A37D4B; }
 
-        /* ── Roster ─────────────────────────────────────── */
-        .tp-roster { position: sticky; top: 80px; align-self: start; }
-        .tp-roster-label { margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--rule); }
-        .tp-roster-list { list-style: none; padding: 0; margin: 0 0 24px; }
-        .tp-roster-list li { padding: 10px 0; border-bottom: 1px dashed rgba(216,208,191,0.7); }
-        .tp-roster-list li:last-child { border-bottom: 0; }
-        .tp-roster-list button { display: grid; grid-template-columns: 28px 1fr; gap: 8px; width: 100%; text-align: left; align-items: baseline; opacity: 0.55; transition: opacity .2s; }
-        .tp-roster-list button:hover { opacity: 1; }
-        .tp-roster-list li.is-active button { opacity: 1; }
-        .tp-roster-list li.is-active .tp-r-name::before { content: "→ "; color: var(--accent); }
-        .tp-r-index { color: var(--muted); }
-        .tp-r-body { display: flex; flex-direction: column; gap: 2px; }
-        .tp-r-name { font-family: var(--display); font-size: 17px; line-height: 1.1; }
-        .tp-r-focus { font-size: 9.5px; letter-spacing: 0.13em; font-family: var(--mono); text-transform: uppercase; color: var(--muted); }
-        .tp-roster-foot { color: var(--muted); line-height: 1.5; }
-
-        /* ── Member ─────────────────────────────────────── */
-        .tp-member { border-top: 1px solid var(--rule); padding: 70px 0; }
-        .tp-member:first-of-type { border-top: 0; padding-top: 24px; }
-        .tp-member-frame { display: grid; grid-template-columns: 280px 1fr; gap: 56px; align-items: start; }
-        .tp-portrait { position: relative; aspect-ratio: 4 / 5.2; overflow: hidden; background: #2a2520; border: 1px solid var(--rule); }
-        .tp-member-meta { display: flex; gap: 10px; align-items: baseline; margin-bottom: 18px; }
-        .tp-dot-sep { color: var(--rule); }
-        .tp-member-name {
-          font-family: var(--display); font-weight: 400;
-          font-size: clamp(48px, 6vw, 84px);
-          line-height: 0.98; letter-spacing: -0.018em;
-          margin: 0 0 12px;
-        }
-        .tp-name-last { color: var(--muted); font-style: italic; }
-        .tp-member-role { font-family: var(--display); font-style: italic; font-size: clamp(18px, 1.6vw, 22px); margin: 0 0 24px; }
-        .tp-member-tagline { font-size: 16px; line-height: 1.55; color: rgba(27,24,20,0.78); margin: 0 0 36px; max-width: 60ch; }
-
-        /* ── Tasks ──────────────────────────────────────── */
-        .tp-tasks { border-top: 1px solid var(--rule); padding-top: 18px; }
-        .tp-tasks-head { display: flex; justify-content: space-between; margin-bottom: 8px; }
-        .tp-task-list { list-style: none; padding: 0; margin: 0; }
-        .tp-task { border-bottom: 1px solid var(--rule); }
-        .tp-task-head {
-          display: grid; grid-template-columns: 36px 1fr 20px;
-          align-items: center; gap: 16px;
-          width: 100%; padding: 18px 0; text-align: left;
-          transition: color .2s;
-        }
-        .tp-task-head:hover { color: var(--accent); }
-        .tp-task-head:hover .tp-task-index { color: var(--accent); }
-        .tp-task-index { color: var(--muted); transition: color .2s; }
-        .tp-task-label { font-family: var(--display); font-size: clamp(20px, 1.8vw, 26px); letter-spacing: -0.005em; }
-        .tp-task-toggle { color: var(--muted); display: flex; justify-content: flex-end; }
-        .tp-task-body-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .35s ease; }
-        .tp-task.is-open .tp-task-body-wrap { grid-template-rows: 1fr; }
-        .tp-task-body { overflow: hidden; margin: 0; padding: 0 0 22px 52px; color: rgba(27,24,20,0.8); max-width: 64ch; }
-
-        /* ── Closing ────────────────────────────────────── */
-        .tp-closing { border-top: 1px solid var(--rule); padding: 90px 40px 80px; max-width: 1400px; margin: 0 auto; }
-        .tp-closing-inner { max-width: 880px; }
-        .tp-closing-eyebrow { margin-bottom: 36px; }
-        .tp-closing-text {
-          font-family: var(--display);
-          font-size: clamp(26px, 3vw, 38px);
-          line-height: 1.25; letter-spacing: -0.005em;
-          margin: 0 0 64px;
-        }
-        .tp-closing-foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 40px; flex-wrap: wrap; border-top: 1px solid var(--rule); padding-top: 28px; }
-        .tp-closing-mark { font-family: var(--display); font-style: italic; font-size: 22px; margin-top: 6px; }
-        .tp-closing-contact { text-align: right; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
-        .tp-contact-link { font-family: var(--display); font-size: 24px; border-bottom: 1px solid var(--ink); padding-bottom: 2px; transition: color .2s, border-color .2s; }
-        .tp-contact-link:hover { color: var(--accent); border-color: var(--accent); }
-
-        /* ── Responsive ─────────────────────────────────── */
         @media (max-width: 1000px) {
-          .tp-people-grid { grid-template-columns: 1fr; gap: 32px; }
-          .tp-roster { position: relative; top: 0; }
-          .tp-roster-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 24px; }
-          .tp-roster-foot { display: none; }
-          .tp-member-frame { grid-template-columns: 1fr; gap: 28px; }
-          .tp-portrait { aspect-ratio: 5 / 4; max-width: 360px; }
-          .tp-header { grid-template-columns: 1fr auto; padding: 14px 20px; }
-          .tp-nav, .tp-header-meta { display: none; }
-          .tp-hero, .tp-people, .tp-closing { padding-left: 20px; padding-right: 20px; }
-          .tp-hero-meta { grid-template-columns: 1fr; gap: 14px; }
+          .tp-people-grid { grid-template-columns: 1fr !important; }
+          .tp-roster { position: relative !important; top: 0 !important; }
+          .tp-roster-list { display: grid; grid-template-columns: repeat(2,1fr); gap: 0 24px; }
+          .tp-roster-foot { display: none !important; }
+          .tp-member-frame { grid-template-columns: 1fr !important; gap: 28px !important; }
+          .tp-portrait { aspect-ratio: 5/4 !important; max-width: 360px; }
+        }
+        @media (max-width: 700px) {
+          .tp-hero-pad { padding-left: 24px !important; padding-right: 24px !important; }
+          .tp-section-pad { padding-left: 24px !important; padding-right: 24px !important; }
         }
       `}</style>
 
-      <div className="tp-root">
-        {/* ── Header ── */}
-        <header className="tp-header">
-          <div className="tp-brand">
-            <svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true">
-              <path d="M4 22 L12 8 L20 16 L28 6 L28 26 L4 26 Z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-            </svg>
-            <Link to="/" className="tp-brand-word">Stonevo</Link>
-          </div>
-          <nav className="tp-nav">
-            <Link to="/about">About</Link>
-            <a href="#people" onClick={e => { e.preventDefault(); jumpTo("munish"); }}>People</a>
-            <a href="#contact" onClick={e => { e.preventDefault(); document.getElementById("tp-contact")?.scrollIntoView({ behavior: "smooth" }); }}>Contact</a>
-          </nav>
-          <div className="tp-header-meta">
-            <span className="tp-status-dot" />
-            <span>Currently taking projects · 2026</span>
-          </div>
-        </header>
+      <div style={{ background:'#0d0c0a', color:'#FDFCF8', minHeight:'100vh' }}>
 
-        {/* ── Hero ── */}
-        <section className="tp-hero">
-          <div className="tp-hero-eyebrow">
-            <span className="tp-mono">VOL. 01</span>
-            <span className="tp-mono">— THE PEOPLE BEHIND</span>
+        {/* ── NAV ── */}
+        <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, padding:'28px 48px', display:'flex', justifyContent:'space-between', alignItems:'center', background:'linear-gradient(to bottom, rgba(13,12,10,0.75) 0%, transparent 100%)' }}>
+          <Link to="/" style={{ fontFamily:'Noto Serif, serif', fontSize:18, letterSpacing:'0.2em', color:'#FDFCF8', textDecoration:'none', transition:'color 0.3s' }}
+            onMouseEnter={e=>e.target.style.color='#A37D4B'} onMouseLeave={e=>e.target.style.color='#FDFCF8'}>
+            STONEVO
+          </Link>
+          <Link to="/about" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:'rgba(253,252,248,0.35)', textDecoration:'none', transition:'color 0.3s' }}
+            onMouseEnter={e=>e.target.style.color='#A37D4B'} onMouseLeave={e=>e.target.style.color='rgba(253,252,248,0.35)'}>
+            About
+          </Link>
+        </nav>
+
+        {/* ── HERO ── */}
+        <section style={{ position:'relative', minHeight:'100vh', display:'grid', gridTemplateRows:'1fr auto', overflow:'hidden', background:'#0d0c0a', padding:'0 48px' }} className="tp-hero-pad">
+          <div className="tp-watermark" style={{ position:'absolute', bottom:'-0.1em', right:'-0.02em', zIndex:1 }}>PEOPLE</div>
+
+          <div style={{ position:'relative', zIndex:2, paddingTop:160, display:'flex', flexDirection:'column', justifyContent:'center' }}>
+            <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.85, marginBottom:16 }}>
+              The People Behind Stonevo
+            </p>
+            <h1 className="sv sv-d1" style={{ fontFamily:'Noto Serif, serif', fontWeight:300, fontSize:'clamp(44px,6.5vw,88px)', lineHeight:1.0, letterSpacing:'-0.03em', color:'#FDFCF8', maxWidth:'14ch', marginBottom:24 }}>
+              The people behind the <em style={{ fontStyle:'italic', color:'#A37D4B' }}>work.</em>
+            </h1>
+            <p className="sv sv-d2" style={{ fontFamily:'Manrope, sans-serif', fontSize:15, fontWeight:300, color:'#a89e8d', maxWidth:'44ch', lineHeight:1.7, marginBottom:36 }}>
+              Stonevo is held together by a small group of people, each carrying a distinct part of the work — from how a project is shaped to how a single slab gets selected.
+            </p>
+            <div className="sv sv-d3" style={{ display:'flex', gap:40, flexWrap:'wrap', borderTop:'1px solid rgba(255,255,255,0.06)', paddingTop:28 }}>
+              {[['05','Partners & specialists'],['04','Disciplines covered'],['∞','Relationships, not transactions']].map(([n,l]) => (
+                <div key={n}>
+                  <div style={{ fontFamily:'Noto Serif, serif', fontSize:40, fontWeight:300, color:'#FDFCF8', letterSpacing:'-0.01em', lineHeight:1 }}>{n}</div>
+                  <div style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.2em', textTransform:'uppercase', color:'#6b6357', marginTop:10 }}>{l}</div>
+                </div>
+              ))}
+            </div>
           </div>
-          <h1 className="tp-hero-title">The people behind <em>Stonevo</em>.</h1>
-          <p className="tp-hero-lede">
-            Stonevo is held together by a small group of people, each carrying a distinct part of the work — from how a project is shaped to how a single slab gets selected. This is what each of them actually does.
-          </p>
-          <div className="tp-hero-meta">
-            <div>
-              <div className="tp-meta-num">05</div>
-              <div className="tp-meta-label">Partners &amp; specialists</div>
-            </div>
-            <div>
-              <div className="tp-meta-num">04</div>
-              <div className="tp-meta-label">Disciplines covered</div>
-            </div>
-            <div>
-              <div className="tp-meta-num">∞</div>
-              <div className="tp-meta-label">Relationships, not transactions</div>
+
+          <div style={{ position:'relative', zIndex:2, paddingBottom:48, display:'flex', justifyContent:'space-between', alignItems:'flex-end' }}>
+            <span className="sv" style={{ fontFamily:'Noto Serif, serif', fontSize:11, letterSpacing:'0.3em', color:'#6b6357', textTransform:'uppercase' }}>Chapter II — People</span>
+            <div className="sv" style={{ display:'flex', alignItems:'center', gap:12, fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.3em', textTransform:'uppercase', color:'#6b6357' }}>
+              <div style={{ width:40, height:1, background:'#6b6357' }} /> Scroll
             </div>
           </div>
         </section>
 
-        {/* ── People ── */}
-        <section className="tp-people" id="people">
-          <div className="tp-people-grid">
+        {/* ── PEOPLE ── */}
+        <section style={{ maxWidth:1400, margin:'0 auto', padding:'80px 48px 60px' }} className="tp-section-pad">
+
+          {/* Stream header */}
+          <div style={{ paddingBottom:40, borderBottom:'1px solid rgba(255,255,255,0.06)', marginBottom:8 }}>
+            <h3 className="sv" style={{ fontFamily:'Noto Serif, serif', fontWeight:300, fontSize:'clamp(26px,3vw,40px)', margin:'0 0 12px', letterSpacing:'-0.01em', color:'#FDFCF8' }}>
+              Five threads of one practice
+            </h3>
+            <p className="sv sv-d1" style={{ fontFamily:'Manrope, sans-serif', fontSize:14, fontWeight:300, color:'#6b6357', margin:0, maxWidth:'52ch' }}>
+              Click any responsibility to read more. Use the roster below to jump between people.
+            </p>
+          </div>
+
+          <div className="tp-people-grid" style={{ display:'grid', gridTemplateColumns:'180px 1fr', gap:60, alignItems:'start', marginTop:40 }}>
+
             {/* Sticky roster */}
-            <aside className="tp-roster" aria-label="Team roster">
-              <div className="tp-roster-label tp-mono">ROSTER · 05</div>
-              <ol className="tp-roster-list">
+            <aside className="tp-roster" style={{ position:'sticky', top:90, alignSelf:'start' }}>
+              <div style={{ marginBottom:16, paddingBottom:12, borderBottom:'1px solid rgba(255,255,255,0.06)', fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.3em', textTransform:'uppercase', color:'#6b6357' }}>
+                Roster · 05
+              </div>
+              <ol className="tp-roster-list" style={{ listStyle:'none', padding:0, margin:'0 0 24px' }}>
                 {MEMBERS.map((m, i) => (
-                  <li key={m.id} className={i === activeIndex ? "is-active" : ""}>
-                    <button onClick={() => jumpTo(m.id)}>
-                      <span className="tp-r-index tp-mono">{String(i + 1).padStart(2, "0")}</span>
-                      <span className="tp-r-body">
-                        <span className="tp-r-name">{m.first} {m.last}</span>
-                        <span className="tp-r-focus">{m.focus}</span>
+                  <li key={m.id} className={`tp-roster-li${i === activeIndex ? ' is-active' : ''}`} style={{ padding:'9px 0', borderBottom:'1px solid rgba(255,255,255,0.04)' }}>
+                    <button className="tp-roster-btn" onClick={() => jumpTo(m.id)} style={{ display:'grid', gridTemplateColumns:'26px 1fr', gap:8, width:'100%', textAlign:'left', alignItems:'baseline', background:'none', border:'none', cursor:'pointer', padding:0 }}>
+                      <span style={{ fontFamily:'Manrope, sans-serif', fontSize:10, color:'#6b6357', fontWeight:700, letterSpacing:'0.15em' }}>{String(i+1).padStart(2,"0")}</span>
+                      <span>
+                        <span className="tp-roster-name" style={{ fontFamily:'Noto Serif, serif', fontSize:16, color:'#FDFCF8', display:'block', lineHeight:1.1 }}>{m.first} {m.last}</span>
+                        <span style={{ fontFamily:'Manrope, sans-serif', fontSize:9, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:'#6b6357', marginTop:2, display:'block' }}>{m.focus}</span>
                       </span>
                     </button>
                   </li>
                 ))}
               </ol>
-              <div className="tp-roster-foot tp-mono">SCROLL OR CLICK<br />TO BROWSE</div>
+              <div className="tp-roster-foot" style={{ fontFamily:'Manrope, sans-serif', fontSize:9, fontWeight:700, letterSpacing:'0.2em', textTransform:'uppercase', color:'#3a3530', lineHeight:1.6 }}>
+                Scroll or click<br />to browse
+              </div>
             </aside>
 
-            {/* Member stream */}
+            {/* Members stream */}
             <div>
-              <div className="tp-stream-head">
-                <h3 className="tp-stream-title">Five threads of one practice</h3>
-                <p className="tp-stream-sub">Click any responsibility to read more. Use the roster on the left to jump between people.</p>
-              </div>
               {MEMBERS.map((m, i) => (
                 <Member key={m.id} member={m} index={i} registerRef={registerRef} />
               ))}
             </div>
+
           </div>
         </section>
 
-        {/* ── Closing ── */}
-        <section className="tp-closing">
-          <div className="tp-closing-inner">
-            <div className="tp-closing-eyebrow tp-mono">— A NOTE ON HOW WE WORK</div>
-            <p className="tp-closing-text">
-              The work of selecting stone is rarely about one decision. It is a long, careful conversation between vision, design, trust, market and material. Each of the five people above carries one of those threads — and the practice exists in the way they pull together.
+        {/* ── CLOSING ── */}
+        <section style={{ position:'relative', minHeight:'60vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', overflow:'hidden', padding:'120px 48px', background:'#0d0c0a' }}>
+          <div style={{ position:'relative', zIndex:2, textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center', gap:28 }}>
+            <div className="sv" style={{ width:1, height:60, background:'linear-gradient(to bottom, transparent, #A37D4B)', marginBottom:8 }} />
+            <p className="sv sv-d1" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.75 }}>
+              A Shared Purpose
             </p>
-            <div className="tp-closing-foot">
-              <div>
-                <div className="tp-mono" style={{ fontSize: 10 }}>STONEVO</div>
-                <div className="tp-closing-mark">Considered stone, considered people.</div>
-              </div>
-              <div className="tp-closing-contact" id="tp-contact">
-                <a href="mailto:studio@stonevo.in" className="tp-contact-link">studio@stonevo.in</a>
-                <span className="tp-mono" style={{ fontSize: 10 }}>FOR PROJECTS &amp; INTRODUCTIONS</span>
-              </div>
-            </div>
+            <h2 className="sv sv-d2" style={{ fontFamily:'Noto Serif, serif', fontWeight:300, fontSize:'clamp(32px,4.5vw,64px)', letterSpacing:'-0.03em', lineHeight:1.1, color:'#FDFCF8', maxWidth:'20ch' }}>
+              Different roles.<br />One <em style={{ fontStyle:'italic', color:'#A37D4B' }}>direction.</em>
+            </h2>
+            <p className="sv sv-d3" style={{ fontFamily:'Manrope, sans-serif', fontSize:15, fontWeight:300, lineHeight:1.7, color:'#a89e8d', maxWidth:'40ch' }}>
+              The work of selecting stone is rarely about one decision. It is a long, careful conversation between vision, design, trust, market and material — and the practice exists in the way these five people pull together.
+            </p>
+            <button onClick={enter} className="sv tp-cta-btn" style={{ fontFamily:'Manrope, sans-serif', fontSize:11, fontWeight:800, letterSpacing:'0.3em', textTransform:'uppercase', color:'#0d0c0a', background:'#A37D4B', border:'none', cursor:'pointer', padding:'18px 44px', borderRadius:100, marginTop:16, transition:'background 0.3s, transform 0.2s, box-shadow 0.3s', boxShadow:'0 8px 40px rgba(163,125,75,0.35)' }}>
+              Enter the Platform
+            </button>
           </div>
         </section>
+
+        {/* ── FOOTER ── */}
+        <footer style={{ background:'#0d0c0a', borderTop:'1px solid rgba(255,255,255,0.05)', padding:'32px 48px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <span style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.3em', textTransform:'uppercase', color:'#6b6357' }}>Stonevo</span>
+          <span style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.3em', textTransform:'uppercase', color:'#6b6357' }}>© {new Date().getFullYear()} Stonevo Architectural. Artifact of Nature.</span>
+        </footer>
+
       </div>
     </>
   );
