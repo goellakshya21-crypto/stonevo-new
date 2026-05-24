@@ -130,7 +130,11 @@ function Home({ role }) {
         const key = `stonevo_custom_stones_${currentLeadId || 'guest'}`;
         try { localStorage.setItem(key, JSON.stringify(updated)); } catch {}
         if (currentLeadId && !currentLeadId.startsWith('GUEST_')) {
-            await supabase.from('leads').update({ custom_stones: updated }).eq('id', currentLeadId);
+            const { error } = await supabase
+                .from('leads')
+                .update({ custom_stones: updated })
+                .eq('id', currentLeadId);
+            if (error) console.error('[Custom Stones] Supabase save failed:', error.message);
         }
     };
 
@@ -191,19 +195,25 @@ function Home({ role }) {
         const loadCustomStones = async () => {
             // Try Supabase first (cross-device), fall back to localStorage cache
             if (leadId && !leadId.startsWith('GUEST_')) {
-                const { data } = await supabase
+                const { data, error } = await supabase
                     .from('leads')
                     .select('custom_stones')
                     .eq('id', leadId)
                     .single();
-                if (data?.custom_stones?.length > 0) {
+                if (error) {
+                    console.error('[Custom Stones] Supabase load failed:', error.message);
+                } else if (data?.custom_stones?.length > 0) {
                     setCustomStones(data.custom_stones);
                     // Keep localStorage in sync as cache
                     try { localStorage.setItem(customStonesKey, JSON.stringify(data.custom_stones)); } catch {}
                     return;
+                } else {
+                    // User has no saved stones in DB — clear any stale localStorage from previous account
+                    setCustomStones([]);
+                    return;
                 }
             }
-            // Fallback: localStorage (guest or first load before Supabase responds)
+            // Fallback: localStorage (guest or no valid leadId)
             try {
                 setCustomStones(JSON.parse(localStorage.getItem(customStonesKey) || '[]'));
             } catch { setCustomStones([]); }
