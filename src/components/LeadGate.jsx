@@ -6,7 +6,7 @@ import { Phone, Mail, Building, Globe, User, ShieldCheck, Compass, Hammer, X } f
 import { useRequirements } from '../context/RequirementsContext';
 
 const LeadGate = ({ children }) => {
-    const { setLeadId: setContextLeadId } = useRequirements();
+    const { setLeadId: setContextLeadId, clearSession } = useRequirements();
     const navigate = useNavigate();
     const [status, setStatus] = useState('loading'); // 'loading', 'unregistered', 'otp_sent', 'whitelist_check', 'registration', 'pending', 'welcome', 'approved'
     const [step, setStep] = useState('PHONE'); // 'PHONE', 'OTP', 'NEW_USER_ROLE', 'FORM', 'CLIENT_REQUEST', 'ROLE_SELECTION'
@@ -389,9 +389,7 @@ const LeadGate = ({ children }) => {
     };
 
     const resetSession = () => {
-        localStorage.removeItem('stonevo_lead_id');
-        localStorage.removeItem('stonevo_user_phone');
-        localStorage.removeItem('stonevo_user_name');
+        clearSession();
         window.location.reload();
     };
 
@@ -501,12 +499,31 @@ const LeadGate = ({ children }) => {
                     </motion.div>
                 )}
 
-                <button
-                    onClick={resetSession}
-                    className="fixed bottom-4 left-4 z-[300] px-4 py-2 bg-black/80 border border-white/10 rounded-full text-[10px] text-stone-400 hover:text-bronze uppercase tracking-widest transition-all backdrop-blur-md opacity-50 hover:opacity-100 shadow-2xl"
-                >
-                    Reset Verification (Testing)
-                </button>
+                {/* Switch Account — always accessible so a different person can log in on the same device */}
+                <div className="fixed bottom-4 left-4 z-[300] flex items-center gap-2 group">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-black/60 border border-white/10 rounded-full backdrop-blur-md shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto">
+                        <div className="w-5 h-5 rounded-full bg-bronze/20 flex items-center justify-center shrink-0">
+                            <User size={10} className="text-bronze" />
+                        </div>
+                        <span className="text-[9px] text-stone-400 font-semibold uppercase tracking-widest whitespace-nowrap">
+                            {localStorage.getItem('stonevo_user_name') || 'Account'}
+                        </span>
+                        <span className="text-stone-700">·</span>
+                        <button
+                            onClick={resetSession}
+                            className="text-[9px] text-stone-400 hover:text-bronze uppercase tracking-widest transition-colors font-bold whitespace-nowrap"
+                        >
+                            Switch Account
+                        </button>
+                    </div>
+                    <button
+                        onClick={resetSession}
+                        className="w-7 h-7 rounded-full bg-black/60 border border-white/10 flex items-center justify-center backdrop-blur-md shadow-xl hover:border-bronze/40 transition-all"
+                        title="Switch Account"
+                    >
+                        <User size={12} className="text-stone-600 group-hover:text-bronze transition-colors" />
+                    </button>
+                </div>
             </>
         );
     }
@@ -751,12 +768,6 @@ const LeadGate = ({ children }) => {
                 )}
             </AnimatePresence>
 
-            <button
-                onClick={resetSession}
-                className="fixed bottom-4 left-4 z-[110] text-[8px] text-stone-700 hover:text-bronze uppercase tracking-widest transition-colors opacity-50 hover:opacity-100"
-            >
-                Reset Session (Testing)
-            </button>
         </div>
     );
 };

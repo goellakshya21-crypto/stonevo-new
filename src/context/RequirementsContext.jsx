@@ -8,13 +8,27 @@ export const RequirementsProvider = ({ children }) => {
     const [isConfiguratorOpen, setIsConfiguratorOpen] = useState(false);
     const activeDraftRef = useRef(null);
     const autoSaveTimerRef = useRef(null);
-    const [leadId, setLeadId] = useState(() => {
+    const prevLeadIdRef = useRef(null);
+
+    const [leadId, setLeadIdState] = useState(() => {
         try {
             return localStorage.getItem('stonevo_lead_id');
         } catch {
             return null;
         }
     });
+
+    // Always keep localStorage in sync with state
+    const setLeadId = useCallback((id) => {
+        setLeadIdState(id);
+        try {
+            if (id) {
+                localStorage.setItem('stonevo_lead_id', id);
+            } else {
+                localStorage.removeItem('stonevo_lead_id');
+            }
+        } catch { /* storage unavailable */ }
+    }, []);
 
     const [activeRoomId, setActiveRoomId] = useState(() => {
         try {
@@ -34,6 +48,15 @@ export const RequirementsProvider = ({ children }) => {
 
     useEffect(() => {
         const idToFetch = activeRoomId || leadId;
+
+        // If the active identity changed, wipe the previous user's data immediately
+        // so their stones never bleed into the new session.
+        if (prevLeadIdRef.current !== (activeRoomId || leadId)) {
+            setProjectRequirements(null);
+            activeDraftRef.current = null;
+            prevLeadIdRef.current = activeRoomId || leadId;
+        }
+
         if (idToFetch) {
             fetchRequirements(idToFetch);
         }
@@ -170,6 +193,24 @@ export const RequirementsProvider = ({ children }) => {
         }
     }, [projectRequirements, leadId, activeRoomId]);
 
+    // Hard-clears the entire session — call this on logout / switch account
+    const clearSession = useCallback(() => {
+        clearTimeout(autoSaveTimerRef.current);
+        setProjectRequirements(null);
+        activeDraftRef.current = null;
+        prevLeadIdRef.current = null;
+        setLeadIdState(null);
+        setActiveRoomId(null);
+        setActiveProjectName(null);
+        try {
+            localStorage.removeItem('stonevo_lead_id');
+            localStorage.removeItem('stonevo_user_phone');
+            localStorage.removeItem('stonevo_user_name');
+            localStorage.removeItem('stonevo_active_room_id');
+            localStorage.removeItem('stonevo_active_project_name');
+        } catch { /* storage unavailable */ }
+    }, []);
+
     const linkToClient = useCallback((clientId, clientName) => {
         localStorage.setItem('stonevo_active_room_id', clientId);
         localStorage.setItem('stonevo_active_project_name', clientName);
@@ -284,7 +325,8 @@ export const RequirementsProvider = ({ children }) => {
         linkToClient,
         unlinkClient,
         isLinked: !!activeRoomId,
-        setLeadId
+        setLeadId,
+        clearSession
     }), [
         projectRequirements,
         isConfiguratorOpen,
@@ -296,7 +338,8 @@ export const RequirementsProvider = ({ children }) => {
         activeProjectName,
         linkToClient,
         unlinkClient,
-        setLeadId
+        setLeadId,
+        clearSession
     ]);
 
     return (
