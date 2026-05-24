@@ -203,12 +203,22 @@ function Home({ role }) {
                 if (error) {
                     console.error('[Custom Stones] Supabase load failed:', error.message);
                 } else if (data?.custom_stones?.length > 0) {
+                    // DB has stones — use them as source of truth
                     setCustomStones(data.custom_stones);
-                    // Keep localStorage in sync as cache
                     try { localStorage.setItem(customStonesKey, JSON.stringify(data.custom_stones)); } catch {}
                     return;
                 } else {
-                    // User has no saved stones in DB — clear any stale localStorage from previous account
+                    // DB is empty — check if this device has stones in localStorage
+                    // and migrate them up to Supabase so they become available everywhere
+                    try {
+                        const cached = JSON.parse(localStorage.getItem(customStonesKey) || '[]');
+                        if (cached.length > 0) {
+                            setCustomStones(cached);
+                            // Push existing local stones up to Supabase (one-time migration)
+                            await supabase.from('leads').update({ custom_stones: cached }).eq('id', leadId);
+                            return;
+                        }
+                    } catch {}
                     setCustomStones([]);
                     return;
                 }
