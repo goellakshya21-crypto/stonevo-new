@@ -328,6 +328,7 @@ export const RequirementsProvider = ({ children }) => {
         linkToClient,
         unlinkClient,
         isLinked: !!activeRoomId,
+        leadId,
         setLeadId,
         clearSession
     }), [
@@ -337,6 +338,7 @@ export const RequirementsProvider = ({ children }) => {
         saveRequirements,
         updateActiveDraft,
         stoneCount,
+        leadId,
         activeRoomId,
         activeProjectName,
         linkToClient,
