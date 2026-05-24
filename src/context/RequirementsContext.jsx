@@ -88,26 +88,57 @@ export const RequirementsProvider = ({ children }) => {
     const fetchRequirements = useCallback(async (id) => {
         if (!id) return;
         try {
-            const { data, error } = await supabase
+            // Use array result — avoids .single() failing if multiple rows exist
+            // (can happen when the table has no unique constraint on lead_id)
+            const { data: rows, error } = await supabase
                 .from('project_requirements')
                 .select('*')
                 .eq('lead_id', id)
                 .order('updated_at', { ascending: false })
-                .limit(1)
-                .single();
+                .limit(1);
 
-            if (error && error.code !== 'PGRST116') throw error;
-            if (data) {
-                const reqData = data.data || data;
+            if (error) throw error;
+            const row = rows?.[0];
+            if (row) {
+                const reqData = row.data || row;
                 setProjectRequirements(reqData);
                 activeDraftRef.current = reqData;
             } else {
-                // No requirements found for this user — clear any stale state
                 setProjectRequirements(null);
                 activeDraftRef.current = null;
             }
         } catch (err) {
             console.error('Error fetching requirements:', err);
+        }
+    }, []);
+
+    // Reliable save: UPDATE first (handles existing row), INSERT if none found.
+    // This works even without a unique constraint on lead_id.
+    const persistToDb = useCallback(async (saveId, data, extra = {}) => {
+        if (!saveId) return;
+        try {
+            const payload = {
+                data,
+                status: 'draft',
+                updated_at: new Date().toISOString(),
+                ...extra
+            };
+            const { data: updated, error: updateErr } = await supabase
+                .from('project_requirements')
+                .update(payload)
+                .eq('lead_id', saveId)
+                .select('id');
+            if (updateErr) throw updateErr;
+
+            if (!updated?.length) {
+                // No existing row — insert fresh
+                const { error: insertErr } = await supabase
+                    .from('project_requirements')
+                    .insert({ lead_id: saveId, ...payload });
+                if (insertErr) throw insertErr;
+            }
+        } catch (err) {
+            console.error('DB save failed:', err);
         }
     }, []);
 
@@ -181,17 +212,8 @@ export const RequirementsProvider = ({ children }) => {
 
         // Auto-save to DB immediately so the other party sees it in real-time
         const saveId = activeRoomId || leadId;
-        if (saveId) {
-            supabase.from('project_requirements').upsert({
-                lead_id: saveId,
-                data: newData,
-                status: 'draft',
-                updated_at: new Date().toISOString()
-            }, { onConflict: 'lead_id' }).then(({ error }) => {
-                if (error) console.error('Auto-save failed:', error);
-            });
-        }
-    }, [projectRequirements, leadId, activeRoomId]);
+        persistToDb(saveId, newData);
+    }, [projectRequirements, leadId, activeRoomId, persistToDb]);
 
     // Hard-clears the entire session — call this on logout / switch account
     const clearSession = useCallback(() => {
@@ -247,18 +269,7 @@ export const RequirementsProvider = ({ children }) => {
         }, 0);
 
         try {
-            const { error } = await supabase
-                .from('project_requirements')
-                .upsert({
-                    lead_id: currentLeadId,
-                    data: data,
-                    total_area: totalArea,
-                    status: 'draft',
-                    updated_at: new Date().toISOString()
-                }, { onConflict: 'lead_id' });
-
-            if (error) throw error;
-
+            await persistToDb(currentLeadId, data, { total_area: totalArea });
             setProjectRequirements(data);
             activeDraftRef.current = data;
             setIsConfiguratorOpen(false);
@@ -267,7 +278,7 @@ export const RequirementsProvider = ({ children }) => {
             console.error('Error saving requirements:', err);
             return { success: false, error: err.message };
         }
-    }, [leadId, activeRoomId]);
+    }, [leadId, activeRoomId, persistToDb]);
 
     const updateActiveDraft = useCallback((data) => {
         const currentDataStr = JSON.stringify(activeDraftRef.current || projectRequirements);
@@ -281,18 +292,10 @@ export const RequirementsProvider = ({ children }) => {
             clearTimeout(autoSaveTimerRef.current);
             autoSaveTimerRef.current = setTimeout(() => {
                 const saveId = activeRoomId || leadId;
-                if (!saveId) return;
-                supabase.from('project_requirements').upsert({
-                    lead_id: saveId,
-                    data: data,
-                    status: 'draft',
-                    updated_at: new Date().toISOString()
-                }, { onConflict: 'lead_id' }).then(({ error }) => {
-                    if (error) console.error('Auto-save failed:', error);
-                });
+                persistToDb(saveId, data);
             }, 800);
         }
-    }, [projectRequirements, leadId, activeRoomId]);
+    }, [projectRequirements, leadId, activeRoomId, persistToDb]);
 
     const getFloors = useCallback(() => {
         const data = activeDraftRef.current || projectRequirements;

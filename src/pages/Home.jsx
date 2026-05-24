@@ -161,10 +161,10 @@ function Home({ role }) {
     };
 
     const {
-        isConfiguratorOpen, 
-        setIsConfiguratorOpen, 
-        addToRequirements, 
-        saveRequirements, 
+        isConfiguratorOpen,
+        setIsConfiguratorOpen,
+        addToRequirements,
+        saveRequirements,
         updateActiveDraft,
         stoneCount,
         activeDraft,
@@ -172,8 +172,18 @@ function Home({ role }) {
         leadId,
         activeProjectName,
         linkToClient,
-        isLinked
+        isLinked,
+        clearSession
     } = useRequirements();
+
+    // Who is currently logged in — shown in header so it's always obvious
+    const loggedInName = (() => { try { return localStorage.getItem('stonevo_user_name') || ''; } catch { return ''; } })();
+    const loggedInPhone = (() => { try { return localStorage.getItem('stonevo_user_phone') || ''; } catch { return ''; } })();
+
+    const handleSwitchAccount = () => {
+        clearSession();
+        window.location.reload();
+    };
 
     const customStonesKey = `stonevo_custom_stones_${leadId || 'guest'}`;
 
@@ -500,10 +510,10 @@ function Home({ role }) {
                         </div>
                     )}
                 </div>
-                <nav className="flex items-center gap-6">
+                <nav className="flex items-center gap-4">
                     <Link to="/advisory" className="text-[10px] uppercase tracking-widest text-stone-400 hover:text-white transition-colors font-bold py-2 px-4 border border-stone-800/50 rounded-full bg-stone-900/50 backdrop-blur-sm">Audit & Advisory</Link>
-                    <button 
-                        onClick={() => setIsConfiguratorOpen(true)} 
+                    <button
+                        onClick={() => setIsConfiguratorOpen(true)}
                         className="group flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] text-white font-bold py-2 px-6 rounded-full bg-luxury-bronze hover:bg-bronze transition-all shadow-lg shadow-luxury-bronze/20"
                     >
                         {stoneCount > 0 ? (
@@ -518,6 +528,23 @@ function Home({ role }) {
                             <span>Add Requirement</span>
                         )}
                     </button>
+
+                    {/* Logged-in identity — always visible so users know which account is active */}
+                    {(loggedInName || loggedInPhone) && (
+                        <div className="flex items-center gap-2 pl-2 border-l border-white/10">
+                            <div className="flex flex-col items-end">
+                                {loggedInName && <span className="text-[9px] text-stone-300 font-semibold leading-tight">{loggedInName}</span>}
+                                {loggedInPhone && <span className="text-[8px] text-stone-600 leading-tight">+91 {loggedInPhone}</span>}
+                            </div>
+                            <button
+                                onClick={handleSwitchAccount}
+                                title="Switch Account"
+                                className="w-7 h-7 rounded-full bg-stone-900 border border-white/10 flex items-center justify-center hover:border-red-500/40 hover:bg-red-500/10 transition-all group"
+                            >
+                                <PowerOff size={11} className="text-stone-500 group-hover:text-red-400 transition-colors" />
+                            </button>
+                        </div>
+                    )}
                 </nav>
             </header>
 

@@ -499,31 +499,6 @@ const LeadGate = ({ children }) => {
                     </motion.div>
                 )}
 
-                {/* Switch Account — always accessible so a different person can log in on the same device */}
-                <div className="fixed bottom-4 left-4 z-[300] flex items-center gap-2 group">
-                    <div className="flex items-center gap-2 px-3 py-2 bg-black/60 border border-white/10 rounded-full backdrop-blur-md shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto">
-                        <div className="w-5 h-5 rounded-full bg-bronze/20 flex items-center justify-center shrink-0">
-                            <User size={10} className="text-bronze" />
-                        </div>
-                        <span className="text-[9px] text-stone-400 font-semibold uppercase tracking-widest whitespace-nowrap">
-                            {localStorage.getItem('stonevo_user_name') || 'Account'}
-                        </span>
-                        <span className="text-stone-700">·</span>
-                        <button
-                            onClick={resetSession}
-                            className="text-[9px] text-stone-400 hover:text-bronze uppercase tracking-widest transition-colors font-bold whitespace-nowrap"
-                        >
-                            Switch Account
-                        </button>
-                    </div>
-                    <button
-                        onClick={resetSession}
-                        className="w-7 h-7 rounded-full bg-black/60 border border-white/10 flex items-center justify-center backdrop-blur-md shadow-xl hover:border-bronze/40 transition-all"
-                        title="Switch Account"
-                    >
-                        <User size={12} className="text-stone-600 group-hover:text-bronze transition-colors" />
-                    </button>
-                </div>
             </>
         );
     }
