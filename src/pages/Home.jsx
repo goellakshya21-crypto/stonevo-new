@@ -208,14 +208,22 @@ function Home({ role }) {
                     try { localStorage.setItem(customStonesKey, JSON.stringify(data.custom_stones)); } catch {}
                     return;
                 } else {
-                    // DB is empty — check if this device has stones in localStorage
-                    // and migrate them up to Supabase so they become available everywhere
+                    // DB is empty — check localStorage for stones to migrate up.
+                    // Check both the current key (stonevo_custom_stones_UUID) AND the
+                    // old bugged key (stonevo_custom_stones_guest) that all users shared
+                    // before leadId was properly exported from context.
                     try {
-                        const cached = JSON.parse(localStorage.getItem(customStonesKey) || '[]');
+                        const cached = JSON.parse(
+                            localStorage.getItem(customStonesKey) ||
+                            localStorage.getItem('stonevo_custom_stones_guest') ||
+                            '[]'
+                        );
                         if (cached.length > 0) {
                             setCustomStones(cached);
-                            // Push existing local stones up to Supabase (one-time migration)
+                            // Push to Supabase so this device and all others see them
                             await supabase.from('leads').update({ custom_stones: cached }).eq('id', leadId);
+                            // Clean up the old shared guest key so it doesn't pollute other accounts
+                            try { localStorage.removeItem('stonevo_custom_stones_guest'); } catch {}
                             return;
                         }
                     } catch {}
