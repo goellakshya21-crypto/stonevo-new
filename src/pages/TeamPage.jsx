@@ -223,7 +223,7 @@ const TeamPage = () => {
                 }
                 .tp-grid-title em { font-style: italic; color: #A37D4B; }
                 .tp-team-grid {
-                    display: grid; grid-template-columns: repeat(4, 1fr);
+                    display: grid; grid-template-columns: repeat(3, 1fr);
                     gap: 1px; background: rgba(255,255,255,0.05);
                     border-radius: 24px; overflow: hidden;
                     border: 1px solid rgba(255,255,255,0.05);
@@ -233,8 +233,21 @@ const TeamPage = () => {
                     padding: 44px 32px;
                     transition: background 0.4s;
                     display: flex; flex-direction: column;
-                    gap: 18px; min-height: 360px;
+                    gap: 16px; min-height: 380px;
                 }
+                .tp-team-tag {
+                    display: inline-flex; align-items: center; gap: 8px;
+                    font-family: 'Manrope', sans-serif;
+                    font-size: 9px; font-weight: 800;
+                    letter-spacing: 0.3em; text-transform: uppercase;
+                    color: #A37D4B;
+                    border: 1px solid rgba(163,125,75,0.4);
+                    background: rgba(163,125,75,0.06);
+                    padding: 6px 12px; border-radius: 100px;
+                    width: fit-content;
+                }
+                .tp-team-tag::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #A37D4B; }
+                .tp-team-tag.co::before { background: rgba(163,125,75,0.5); }
                 .tp-team-card:hover { background: #221e18; }
                 .tp-team-portrait {
                     width: 96px; height: 96px;
@@ -299,7 +312,7 @@ const TeamPage = () => {
                 .tp-closing-cta:hover .tp-closing-cta-arrow { transform: translateX(5px); }
 
                 /* Responsive */
-                @media (max-width: 1000px) {
+                @media (max-width: 1100px) {
                     .tp-team-grid { grid-template-columns: 1fr 1fr !important; }
                 }
                 @media (max-width: 900px) {
@@ -307,11 +320,7 @@ const TeamPage = () => {
                     .tp-nav-tabs { gap: 0 !important; padding: 4px !important; }
                     .tp-tab { padding: 8px 14px !important; font-size: 9px !important; letter-spacing: 0.22em !important; }
                     .tp-hero { padding: 110px 24px 60px !important; }
-                    .tp-founder, .tp-grid-section, .tp-closing { padding: 60px 24px !important; }
-                    .tp-founder-card { grid-template-columns: 1fr !important; gap: 36px !important; padding: 36px 28px !important; text-align: center; }
-                    .tp-founder-portrait { margin: 0 auto; width: 200px !important; height: 200px !important; }
-                    .tp-founder-portrait-mark { font-size: 68px !important; }
-                    .tp-founder-text { text-align: left; }
+                    .tp-grid-section, .tp-closing { padding: 60px 24px !important; }
                     .tp-footer { padding: 24px !important; flex-direction: column !important; gap: 12px !important; }
                     .tp-hero-lead { grid-template-columns: 1fr !important; gap: 20px !important; }
                     .tp-hero-lead-rule { width: 60px !important; }
@@ -357,44 +366,27 @@ const TeamPage = () => {
                     </div>
                 </section>
 
-                {/* FOUNDER */}
-                <section className="tp-founder" style={{ background: '#0d0c0a', padding: '80px 48px 100px', position: 'relative' }}>
-                    <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-                        <article className="tp tp-founder-card">
-                            <div className="tp-founder-portrait">
-                                <div className="tp-founder-portrait-mark">MG</div>
-                            </div>
-                            <div className="tp-founder-text">
-                                <span className="tp-founder-tag">Founder</span>
-                                <p className="tp-founder-role">Vision &amp; Strategic Coordination</p>
-                                <h2 className="tp-founder-name">Munish Goel</h2>
-                                <p className="tp-founder-bio">
-                                    Creating a more structured ecosystem around stone selection, sourcing and project coordination — through advisory-led thinking and long-term industry relationships. Munish leads Stonevo's vision and shapes how every project is approached.
-                                </p>
-                            </div>
-                        </article>
-                    </div>
-                </section>
-
-                {/* TEAM GRID */}
+                {/* TEAM GRID — Munish included alongside the co-founders */}
                 <section className="tp-grid-section" style={{ background: '#171410', borderTop: '1px solid rgba(255,255,255,0.04)', padding: '120px 48px' }}>
                     <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-                        <p className="tp tp-eyebrow" style={{ marginBottom: 20, opacity: 0.75 }}>The Team</p>
+                        <p className="tp tp-eyebrow" style={{ marginBottom: 20, opacity: 0.75 }}>The Founding Circle</p>
                         <h2 className="tp tp-d1 tp-grid-title">
                             Each voice covers<br />a different <em>stretch of the journey.</em>
                         </h2>
 
                         <div className="tp-team-grid">
                             {[
-                                { mark: 'NC', role: <>Design-Led<br />Selections</>, name: 'Neeti Chawla', bio: 'Bringing together material understanding, aesthetics and thoughtful curation to help create more refined and design-aligned stone selections.', delay: '' },
-                                { mark: 'SA', role: <>Building Relationships<br />&amp; Trust</>, name: 'Saurabh Anand', bio: 'Focused on creating strong relationships and long-term trust among clients, architects and project stakeholders.', delay: 'tp-d1' },
-                                { mark: 'HT', role: <>Strategic Market<br />Expansion</>, name: 'Hemant Tuteja', bio: "Strengthening Stonevo's market presence through meaningful industry connections, project opportunities and long-term business relationships.", delay: 'tp-d2' },
-                                { mark: 'M', role: <>Material Curation<br />&amp; Vendor Alignment</>, name: 'Mithilesh', bio: 'Identifying premium-grade selections, maintaining strong vendor relationships and ensuring access to well-curated lots across projects.', delay: 'tp-d3' }
+                                { mark: 'MG', tag: 'Founder',    tagClass: '',   role: <>Vision &amp; Strategic<br />Coordination</>,         name: 'Munish Goel',    bio: "Creating a more structured ecosystem around stone selection, sourcing and project coordination — through advisory-led thinking and long-term industry relationships. Munish leads Stonevo's vision and shapes how every project is approached.", delay: '' },
+                                { mark: 'NC', tag: 'Co-founder', tagClass: 'co', role: <>Design-Led<br />Selections</>,                       name: 'Neeti Chawla',   bio: 'Bringing together material understanding, aesthetics and thoughtful curation to help create more refined and design-aligned stone selections.', delay: 'tp-d1' },
+                                { mark: 'SA', tag: 'Co-founder', tagClass: 'co', role: <>Building Relationships<br />&amp; Trust</>,           name: 'Saurabh Anand',  bio: 'Focused on creating strong relationships and long-term trust among clients, architects and project stakeholders.', delay: 'tp-d2' },
+                                { mark: 'HT', tag: 'Co-founder', tagClass: 'co', role: <>Strategic Market<br />Expansion</>,                  name: 'Hemant Tuteja',  bio: "Strengthening Stonevo's market presence through meaningful industry connections, project opportunities and long-term business relationships.", delay: 'tp-d3' },
+                                { mark: 'M',  tag: 'Co-founder', tagClass: 'co', role: <>Material Curation<br />&amp; Vendor Alignment</>,    name: 'Mithilesh',      bio: 'Identifying premium-grade selections, maintaining strong vendor relationships and ensuring access to well-curated lots across projects.', delay: 'tp-d4' }
                             ].map(m => (
                                 <article key={m.name} className={`tp tp-team-card ${m.delay}`}>
                                     <div className="tp-team-portrait">
                                         <div className="tp-team-portrait-mark">{m.mark}</div>
                                     </div>
+                                    <span className={`tp-team-tag ${m.tagClass}`}>{m.tag}</span>
                                     <p className="tp-team-role">{m.role}</p>
                                     <h3 className="tp-team-name">{m.name}</h3>
                                     <p className="tp-team-bio">{m.bio}</p>
