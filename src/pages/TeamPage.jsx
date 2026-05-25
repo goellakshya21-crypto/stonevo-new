@@ -289,10 +289,13 @@ export default function TeamPage() {
             onMouseEnter={e=>e.target.style.color='#A37D4B'} onMouseLeave={e=>e.target.style.color='#FDFCF8'}>
             STONEVO
           </Link>
-          <Link to="/about" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:'rgba(253,252,248,0.35)', textDecoration:'none', transition:'color 0.3s' }}
-            onMouseEnter={e=>e.target.style.color='#A37D4B'} onMouseLeave={e=>e.target.style.color='rgba(253,252,248,0.35)'}>
-            About
-          </Link>
+          <div className="tp-nav-tabs" style={{ display:'flex', alignItems:'center', gap:4, background:'rgba(28,24,20,0.55)', border:'1px solid rgba(255,255,255,0.06)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', borderRadius:100, padding:5 }}>
+            <Link to="/about" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.28em', textTransform:'uppercase', color:'rgba(253,252,248,0.55)', background:'transparent', textDecoration:'none', padding:'10px 22px', borderRadius:100, whiteSpace:'nowrap', transition:'color 0.3s, background 0.3s' }}
+              onMouseEnter={e=>e.target.style.color='#FDFCF8'} onMouseLeave={e=>e.target.style.color='rgba(253,252,248,0.55)'}>About</Link>
+            <Link to="/stone-intelligence" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.28em', textTransform:'uppercase', color:'rgba(253,252,248,0.55)', background:'transparent', textDecoration:'none', padding:'10px 22px', borderRadius:100, whiteSpace:'nowrap', transition:'color 0.3s, background 0.3s' }}
+              onMouseEnter={e=>e.target.style.color='#FDFCF8'} onMouseLeave={e=>e.target.style.color='rgba(253,252,248,0.55)'}>Stone Intelligence</Link>
+            <Link to="/team" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.28em', textTransform:'uppercase', color:'#0d0c0a', background:'#A37D4B', textDecoration:'none', padding:'10px 22px', borderRadius:100, whiteSpace:'nowrap', transition:'color 0.3s, background 0.3s' }}>Our Team</Link>
+          </div>
         </nav>
 
         {/* ── HERO ── */}
