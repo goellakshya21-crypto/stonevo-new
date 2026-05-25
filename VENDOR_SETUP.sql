@@ -41,9 +41,16 @@ CREATE TRIGGER trg_vendor_stones_updated_at
 -- RLS off — matches the rest of the app
 ALTER TABLE vendor_stones DISABLE ROW LEVEL SECURITY;
 
--- The `leads` table already has a `role` column. Vendors get
--- role='vendor', status='approved'. Admin invites them via the Vendors
--- tab in /internal-management-stonevo-9921. No schema change needed.
+-- The `leads` table already has a `role` column, but its CHECK
+-- constraint probably doesn't allow 'vendor' yet. Replace it with one
+-- that does.
+ALTER TABLE leads DROP CONSTRAINT IF EXISTS leads_role_check;
+ALTER TABLE leads
+    ADD CONSTRAINT leads_role_check
+    CHECK (role IS NULL OR role IN ('architect', 'builder', 'vendor', 'admin'));
+
+-- Vendors get role='vendor', status='approved'. Admin invites them via
+-- the Vendors tab in /internal-management-stonevo-9921.
 
 -- Uploads use the existing 'marble-images' public Storage bucket
 -- under a "vendor/" prefix — no new bucket needed.
