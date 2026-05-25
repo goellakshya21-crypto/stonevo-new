@@ -8,6 +8,7 @@ import AboutPage from './pages/AboutPage';
 import TeamPage from './pages/TeamPage';
 import StoneIntelligencePage from './pages/StoneIntelligencePage';
 import LeadGate from './components/LeadGate';
+import ScrollToTop from './components/ScrollToTop';
 
 import { RequirementsProvider } from './context/RequirementsContext';
 
@@ -16,6 +17,7 @@ function App() {
   return (
     <RequirementsProvider>
       <Router>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={
             <LeadGate>
