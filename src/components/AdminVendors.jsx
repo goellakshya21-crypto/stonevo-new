@@ -35,17 +35,33 @@ const AdminVendors = () => {
         if (!inviteName.trim()) { setInviteStatus({ ok: false, msg: 'Name required' }); return; }
         setInviting(true); setInviteStatus(null);
         try {
-            const { data: existing } = await supabase.from('leads').select('id, role').eq('phone', clean).maybeSingle();
-            if (existing) {
-                if (existing.role === 'vendor') { setInviteStatus({ ok: false, msg: `+91 ${clean} is already a vendor.` }); setInviting(false); return; }
-                await supabase.from('leads').update({ role: 'vendor', status: 'approved', full_name: inviteName.trim() }).eq('id', existing.id);
+            // Look for ALL rows with this phone (in case there are duplicates from
+            // earlier signups with different roles).
+            const { data: existingRows, error: lookupErr } = await supabase
+                .from('leads').select('id, role').eq('phone', clean);
+            if (lookupErr) throw lookupErr;
+
+            if (existingRows?.length) {
+                // Update every matching row so the phone always resolves to a vendor
+                const { error: updErr } = await supabase
+                    .from('leads')
+                    .update({ role: 'vendor', status: 'approved', full_name: inviteName.trim() })
+                    .eq('phone', clean);
+                if (updErr) throw updErr;
             } else {
-                await supabase.from('leads').insert({
+                const { error: insErr } = await supabase.from('leads').insert({
                     phone: clean, full_name: inviteName.trim(),
                     email: `${clean}@stonevo.pro`, role: 'vendor', status: 'approved'
                 });
+                if (insErr) throw insErr;
             }
-            setInviteStatus({ ok: true, msg: `✓ ${inviteName} (+91 ${clean}) added as vendor` });
+
+            // Read back to confirm the vendor row really exists
+            const { data: verify } = await supabase
+                .from('leads').select('id, role').eq('phone', clean).eq('role', 'vendor').limit(1);
+            if (!verify?.length) throw new Error('Update appeared to succeed but no vendor row exists. Check Supabase RLS / table permissions.');
+
+            setInviteStatus({ ok: true, msg: `✓ ${inviteName.trim()} (+91 ${clean}) is now a vendor — they can log in at /vendor` });
             setInvitePhone(''); setInviteName('');
             fetchAll();
         } catch (err) { setInviteStatus({ ok: false, msg: err.message }); }

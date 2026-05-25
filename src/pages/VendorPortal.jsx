@@ -334,6 +334,8 @@ const VendorGate = ({ onAuthorized }) => {
         finally { setSubmitting(false); }
     };
 
+    const [unauthorizedDetail, setUnauthorizedDetail] = useState('');
+
     const verify = async (e) => {
         e.preventDefault();
         const clean = phone.replace(/\D/g, '').slice(-10);
@@ -343,13 +345,33 @@ const VendorGate = ({ onAuthorized }) => {
             if (fnErr) throw new Error(fnErr.message);
             if (data?.error) throw new Error(data.error);
 
-            const { data: vendor } = await supabase
+            // Look up the vendor row. Use .limit(1) ordered by updated_at desc to
+            // be robust against duplicate rows for the same phone.
+            const { data: vendorRows, error: vendorErr } = await supabase
                 .from('leads')
                 .select('id, phone, full_name, role, status')
                 .eq('phone', clean)
                 .eq('role', 'vendor')
-                .maybeSingle();
+                .order('updated_at', { ascending: false, nullsFirst: false })
+                .limit(1);
+            console.log('[Vendor login] vendor query', { clean, vendorRows, vendorErr });
+            if (vendorErr) throw vendorErr;
+
+            const vendor = vendorRows?.[0];
             if (!vendor) {
+                // Helpful diagnostic: maybe a row exists but with a different role
+                const { data: anyRows } = await supabase
+                    .from('leads')
+                    .select('id, role, status')
+                    .eq('phone', clean)
+                    .limit(5);
+                console.log('[Vendor login] all leads rows for this phone', anyRows);
+                if (anyRows?.length) {
+                    const roles = anyRows.map(r => r.role || '(no role)').join(', ');
+                    setUnauthorizedDetail(`We found an account for +91 ${clean} but its role is "${roles}" — the admin needs to set it to "vendor".`);
+                } else {
+                    setUnauthorizedDetail(`No account exists for +91 ${clean}. Ask Stonevo to invite this number first.`);
+                }
                 setUnauthorizedPhone(clean);
                 setStep('unauthorized');
                 return;
@@ -414,11 +436,11 @@ const VendorGate = ({ onAuthorized }) => {
 
                 {step === 'unauthorized' && (
                     <div className="text-center space-y-5">
-                        <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-sm">
-                            <p className="font-bold mb-1">Not a registered vendor</p>
-                            <p className="text-xs leading-relaxed">+91 {unauthorizedPhone} isn't authorized as a vendor yet. Reach out to Stonevo and we'll add you to the registry.</p>
+                        <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-sm text-left">
+                            <p className="font-bold mb-1">Couldn't sign you in</p>
+                            <p className="text-xs leading-relaxed">{unauthorizedDetail || `+91 ${unauthorizedPhone} isn't authorized as a vendor yet.`}</p>
                         </div>
-                        <button onClick={() => { setStep('phone'); setOtp(''); setError(null); setUnauthorizedPhone(''); }} className="w-full py-3 border border-white/10 hover:border-bronze/40 text-xs font-bold uppercase tracking-widest text-stone-400 hover:text-bronze rounded-full">Try a different number</button>
+                        <button onClick={() => { setStep('phone'); setOtp(''); setError(null); setUnauthorizedPhone(''); setUnauthorizedDetail(''); }} className="w-full py-3 border border-white/10 hover:border-bronze/40 text-xs font-bold uppercase tracking-widest text-stone-400 hover:text-bronze rounded-full">Try a different number</button>
                     </div>
                 )}
             </div>
