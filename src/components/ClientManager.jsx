@@ -15,7 +15,7 @@ const ClientManager = ({ isOpen, onClose }) => {
     const [error, setError] = useState('');
     const [editingId, setEditingId] = useState(null);
     const [editingName, setEditingName] = useState('');
-    const { linkToClient, activeRoomId } = useRequirements();
+    const { linkToClient, unlinkClient, activeRoomId } = useRequirements();
 
     useEffect(() => {
         if (!isOpen) return;
@@ -99,26 +99,35 @@ const ClientManager = ({ isOpen, onClose }) => {
 
     const handleAcceptRequest = async (req) => {
         try {
-            // 1. Whitelist the client — get the new room UUID back
-            const { data: newRoom, error: whitelistErr } = await supabase
+            // Always normalize to 10-digit so it matches discoverRoom's format
+            const cleanPhone = req.phone.replace(/\D/g, '').slice(-10);
+
+            // Check for existing whitelist entry to avoid duplicates
+            const { data: existing } = await supabase
                 .from('client_whitelist')
-                .insert([{
-                    phone_number: req.phone,
-                    architect_phone: architectPhone,
-                    client_name: req.full_name
-                }])
                 .select('id')
-                .single();
+                .eq('phone_number', cleanPhone)
+                .eq('architect_phone', architectPhone)
+                .maybeSingle();
 
-            if (whitelistErr) throw whitelistErr;
+            if (!existing) {
+                const { error: whitelistErr } = await supabase
+                    .from('client_whitelist')
+                    .insert([{
+                        phone_number: cleanPhone,
+                        architect_phone: architectPhone,
+                        client_name: req.full_name
+                    }]);
+                if (whitelistErr) throw whitelistErr;
+            }
 
-            // 2. Approve the lead AND stamp the room_id so the client can find it directly
+            // Approve the lead — the lead's own id is the shared room id, no extra stamp needed
             await supabase
                 .from('leads')
                 .update({
                     status: 'approved',
-                    company_name: `Authorized by Architect`,
-                    room_id: newRoom.id
+                    role: 'builder',
+                    company_name: 'Authorized by Architect'
                 })
                 .eq('id', req.id);
 
@@ -172,11 +181,9 @@ const ClientManager = ({ isOpen, onClose }) => {
                 insertPayload.project_address = newClient.address.trim();
             }
 
-            const { data: newRoom, error: insErr } = await supabase
+            const { error: insErr } = await supabase
                 .from('client_whitelist')
-                .insert([insertPayload])
-                .select('id')
-                .single();
+                .insert([insertPayload]);
 
             if (insErr) {
                 if (insErr.code === '42P01') throw new Error("Table 'client_whitelist' not found. Ask admin to create it.");
@@ -184,11 +191,30 @@ const ClientManager = ({ isOpen, onClose }) => {
                 throw new Error(insErr.message || JSON.stringify(insErr));
             }
 
-            // 2. Stamp room_id on the client's leads record if they already exist
-            await supabase
+            // 2. Pre-create or upgrade the client's leads row so they log straight in as 'builder'.
+            //    The client's leads.id IS the shared room id — no extra stamping needed.
+            const { data: existingClient } = await supabase
                 .from('leads')
-                .update({ room_id: newRoom.id })
-                .eq('phone', cleanPhone);
+                .select('id')
+                .eq('phone', cleanPhone)
+                .maybeSingle();
+
+            if (existingClient) {
+                await supabase
+                    .from('leads')
+                    .update({ role: 'builder', status: 'approved' })
+                    .eq('id', existingClient.id);
+            } else {
+                await supabase
+                    .from('leads')
+                    .insert({
+                        phone: cleanPhone,
+                        full_name: newClient.name.trim(),
+                        email: `${cleanPhone}@stonevo.pro`,
+                        role: 'builder',
+                        status: 'approved'
+                    });
+            }
 
             setNewClient({ name: '', phone: '', address: '' });
             await fetchClients(architectPhone);
@@ -212,7 +238,15 @@ const ClientManager = ({ isOpen, onClose }) => {
 
     const handleRemoveClient = async (id) => {
         try {
+            const clientToRemove = clients.find(c => c.id === id);
+
             await supabase.from('client_whitelist').delete().eq('id', id);
+
+            // If architect is currently viewing this client, return them to personal workspace
+            if (clientToRemove?.lead_id && activeRoomId === clientToRemove.lead_id) {
+                unlinkClient();
+            }
+
             await fetchClients(architectPhone);
         } catch(err) {
             console.error("Failed to remove:", err);
@@ -320,9 +354,16 @@ const ClientManager = ({ isOpen, onClose }) => {
                                                     </div>
                                                     <div className="flex items-center gap-2 shrink-0">
                                                         <button
-                                                            onClick={() => { linkToClient(c.id, c.client_name); onClose(); }}
-                                                            className={`p-2 rounded-md transition-all ${activeRoomId === c.id ? 'bg-bronze text-white' : 'bg-white/5 text-stone-400 hover:text-white hover:bg-white/10'}`}
-                                                            title="Link this client's project"
+                                                            onClick={() => {
+                                                                if (!c.lead_id) {
+                                                                    alert(`${c.client_name || 'This client'} hasn't logged in yet — ask them to sign in once so their account can be linked.`);
+                                                                    return;
+                                                                }
+                                                                linkToClient(c.lead_id, c.client_name);
+                                                                onClose();
+                                                            }}
+                                                            className={`p-2 rounded-md transition-all ${activeRoomId === c.lead_id ? 'bg-bronze text-white' : 'bg-white/5 text-stone-400 hover:text-white hover:bg-white/10'} ${!c.lead_id ? 'opacity-50' : ''}`}
+                                                            title={c.lead_id ? "Link this client's project" : "Client hasn't logged in yet"}
                                                         >
                                                             <LinkIcon size={16} />
                                                         </button>

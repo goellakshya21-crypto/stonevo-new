@@ -6,6 +6,8 @@ const RequirementsContext = createContext();
 export const RequirementsProvider = ({ children }) => {
     const [projectRequirements, setProjectRequirements] = useState(null);
     const [isConfiguratorOpen, setIsConfiguratorOpen] = useState(false);
+    const [lastSaveStatus, setLastSaveStatus] = useState({ status: 'idle', at: null, error: null, savedAs: null });
+    const [lastFetchStatus, setLastFetchStatus] = useState({ status: 'idle', at: null, error: null, fetchedFor: null, rowFound: false });
     const activeDraftRef = useRef(null);
     const autoSaveTimerRef = useRef(null);
     const prevLeadIdRef = useRef(null);
@@ -45,6 +47,31 @@ export const RequirementsProvider = ({ children }) => {
             return null;
         }
     });
+
+    // Self-heal: on app boot, validate that activeRoomId still points at a real leads row.
+    // If it doesn't (left over from an old architecture using whitelist UUIDs), clear it.
+    useEffect(() => {
+        if (!activeRoomId) return;
+        let cancelled = false;
+        (async () => {
+            const { data } = await supabase
+                .from('leads')
+                .select('id')
+                .eq('id', activeRoomId)
+                .maybeSingle();
+            if (cancelled) return;
+            if (!data) {
+                console.warn('[Stonevo] activeRoomId', activeRoomId, 'is not a valid leads.id — clearing (stale localStorage from old architecture).');
+                try {
+                    localStorage.removeItem('stonevo_active_room_id');
+                    localStorage.removeItem('stonevo_active_project_name');
+                } catch {}
+                setActiveRoomId(null);
+                setActiveProjectName(null);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []); // run once on mount
 
     useEffect(() => {
         const idToFetch = activeRoomId || leadId;
@@ -87,9 +114,8 @@ export const RequirementsProvider = ({ children }) => {
 
     const fetchRequirements = useCallback(async (id) => {
         if (!id) return;
+        const draftBeforeFetch = activeDraftRef.current;
         try {
-            // Use array result — avoids .single() failing if multiple rows exist
-            // (can happen when the table has no unique constraint on lead_id)
             const { data: rows, error } = await supabase
                 .from('project_requirements')
                 .select('*')
@@ -99,52 +125,78 @@ export const RequirementsProvider = ({ children }) => {
 
             if (error) throw error;
             const row = rows?.[0];
+            console.log('[Stonevo][fetch]', { lead_id: id, found: !!row, data: row?.data });
+            setLastFetchStatus({ status: 'ok', at: new Date().toISOString(), error: null, fetchedFor: id, rowFound: !!row });
             if (row) {
                 const reqData = row.data || row;
-                setProjectRequirements(reqData);
-                activeDraftRef.current = reqData;
+                if (activeDraftRef.current === draftBeforeFetch) {
+                    setProjectRequirements(reqData);
+                    activeDraftRef.current = reqData;
+                }
             } else {
-                setProjectRequirements(null);
-                activeDraftRef.current = null;
+                if (activeDraftRef.current === draftBeforeFetch) {
+                    setProjectRequirements(null);
+                    activeDraftRef.current = null;
+                }
             }
         } catch (err) {
-            console.error('Error fetching requirements:', err);
+            console.error('[Stonevo][fetch] ERROR:', err);
+            setLastFetchStatus({ status: 'error', at: new Date().toISOString(), error: err.message || String(err), fetchedFor: id, rowFound: false });
         }
     }, []);
 
-    // Reliable save: UPDATE first (handles existing row), INSERT if none found.
-    // This works even without a unique constraint on lead_id.
+    // Atomic upsert — requires UNIQUE constraint on lead_id.
+    // Run this SQL once in Supabase:
+    //   ALTER TABLE project_requirements ADD CONSTRAINT project_requirements_lead_id_key UNIQUE (lead_id);
+    // NOTE: errors are re-thrown so callers can surface them to the user.
     const persistToDb = useCallback(async (saveId, data, extra = {}) => {
-        if (!saveId) return;
-        try {
-            const payload = {
-                data,
-                status: 'draft',
-                updated_at: new Date().toISOString(),
-                ...extra
-            };
-            const { data: updated, error: updateErr } = await supabase
-                .from('project_requirements')
-                .update(payload)
-                .eq('lead_id', saveId)
-                .select('id');
-            if (updateErr) throw updateErr;
-
-            if (!updated?.length) {
-                // No existing row — insert fresh
-                const { error: insertErr } = await supabase
-                    .from('project_requirements')
-                    .insert({ lead_id: saveId, ...payload });
-                if (insertErr) throw insertErr;
-            }
-        } catch (err) {
-            console.error('DB save failed:', err);
+        if (!saveId) {
+            const err = new Error('No saveId — user not logged in?');
+            setLastSaveStatus({ status: 'error', at: new Date().toISOString(), error: err.message, savedAs: null });
+            throw err;
         }
+        const payload = {
+            lead_id: saveId,
+            data,
+            status: 'draft',
+            updated_at: new Date().toISOString(),
+            ...extra
+        };
+        console.log('[Stonevo][save] attempting upsert', { lead_id: saveId, stoneCount: (data?.floors || []).reduce((c, f) => c + (f?.rooms || []).reduce((rc, r) => rc + (r?.stones || []).filter(s => s?.name?.trim()).length, 0), 0) });
+        const { error } = await supabase
+            .from('project_requirements')
+            .upsert(payload, { onConflict: 'lead_id' });
+        if (error) {
+            console.error('[Stonevo][save] ERROR:', error);
+            setLastSaveStatus({ status: 'error', at: new Date().toISOString(), error: error.message || JSON.stringify(error), savedAs: saveId });
+            throw error;
+        }
+        console.log('[Stonevo][save] OK lead_id=', saveId);
+        setLastSaveStatus({ status: 'ok', at: new Date().toISOString(), error: null, savedAs: saveId });
     }, []);
 
-    const addToRequirements = useCallback((stone) => {
-        const sourceData = activeDraftRef.current || projectRequirements;
-        
+    const addToRequirements = useCallback(async (stone) => {
+        // If requirements haven't loaded yet (user clicked "Add Stone" before fetchRequirements
+        // completed), fetch from DB first so we don't lose previously saved stones.
+        let sourceData = activeDraftRef.current || projectRequirements;
+        const saveId = activeRoomId || leadId;
+
+        if (!sourceData && saveId) {
+            try {
+                const { data: rows } = await supabase
+                    .from('project_requirements')
+                    .select('data')
+                    .eq('lead_id', saveId)
+                    .order('updated_at', { ascending: false })
+                    .limit(1);
+                if (rows?.[0]?.data) {
+                    sourceData = rows[0].data;
+                    activeDraftRef.current = sourceData;
+                    setProjectRequirements(sourceData);
+                }
+            } catch { /* proceed with empty if fetch fails */ }
+        }
+
         let floors = [];
         if (sourceData) {
             if (Array.isArray(sourceData)) {
@@ -205,14 +257,24 @@ export const RequirementsProvider = ({ children }) => {
             return floor;
         });
 
-        const newData = { floors: updatedFloors };
+        // Preserve flooring/requestAudit/requestSourcing fields if they already exist
+        const newData = {
+            ...(sourceData && !Array.isArray(sourceData) ? sourceData : {}),
+            floors: updatedFloors
+        };
         setProjectRequirements(newData);
         activeDraftRef.current = newData;
         setIsConfiguratorOpen(true);
 
-        // Auto-save to DB immediately so the other party sees it in real-time
-        const saveId = activeRoomId || leadId;
-        persistToDb(saveId, newData);
+        // Cancel any pending debounced save (from updateActiveDraft) — ours is more up-to-date
+        clearTimeout(autoSaveTimerRef.current);
+        // Save immediately so the other party sees it in real-time. AWAIT so failures surface.
+        try {
+            await persistToDb(saveId, newData);
+        } catch (err) {
+            console.error('[addToRequirements] DB save failed:', err);
+            try { window.alert(`Save failed: ${err.message || err}\n\n(leadId=${leadId}, activeRoomId=${activeRoomId}, savedAs=${saveId})`); } catch {}
+        }
     }, [projectRequirements, leadId, activeRoomId, persistToDb]);
 
     // Hard-clears the entire session — call this on logout / switch account
@@ -288,11 +350,21 @@ export const RequirementsProvider = ({ children }) => {
             activeDraftRef.current = data;
             setProjectRequirements(data);
 
+            // Only persist if there is at least one named stone — prevents blank
+            // form initialization from overwriting real saved data in the DB.
+            const floors = data?.floors || (Array.isArray(data) ? data : []);
+            const hasNamedStone = floors.some(f =>
+                (f?.rooms || []).some(r =>
+                    (r?.stones || []).some(s => s?.name?.trim())
+                )
+            );
+            if (!hasNamedStone) return;
+
             // Debounced auto-save so deletions and edits persist to DB
             clearTimeout(autoSaveTimerRef.current);
             autoSaveTimerRef.current = setTimeout(() => {
                 const saveId = activeRoomId || leadId;
-                persistToDb(saveId, data);
+                persistToDb(saveId, data).catch(err => console.error('[updateActiveDraft] DB save failed:', err));
             }, 800);
         }
     }, [projectRequirements, leadId, activeRoomId, persistToDb]);
@@ -314,6 +386,11 @@ export const RequirementsProvider = ({ children }) => {
         }, 0);
     }, [getFloors]);
 
+    const refetchNow = useCallback(() => {
+        const idToFetch = activeRoomId || leadId;
+        if (idToFetch) fetchRequirements(idToFetch);
+    }, [activeRoomId, leadId, fetchRequirements]);
+
     const contextValue = useMemo(() => ({
         projectRequirements,
         isConfiguratorOpen,
@@ -330,7 +407,10 @@ export const RequirementsProvider = ({ children }) => {
         isLinked: !!activeRoomId,
         leadId,
         setLeadId,
-        clearSession
+        clearSession,
+        lastSaveStatus,
+        lastFetchStatus,
+        refetchNow
     }), [
         projectRequirements,
         isConfiguratorOpen,
@@ -344,7 +424,10 @@ export const RequirementsProvider = ({ children }) => {
         linkToClient,
         unlinkClient,
         setLeadId,
-        clearSession
+        clearSession,
+        lastSaveStatus,
+        lastFetchStatus,
+        refetchNow
     ]);
 
     return (

@@ -13,6 +13,7 @@ import StoneSelectionForm from '../components/StoneSelectionForm';
 import { useRequirements } from '../context/RequirementsContext';
 import ProjectChat from '../components/ProjectChat';
 import ClientManager from '../components/ClientManager';
+import StonevoDebugPanel from '../components/StonevoDebugPanel';
 import { PowerOff, ChevronDown, Link as LinkIcon, Upload, Sparkles, Trash2, Pencil, Check, X as XIcon, Phone } from 'lucide-react';
 
 // Floating prompt for clients who haven't linked an architect yet
@@ -176,6 +177,7 @@ function Home({ role }) {
         leadId,
         activeProjectName,
         linkToClient,
+        unlinkClient,
         isLinked,
         clearSession
     } = useRequirements();
@@ -330,8 +332,18 @@ function Home({ role }) {
                 if (!leadData?.phone) return;
                 const { data: whitelist } = await supabase.from('client_whitelist').select('*').eq('architect_phone', leadData.phone);
                 if (!whitelist?.length) return;
-                // c.id (client_whitelist row UUID) is the shared group room — no lead lookup needed
-                setClients(whitelist);
+                // Enrich each whitelist row with the client's REAL leads.id — this is what we use
+                // as the shared lead_id for project_requirements (guaranteed valid in leads table).
+                const phones = whitelist.map(c => c.phone_number);
+                const { data: leadsData } = await supabase
+                    .from('leads')
+                    .select('id, phone')
+                    .in('phone', phones);
+                const enriched = whitelist.map(c => ({
+                    ...c,
+                    lead_id: leadsData?.find(l => l.phone === c.phone_number)?.id || null
+                }));
+                setClients(enriched);
             } catch (err) {
                 console.error('Error fetching clients for switcher:', err);
             }
@@ -339,25 +351,72 @@ function Home({ role }) {
         fetchClients();
     }, [chatRole]);
 
-    // Auto-discover the shared room for clients whose architect has linked them
+    // Auto-link clients to their own leadId-as-room. The client's leads.id IS the shared
+    // lead_id for project_requirements — both the architect (when switched) and the client
+    // write/read from project_requirements.lead_id = clientLeadId. This guarantees the
+    // foreign-key target is valid (it's a real leads row) and removes the need to look up
+    // any intermediate "room" UUID.
     useEffect(() => {
-        if (chatRole !== 'client' || isLinked || !leadId) return;
+        if (chatRole === 'admin' || chatRole === 'architect' || isLinked || !leadId) return;
         const discoverRoom = async () => {
             try {
-                const { data: lead } = await supabase.from('leads').select('phone').eq('id', leadId).single();
+                // Check if this client has an architect linked via client_whitelist
+                const { data: lead } = await supabase
+                    .from('leads')
+                    .select('phone')
+                    .eq('id', leadId)
+                    .single();
                 if (!lead?.phone) return;
+
                 const phone = lead.phone.replace(/\D/g, '').slice(-10);
-                const { data: wl } = await supabase
+                const { data: rows } = await supabase
                     .from('client_whitelist')
-                    .select('id, client_name')
+                    .select('client_name')
                     .ilike('phone_number', `%${phone}`)
-                    .maybeSingle();
-                if (wl?.id) linkToClient(wl.id, wl.client_name || 'Project Room');
+                    .limit(1);
+                const wl = rows?.[0];
+                if (wl) {
+                    // Self-link: activeRoomId = own leadId. Both architect and client now
+                    // read/write to project_requirements.lead_id = clientLeadId.
+                    linkToClient(leadId, wl.client_name || 'My Project');
+                }
             } catch (err) {
-                console.error('[Chat] Client room discovery error:', err);
+                console.error('[Room] Client room discovery error:', err);
             }
         };
         discoverRoom();
+    }, [chatRole, leadId, isLinked]);
+
+    // Real-time: if architect adds this client mid-session, link instantly
+    useEffect(() => {
+        if (chatRole === 'admin' || chatRole === 'architect' || isLinked || !leadId) return;
+
+        const channel = supabase
+            .channel(`whitelist_${leadId}`)
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'client_whitelist'
+            }, async (payload) => {
+                try {
+                    const { data: lead } = await supabase
+                        .from('leads')
+                        .select('phone')
+                        .eq('id', leadId)
+                        .single();
+                    if (!lead?.phone) return;
+                    const myPhone = lead.phone.replace(/\D/g, '').slice(-10);
+                    const newPhone = (payload.new?.phone_number || '').replace(/\D/g, '').slice(-10);
+                    if (myPhone === newPhone) {
+                        linkToClient(leadId, payload.new.client_name || 'My Project');
+                    }
+                } catch (err) {
+                    console.error('[Room] Real-time link error:', err);
+                }
+            })
+            .subscribe();
+
+        return () => { supabase.removeChannel(channel); };
     }, [chatRole, leadId, isLinked]);
 
     // Pending client requests badge
@@ -520,14 +579,31 @@ function Home({ role }) {
 
                                     {isSwitcherOpen && (
                                         <div className="absolute top-full left-0 mt-2 w-52 bg-stone-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                                            {/* Back to personal workspace */}
+                                            {isLinked && (
+                                                <button
+                                                    onClick={() => { unlinkClient(); setIsSwitcherOpen(false); }}
+                                                    className="w-full text-left px-4 py-3 text-xs hover:bg-white/5 transition-colors flex items-center gap-2 text-stone-500 hover:text-stone-300 border-b border-white/5"
+                                                >
+                                                    <ChevronLeft size={11} />
+                                                    My Workspace
+                                                </button>
+                                            )}
                                             {clients.map(c => (
                                                 <button
                                                     key={c.id}
-                                                    onClick={() => { linkToClient(c.id, c.client_name); setIsSwitcherOpen(false); }}
-                                                    className={`w-full text-left px-4 py-3 text-xs hover:bg-white/5 transition-colors flex items-center justify-between ${activeRoomId === c.id ? 'text-bronze' : 'text-stone-300'}`}
+                                                    onClick={() => {
+                                                        if (!c.lead_id) {
+                                                            alert(`${c.client_name || 'This client'} hasn't logged in yet — ask them to sign in once so their account can be linked.`);
+                                                            return;
+                                                        }
+                                                        linkToClient(c.lead_id, c.client_name);
+                                                        setIsSwitcherOpen(false);
+                                                    }}
+                                                    className={`w-full text-left px-4 py-3 text-xs hover:bg-white/5 transition-colors flex items-center justify-between ${activeRoomId === c.lead_id ? 'text-bronze' : 'text-stone-300'} ${!c.lead_id ? 'opacity-50' : ''}`}
                                                 >
-                                                    <span>{c.client_name || 'Unnamed'}</span>
-                                                    {activeRoomId === c.id && <span className="w-1.5 h-1.5 rounded-full bg-bronze" />}
+                                                    <span>{c.client_name || 'Unnamed'}{!c.lead_id && ' (not logged in)'}</span>
+                                                    {activeRoomId === c.lead_id && <span className="w-1.5 h-1.5 rounded-full bg-bronze" />}
                                                 </button>
                                             ))}
                                         </div>
@@ -783,7 +859,7 @@ function Home({ role }) {
                 projectId={activeRoomId || leadId || 'personal_workspace'}
                 role={chatRole}
                 userName={chatName}
-                isLinked={chatRole === 'client' ? !!leadId : isLinked}
+                isLinked={chatRole === 'builder' ? !!leadId : isLinked}
             />
 
             <ClientManager
@@ -792,9 +868,12 @@ function Home({ role }) {
             />
 
             {/* Prompt unlinked clients to connect their architect */}
-            {chatRole === 'client' && !isLinked && leadId && (
+            {chatRole === 'builder' && !isLinked && leadId && (
                 <LinkArchitectPrompt leadId={leadId} onLinked={() => window.location.reload()} />
             )}
+
+            {/* Diagnostic panel — click the bug icon in the bottom-left to open */}
+            <StonevoDebugPanel chatRole={chatRole} />
         </div>
     );
 }

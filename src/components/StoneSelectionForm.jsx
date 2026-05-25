@@ -26,20 +26,20 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, onChange, initialData, 
     const [visualizingRoom, setVisualizingRoom] = useState("");
     const [dragOverRoomId, setDragOverRoomId] = useState(null);
 
-    // Initialize state
+    // Initialize state — use a blank floor so no fake demo data pollutes the DB
     React.useEffect(() => {
         if (!initialData || (Array.isArray(initialData) && initialData.length === 0)) {
             setProjectData([
                 {
                     id: Date.now(),
                     floorNo: "Ground Floor",
-                    description: "Main lobby and executive suites",
+                    description: "",
                     rooms: [
                         {
                             id: Date.now() + 1,
                             roomName: "Living Room",
                             stones: [
-                                { id: Date.now() + 2, name: "Calacatta Oro Marble", colour: "Polished White", quantity: "12", area: "450" }
+                                { id: Date.now() + 2, name: "", colour: "", quantity: "", area: "" }
                             ]
                         }
                     ]
