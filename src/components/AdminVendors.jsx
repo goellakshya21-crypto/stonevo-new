@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { UserPlus, Check, X, Loader2, Trash2, Eye, Send } from 'lucide-react';
+import { UserPlus, X, Loader2, Trash2, Eye, Send } from 'lucide-react';
 
-// Admin section: invite vendors + moderate vendor stone submissions.
+// Admin section: invite vendors + see what they've uploaded.
+// No approval/moderation — submissions are NOT linked to the public gallery.
 const AdminVendors = () => {
-    const [tab, setTab] = useState('queue'); // queue | vendors | invite
+    const [tab, setTab] = useState('submissions'); // submissions | vendors | invite
     const [submissions, setSubmissions] = useState([]);
     const [vendors, setVendors] = useState([]);
-    const [statusFilter, setStatusFilter] = useState('pending');
     const [loading, setLoading] = useState(true);
     const [preview, setPreview] = useState(null);
-    const [rejectModal, setRejectModal] = useState(null);
-    const [rejectReason, setRejectReason] = useState('');
 
-    // Invite form
     const [invitePhone, setInvitePhone] = useState('');
     const [inviteName, setInviteName] = useState('');
     const [inviting, setInviting] = useState(false);
@@ -30,43 +27,6 @@ const AdminVendors = () => {
         setLoading(false);
     };
     useEffect(() => { fetchAll(); }, []);
-
-    const filtered = statusFilter === 'all' ? submissions : submissions.filter(s => s.status === statusFilter);
-    const counts = submissions.reduce((acc, s) => { acc[s.status] = (acc[s.status] || 0) + 1; return acc; }, {});
-
-    // ── Approve: copy into `stones` table and mark approved ──────────────
-    const approve = async (sub) => {
-        if (!confirm(`Approve "${sub.name}"? This will publish it to the Stonevo gallery.`)) return;
-        try {
-            const stonePayload = {
-                name: sub.name,
-                image_url: sub.image_url,
-                type: sub.stone_type ? [sub.stone_type] : [],
-                color: [],
-                finish: [],
-                price_range: sub.price_per_sqft != null ? [String(sub.price_per_sqft)] : [],
-                application: [],
-                pattern: [],
-                temperature: [],
-                description: [sub.notes, sub.origin && `Origin: ${sub.origin}`].filter(Boolean).join(' · ') || null,
-                tags: [sub.origin].filter(Boolean)
-            };
-            const { data: inserted, error } = await supabase.from('stones').insert(stonePayload).select('id').single();
-            if (error) throw error;
-            await supabase.from('vendor_stones').update({ status: 'approved', approved_stone_id: inserted.id, rejection_reason: null }).eq('id', sub.id);
-            fetchAll();
-        } catch (err) { alert('Approve failed: ' + err.message); }
-    };
-
-    const reject = async () => {
-        if (!rejectReason.trim()) { alert('Provide a reason'); return; }
-        try {
-            await supabase.from('vendor_stones').update({ status: 'rejected', rejection_reason: rejectReason.trim() }).eq('id', rejectModal.id);
-            setRejectModal(null);
-            setRejectReason('');
-            fetchAll();
-        } catch (err) { alert(err.message); }
-    };
 
     const inviteVendor = async (e) => {
         e.preventDefault();
@@ -93,8 +53,14 @@ const AdminVendors = () => {
     };
 
     const revokeVendor = async (v) => {
-        if (!confirm(`Revoke vendor access for ${v.full_name || v.phone}?\n\nTheir submissions stay in the queue but they can no longer log in to /vendor.`)) return;
+        if (!confirm(`Revoke vendor access for ${v.full_name || v.phone}?\n\nTheir uploaded stones stay in the database but they can no longer log in to /vendor.`)) return;
         await supabase.from('leads').update({ role: null }).eq('id', v.id);
+        fetchAll();
+    };
+
+    const deleteSubmission = async (sub) => {
+        if (!confirm(`Delete "${sub.name}" from ${sub.leads?.full_name || 'vendor'}? This cannot be undone.`)) return;
+        await supabase.from('vendor_stones').delete().eq('id', sub.id);
         fetchAll();
     };
 
@@ -103,7 +69,7 @@ const AdminVendors = () => {
             {/* Tabs */}
             <div className="flex items-center gap-1 bg-stone-200/50 p-1 rounded-lg w-fit">
                 {[
-                    ['queue', `Submission Queue (${counts.pending || 0})`],
+                    ['submissions', `Vendor Stones (${submissions.length})`],
                     ['vendors', `Vendors (${vendors.length})`],
                     ['invite', 'Invite Vendor']
                 ].map(([id, label]) => (
@@ -147,7 +113,7 @@ const AdminVendors = () => {
                                 <th className="text-left px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-stone-500">Name</th>
                                 <th className="text-left px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-stone-500">Phone</th>
                                 <th className="text-left px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-stone-500">Added</th>
-                                <th className="text-left px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-stone-500">Submissions</th>
+                                <th className="text-left px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-stone-500">Stones</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -155,13 +121,13 @@ const AdminVendors = () => {
                             {vendors.length === 0 ? (
                                 <tr><td colSpan={5} className="px-5 py-10 text-center text-stone-500 text-sm italic">No vendors yet — invite one to get started.</td></tr>
                             ) : vendors.map(v => {
-                                const subCount = submissions.filter(s => s.vendor_id === v.id).length;
+                                const stoneCount = submissions.filter(s => s.vendor_id === v.id).length;
                                 return (
                                     <tr key={v.id} className="border-b border-stone-100 last:border-0">
                                         <td className="px-5 py-3 font-medium text-stone-800">{v.full_name || '—'}</td>
                                         <td className="px-5 py-3 font-mono text-stone-600">+91 {v.phone}</td>
                                         <td className="px-5 py-3 text-stone-500 text-xs">{new Date(v.created_at).toLocaleDateString()}</td>
-                                        <td className="px-5 py-3 text-stone-600">{subCount}</td>
+                                        <td className="px-5 py-3 text-stone-600">{stoneCount}</td>
                                         <td className="px-5 py-3 text-right">
                                             <button onClick={() => revokeVendor(v)} className="text-stone-400 hover:text-red-500 px-2 py-1 text-[10px] font-bold uppercase tracking-widest">Revoke</button>
                                         </td>
@@ -173,39 +139,19 @@ const AdminVendors = () => {
                 </div>
             )}
 
-            {/* ─── QUEUE TAB ─── */}
-            {tab === 'queue' && (
+            {/* ─── SUBMISSIONS TAB ─── */}
+            {tab === 'submissions' && (
                 <>
-                    {/* Filter */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        {[
-                            ['pending', 'Pending', counts.pending || 0],
-                            ['approved', 'Approved', counts.approved || 0],
-                            ['rejected', 'Rejected', counts.rejected || 0],
-                            ['all', 'All', submissions.length]
-                        ].map(([id, label, n]) => (
-                            <button key={id} onClick={() => setStatusFilter(id)}
-                                className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full border transition-colors ${statusFilter === id ? 'bg-stone-900 text-white border-stone-900' : 'border-stone-200 text-stone-500 hover:border-stone-400 hover:text-stone-800'}`}>
-                                {label} <span className="opacity-60 ml-1">{n}</span>
-                            </button>
-                        ))}
-                    </div>
-
                     {loading ? (
                         <p className="text-stone-500 text-sm">Loading…</p>
-                    ) : filtered.length === 0 ? (
-                        <div className="border-2 border-dashed border-stone-200 rounded-xl py-16 text-center text-stone-500 text-sm">Nothing here.</div>
+                    ) : submissions.length === 0 ? (
+                        <div className="border-2 border-dashed border-stone-200 rounded-xl py-16 text-center text-stone-500 text-sm">No vendor uploads yet.</div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                            {filtered.map(sub => (
+                            {submissions.map(sub => (
                                 <div key={sub.id} className="bg-white border border-stone-200 rounded-2xl overflow-hidden flex flex-col">
                                     <button onClick={() => setPreview(sub)} className="block aspect-[3/2] bg-stone-100 relative">
                                         {sub.image_url ? <img src={sub.image_url} alt={sub.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-stone-400 text-xs">No image</div>}
-                                        <span className={`absolute top-3 left-3 px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border ${
-                                            sub.status === 'pending' ? 'bg-amber-50 border-amber-200 text-amber-700' :
-                                            sub.status === 'approved' ? 'bg-green-50 border-green-200 text-green-700' :
-                                            'bg-red-50 border-red-200 text-red-700'
-                                        }`}>{sub.status}</span>
                                     </button>
                                     <div className="p-4 space-y-2 flex-1 flex flex-col">
                                         <div>
@@ -220,15 +166,9 @@ const AdminVendors = () => {
                                             {sub.price_per_sqft != null && <span><b className="text-stone-400">₹/sqft</b> {sub.price_per_sqft}</span>}
                                             {sub.lot_size_sqft != null && <span><b className="text-stone-400">Lot</b> {sub.lot_size_sqft} sqft</span>}
                                         </div>
-                                        {sub.rejection_reason && <p className="text-[11px] text-red-500 bg-red-50 p-2 rounded">{sub.rejection_reason}</p>}
                                         <div className="flex items-center gap-2 pt-3 mt-auto border-t border-stone-100">
                                             <button onClick={() => setPreview(sub)} className="flex-1 text-[10px] font-bold uppercase tracking-widest text-stone-500 hover:text-stone-800 py-2 border border-stone-200 rounded-lg flex items-center justify-center gap-1.5"><Eye size={11} /> View</button>
-                                            {sub.status === 'pending' && (
-                                                <>
-                                                    <button onClick={() => approve(sub)} className="flex-1 text-[10px] font-bold uppercase tracking-widest text-green-700 hover:text-white hover:bg-green-600 py-2 border border-green-200 hover:border-green-600 rounded-lg flex items-center justify-center gap-1.5"><Check size={11} /> Approve</button>
-                                                    <button onClick={() => setRejectModal(sub)} className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-white hover:bg-red-500 py-2 px-3 border border-red-200 hover:border-red-500 rounded-lg"><X size={11} /></button>
-                                                </>
-                                            )}
+                                            <button onClick={() => deleteSubmission(sub)} className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-white hover:bg-red-500 py-2 px-3 border border-red-200 hover:border-red-500 rounded-lg"><Trash2 size={11} /></button>
                                         </div>
                                     </div>
                                 </div>
@@ -269,23 +209,6 @@ const AdminVendors = () => {
                                 ))}
                             </dl>
                             {preview.notes && <div><p className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-1">Notes</p><p className="text-sm text-stone-700">{preview.notes}</p></div>}
-                            {preview.rejection_reason && <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm"><b>Rejection:</b> {preview.rejection_reason}</div>}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Reject modal */}
-            {rejectModal && (
-                <div className="fixed inset-0 z-[500] bg-black/80 flex items-center justify-center p-6">
-                    <div className="bg-white rounded-2xl max-w-md w-full p-6">
-                        <h3 className="font-serif text-xl text-stone-800 mb-2">Reject "{rejectModal.name}"</h3>
-                        <p className="text-stone-500 text-sm mb-4">The vendor will see this reason and can resubmit after editing.</p>
-                        <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} rows={4} placeholder="e.g. Image too low resolution — please reshoot the slab in daylight."
-                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-400" />
-                        <div className="flex items-center justify-end gap-2 mt-4">
-                            <button onClick={() => { setRejectModal(null); setRejectReason(''); }} className="px-4 py-2 text-xs font-bold uppercase tracking-widest text-stone-500 hover:text-stone-800">Cancel</button>
-                            <button onClick={reject} className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold uppercase tracking-widest rounded-lg">Reject</button>
                         </div>
                     </div>
                 </div>

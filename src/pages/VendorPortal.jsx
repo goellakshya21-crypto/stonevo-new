@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { compressImage } from '../utils/imageOptimizer';
-import { Phone, ShieldCheck, Plus, Upload, Trash2, Edit3, X, Check, Clock, AlertCircle, LogOut, Image as ImageIcon } from 'lucide-react';
+import { Phone, ShieldCheck, Plus, Upload, Trash2, Edit3, X, LogOut, Image as ImageIcon } from 'lucide-react';
 
 const DEV_NUMBERS = ['7678320944', '7042353166']; // OTP bypass with 000000
 
@@ -19,21 +19,6 @@ const uploadImage = async (file) => {
     if (error) throw error;
     const { data } = supabase.storage.from('marble-images').getPublicUrl(path);
     return data.publicUrl;
-};
-
-// ── Status pill ──────────────────────────────────────────────────────────
-const StatusPill = ({ status }) => {
-    const cfg = {
-        pending:  { label: 'Pending review', icon: Clock,        cls: 'bg-amber-500/10 border-amber-500/30 text-amber-300' },
-        approved: { label: 'Approved',       icon: Check,        cls: 'bg-green-500/10 border-green-500/30 text-green-300' },
-        rejected: { label: 'Rejected',       icon: AlertCircle,  cls: 'bg-red-500/10 border-red-500/30 text-red-300' }
-    }[status] || { label: status, icon: Clock, cls: 'bg-white/5 border-white/10 text-stone-400' };
-    const I = cfg.icon;
-    return (
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${cfg.cls}`}>
-            <I size={11} /> {cfg.label}
-        </span>
-    );
 };
 
 // ── Add/Edit stone form ──────────────────────────────────────────────────
@@ -91,10 +76,7 @@ const StoneForm = ({ vendorId, existing, onClose, onSaved }) => {
                 notes: form.notes.trim() || null
             };
             if (existing) {
-                // Edits return to "pending" so admin re-reviews
-                const { error } = await supabase.from('vendor_stones')
-                    .update({ ...payload, status: 'pending', rejection_reason: null })
-                    .eq('id', existing.id);
+                const { error } = await supabase.from('vendor_stones').update(payload).eq('id', existing.id);
                 if (error) throw error;
             } else {
                 const { error } = await supabase.from('vendor_stones').insert(payload);
@@ -115,7 +97,7 @@ const StoneForm = ({ vendorId, existing, onClose, onSaved }) => {
                 <div className="flex items-center justify-between p-6 border-b border-white/10">
                     <div>
                         <h3 className="text-2xl font-serif text-white italic">{existing ? 'Edit Stone' : 'Add Stone'}</h3>
-                        <p className="text-xs text-stone-500 mt-1">Submissions enter the review queue and are visible to Stonevo curators.</p>
+                        <p className="text-xs text-stone-500 mt-1">Photos and details for your stones.</p>
                     </div>
                     <button onClick={onClose} className="p-2 text-stone-400 hover:text-white"><X size={20} /></button>
                 </div>
@@ -142,7 +124,7 @@ const StoneForm = ({ vendorId, existing, onClose, onSaved }) => {
 
                     {/* Additional images */}
                     <div>
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 block mb-2">Additional images <span className="text-stone-600 font-normal normal-case">(optional — up to 4: slab close-ups, full lot, finish detail)</span></label>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 block mb-2">Additional images <span className="text-stone-600 font-normal normal-case">(optional — up to 4)</span></label>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             {additional.map((url, i) => (
                                 <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-white/10 group">
@@ -180,7 +162,7 @@ const StoneForm = ({ vendorId, existing, onClose, onSaved }) => {
                             value={form.notes}
                             onChange={e => setForm({ ...form, notes: e.target.value })}
                             rows={3}
-                            placeholder="Vein direction, special book-matching, certifications, anything Stonevo curators should know…"
+                            placeholder="Anything Stonevo should know about this stone…"
                             className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-bronze focus:outline-none resize-none"
                         />
                     </div>
@@ -191,7 +173,7 @@ const StoneForm = ({ vendorId, existing, onClose, onSaved }) => {
                 <div className="flex items-center justify-end gap-3 p-6 border-t border-white/10 bg-stone-950/40 rounded-b-2xl">
                     <button onClick={onClose} className="px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-stone-400 hover:text-white">Cancel</button>
                     <button onClick={save} disabled={saving || uploading} className="px-6 py-3 bg-bronze text-stone-950 text-xs font-bold uppercase tracking-widest rounded-full hover:bg-white transition-colors disabled:opacity-50">
-                        {saving ? 'Saving…' : existing ? 'Update & Resubmit' : 'Submit for review'}
+                        {saving ? 'Saving…' : existing ? 'Save changes' : 'Add stone'}
                     </button>
                 </div>
             </div>
@@ -222,53 +204,33 @@ const SelectField = ({ label, value, onChange, options }) => (
     </div>
 );
 
-// ── Stone card (in the vendor's grid) ────────────────────────────────────
-const StoneCard = ({ stone, onEdit, onDelete }) => {
-    const canEdit = stone.status !== 'approved'; // approved stones are locked from edit
-    return (
-        <div className="bg-stone-900 border border-white/10 rounded-2xl overflow-hidden flex flex-col">
-            <div className="aspect-[3/2] relative overflow-hidden bg-stone-950">
-                {stone.image_url ? <img src={stone.image_url} alt={stone.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-stone-700"><ImageIcon size={32} /></div>}
-                <div className="absolute top-3 left-3"><StatusPill status={stone.status} /></div>
+// ── Stone card ───────────────────────────────────────────────────────────
+const StoneCard = ({ stone, onEdit, onDelete }) => (
+    <div className="bg-stone-900 border border-white/10 rounded-2xl overflow-hidden flex flex-col">
+        <div className="aspect-[3/2] relative overflow-hidden bg-stone-950">
+            {stone.image_url ? <img src={stone.image_url} alt={stone.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-stone-700"><ImageIcon size={32} /></div>}
+        </div>
+        <div className="p-5 space-y-3 flex-1 flex flex-col">
+            <div>
+                <h4 className="font-serif text-lg text-white">{stone.name}</h4>
+                {stone.stone_type && <p className="text-[10px] uppercase tracking-widest text-bronze mt-0.5">{stone.stone_type}{stone.origin ? ` · ${stone.origin}` : ''}</p>}
             </div>
-            <div className="p-5 space-y-3 flex-1 flex flex-col">
-                <div className="flex items-start justify-between gap-2">
-                    <div>
-                        <h4 className="font-serif text-lg text-white">{stone.name}</h4>
-                        {stone.stone_type && <p className="text-[10px] uppercase tracking-widest text-bronze mt-0.5">{stone.stone_type}{stone.origin ? ` · ${stone.origin}` : ''}</p>}
-                    </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                    {stone.price_per_sqft != null && <div><p className="text-[9px] uppercase tracking-widest text-stone-500 font-bold">Price/sqft</p><p className="text-white font-serif">₹ {stone.price_per_sqft}</p></div>}
-                    {stone.lot_size_sqft != null && <div><p className="text-[9px] uppercase tracking-widest text-stone-500 font-bold">Lot size</p><p className="text-white font-serif">{stone.lot_size_sqft} sqft</p></div>}
-                    {(stone.slab_length || stone.slab_width) && <div className="col-span-2"><p className="text-[9px] uppercase tracking-widest text-stone-500 font-bold">Slab</p><p className="text-white font-serif">{stone.slab_length || '—'} × {stone.slab_width || '—'} cm</p></div>}
-                </div>
-                {stone.status === 'rejected' && stone.rejection_reason && (
-                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-xs text-red-300">
-                        <p className="font-bold uppercase tracking-widest text-[9px] mb-1">Reason</p>
-                        {stone.rejection_reason}
-                    </div>
-                )}
-                <div className="flex items-center gap-2 pt-3 mt-auto border-t border-white/5">
-                    <button
-                        onClick={() => onEdit(stone)}
-                        disabled={!canEdit}
-                        className="flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-widest text-stone-300 hover:text-bronze border border-white/10 hover:border-bronze/40 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                        <Edit3 size={12} /> Edit
-                    </button>
-                    <button
-                        onClick={() => onDelete(stone)}
-                        disabled={!canEdit}
-                        className="px-3 py-2 text-stone-500 hover:text-red-400 border border-white/10 hover:border-red-500/40 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                        <Trash2 size={12} />
-                    </button>
-                </div>
+            <div className="grid grid-cols-2 gap-3 text-xs">
+                {stone.price_per_sqft != null && <div><p className="text-[9px] uppercase tracking-widest text-stone-500 font-bold">Price/sqft</p><p className="text-white font-serif">₹ {stone.price_per_sqft}</p></div>}
+                {stone.lot_size_sqft != null && <div><p className="text-[9px] uppercase tracking-widest text-stone-500 font-bold">Lot size</p><p className="text-white font-serif">{stone.lot_size_sqft} sqft</p></div>}
+                {(stone.slab_length || stone.slab_width) && <div className="col-span-2"><p className="text-[9px] uppercase tracking-widest text-stone-500 font-bold">Slab</p><p className="text-white font-serif">{stone.slab_length || '—'} × {stone.slab_width || '—'} cm</p></div>}
+            </div>
+            <div className="flex items-center gap-2 pt-3 mt-auto border-t border-white/5">
+                <button onClick={() => onEdit(stone)} className="flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-widest text-stone-300 hover:text-bronze border border-white/10 hover:border-bronze/40 rounded-lg transition-colors">
+                    <Edit3 size={12} /> Edit
+                </button>
+                <button onClick={() => onDelete(stone)} className="px-3 py-2 text-stone-500 hover:text-red-400 border border-white/10 hover:border-red-500/40 rounded-lg transition-colors">
+                    <Trash2 size={12} />
+                </button>
             </div>
         </div>
-    );
-};
+    </div>
+);
 
 // ── Dashboard ────────────────────────────────────────────────────────────
 const VendorDashboard = ({ vendor, onLogout }) => {
@@ -276,7 +238,6 @@ const VendorDashboard = ({ vendor, onLogout }) => {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editing, setEditing] = useState(null);
-    const [filter, setFilter] = useState('all');
 
     const fetchStones = async () => {
         setLoading(true);
@@ -291,9 +252,6 @@ const VendorDashboard = ({ vendor, onLogout }) => {
         await supabase.from('vendor_stones').delete().eq('id', stone.id);
         fetchStones();
     };
-
-    const counts = stones.reduce((acc, s) => { acc[s.status] = (acc[s.status] || 0) + 1; return acc; }, {});
-    const filtered = filter === 'all' ? stones : stones.filter(s => s.status === filter);
 
     return (
         <div className="min-h-screen bg-stone-950 text-stone-200">
@@ -318,41 +276,29 @@ const VendorDashboard = ({ vendor, onLogout }) => {
                 {/* Hero row */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-bronze mb-2">Your Submissions</p>
-                        <h1 className="font-serif text-4xl text-white italic">Stones, lots & samples.</h1>
-                        <p className="text-stone-500 text-sm mt-3 max-w-xl">Add new stones with images and lot details. Submissions enter a review queue. Approved stones appear in the Stonevo gallery.</p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-bronze mb-2">Your Stones</p>
+                        <h1 className="font-serif text-4xl text-white italic">Photos & details.</h1>
+                        <p className="text-stone-500 text-sm mt-3 max-w-xl">Add your stones with photos and details. Stonevo will reach out about anything they're interested in.</p>
                     </div>
                     <button onClick={() => { setEditing(null); setShowForm(true); }} className="inline-flex items-center gap-2 px-6 py-3 bg-bronze text-stone-950 text-xs font-bold uppercase tracking-widest rounded-full hover:bg-white transition-colors shadow-lg shadow-bronze/20">
                         <Plus size={14} /> Add stone
                     </button>
                 </div>
 
-                {/* Status filter */}
-                <div className="flex items-center gap-2 mb-6 flex-wrap">
-                    {[
-                        ['all', 'All', stones.length],
-                        ['pending', 'Pending', counts.pending || 0],
-                        ['approved', 'Approved', counts.approved || 0],
-                        ['rejected', 'Rejected', counts.rejected || 0]
-                    ].map(([id, label, n]) => (
-                        <button key={id} onClick={() => setFilter(id)}
-                            className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full border transition-colors ${filter === id ? 'bg-bronze text-stone-950 border-bronze' : 'border-white/10 text-stone-400 hover:text-white hover:border-white/30'}`}>
-                            {label} <span className="opacity-60 ml-1">{n}</span>
-                        </button>
-                    ))}
-                </div>
-
                 {/* Grid */}
                 {loading ? (
                     <p className="text-stone-500 text-sm">Loading…</p>
-                ) : filtered.length === 0 ? (
+                ) : stones.length === 0 ? (
                     <div className="border-2 border-dashed border-white/10 rounded-2xl py-20 text-center">
                         <ImageIcon size={32} className="mx-auto text-stone-700 mb-3" />
-                        <p className="text-stone-500 text-sm">{filter === 'all' ? 'No stones submitted yet.' : `Nothing in "${filter}".`}</p>
+                        <p className="text-stone-500 text-sm mb-4">No stones added yet.</p>
+                        <button onClick={() => { setEditing(null); setShowForm(true); }} className="inline-flex items-center gap-2 px-5 py-2.5 border border-bronze/30 hover:bg-bronze hover:text-stone-950 text-bronze text-[10px] font-bold uppercase tracking-widest rounded-full transition-colors">
+                            <Plus size={12} /> Add your first stone
+                        </button>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                        {filtered.map(s => (
+                        {stones.map(s => (
                             <StoneCard key={s.id} stone={s} onEdit={(st) => { setEditing(st); setShowForm(true); }} onDelete={handleDelete} />
                         ))}
                     </div>
@@ -397,7 +343,6 @@ const VendorGate = ({ onAuthorized }) => {
             if (fnErr) throw new Error(fnErr.message);
             if (data?.error) throw new Error(data.error);
 
-            // OTP good — check the vendor whitelist (leads with role='vendor')
             const { data: vendor } = await supabase
                 .from('leads')
                 .select('id, phone, full_name, role, status')
@@ -425,7 +370,7 @@ const VendorGate = ({ onAuthorized }) => {
                         <ShieldCheck className="text-bronze" size={26} />
                     </div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-bronze mb-2">Vendor Portal</p>
-                    <h1 className="text-3xl font-serif text-white italic">Sign in to submit stones</h1>
+                    <h1 className="text-3xl font-serif text-white italic">Sign in to upload stones</h1>
                 </div>
 
                 {step === 'phone' && (
