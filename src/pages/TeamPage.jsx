@@ -223,7 +223,7 @@ const TeamPage = () => {
                 }
                 .tp-grid-title em { font-style: italic; color: #A37D4B; }
                 .tp-team-grid {
-                    display: grid; grid-template-columns: repeat(3, 1fr);
+                    display: grid; grid-template-columns: repeat(2, 1fr);
                     gap: 1px; background: rgba(255,255,255,0.05);
                     border-radius: 24px; overflow: hidden;
                     border: 1px solid rgba(255,255,255,0.05);
