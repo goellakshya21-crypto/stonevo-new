@@ -71,6 +71,7 @@ const RefinementPanel = ({ isOpen, onClose, filters, setFilters }) => {
         { value: 'Onyx', label: 'Onyx' },
         { value: 'Quartzite', label: 'Quartzite' },
         { value: 'Sandstone', label: 'Sandstone' },
+        { value: 'Shellstone', label: 'Shellstone' },
         { value: 'Travertine', label: 'Travertine' }
     ];
 
