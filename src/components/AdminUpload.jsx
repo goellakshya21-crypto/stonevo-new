@@ -74,7 +74,9 @@ const AdminUpload = ({ onCancel }) => {
                 { value: 'Marble', label: 'Marble' },
                 { value: 'Sandstones & Limestone', label: 'Sandstones & Limestone' },
                 { value: 'Semi-Precious', label: 'Semi-Precious' },
-                { value: 'Granite & Quartzite', label: 'Granite & Quartzite' }
+                { value: 'Granite & Quartzite', label: 'Granite & Quartzite' },
+                { value: 'Shellstone', label: 'Shellstone' },
+                { value: 'Travertine', label: 'Travertine' }
             ];
             case 'color': return [
                 unspecified,

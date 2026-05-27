@@ -42,7 +42,9 @@ const FilterBar = ({ filters, setFilters, onReset }) => {
         { value: 'Marble', label: 'Marble' },
         { value: 'Sandstones & Limestone', label: 'Sandstones & Limestone' },
         { value: 'Semi-Precious', label: 'Semi-Precious' },
-        { value: 'Granite & Quartzite', label: 'Granite & Quartzite' }
+        { value: 'Granite & Quartzite', label: 'Granite & Quartzite' },
+        { value: 'Shellstone', label: 'Shellstone' },
+        { value: 'Travertine', label: 'Travertine' }
     ];
 
     const finishOptions = [
