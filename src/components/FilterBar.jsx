@@ -27,10 +27,12 @@ const FilterBar = ({ filters, setFilters, onReset }) => {
         { value: 'Green', label: 'Green' },
         { value: 'Grey', label: 'Grey' },
         { value: 'Multi tone', label: 'Multi tone' },
+        { value: 'Orange', label: 'Orange' },
         { value: 'Peach', label: 'Peach' },
         { value: 'Pink', label: 'Pink' },
         { value: 'Purple', label: 'Purple' },
         { value: 'Red', label: 'Red' },
+        { value: 'Silver', label: 'Silver' },
         { value: 'White', label: 'White' },
         { value: 'Yellow', label: 'Yellow' }
     ];

@@ -33,8 +33,10 @@ const RefinementPanel = ({ isOpen, onClose, filters, setFilters }) => {
         { value: 'Blue', label: 'Blue' },
         { value: 'Green', label: 'Green' },
         { value: 'Yellow', label: 'Yellow' },
+        { value: 'Orange', label: 'Orange' },
         { value: 'Beige', label: 'Beige' },
         { value: 'Grey', label: 'Grey' },
+        { value: 'Silver', label: 'Silver' },
         { value: 'Pink', label: 'Pink' }
     ];
 

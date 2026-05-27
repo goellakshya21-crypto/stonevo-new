@@ -81,8 +81,8 @@ const AdminUpload = ({ onCancel }) => {
                 { value: 'Beige', label: 'Beige' }, { value: 'Black', label: 'Black' }, { value: 'Blue', label: 'Blue' },
                 { value: 'Brown', label: 'Brown' }, { value: 'Cream', label: 'Cream' }, { value: 'Golden', label: 'Golden' },
                 { value: 'Green', label: 'Green' }, { value: 'Grey', label: 'Grey' }, { value: 'Multi tone', label: 'Multi tone' },
-                { value: 'Peach', label: 'Peach' }, { value: 'Pink', label: 'Pink' }, { value: 'Purple', label: 'Purple' },
-                { value: 'Red', label: 'Red' }, { value: 'White', label: 'White' }, { value: 'Yellow', label: 'Yellow' }
+                { value: 'Orange', label: 'Orange' }, { value: 'Peach', label: 'Peach' }, { value: 'Pink', label: 'Pink' }, { value: 'Purple', label: 'Purple' },
+                { value: 'Red', label: 'Red' }, { value: 'Silver', label: 'Silver' }, { value: 'White', label: 'White' }, { value: 'Yellow', label: 'Yellow' }
             ];
             case 'finish': return [
                 unspecified,
