@@ -56,6 +56,13 @@ const AdminUpload = ({ onCancel }) => {
     const [deleteConfirmId, setDeleteConfirmId] = useState(null);
     const [editingStone, setEditingStone] = useState(null);
     const [editSaveLoading, setEditSaveLoading] = useState(false);
+    // Bulk delete state
+    const [selectedForDelete, setSelectedForDelete] = useState(new Set());
+    const [bulkPasteOpen, setBulkPasteOpen] = useState(false);
+    const [bulkPasteText, setBulkPasteText] = useState('');
+    const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
+    const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+    const [bulkResult, setBulkResult] = useState(null);
     // ─────────────────────────────────────────────────────────────────────
 
     const getOptionsForCategory = (category) => {
@@ -629,6 +636,90 @@ const AdminUpload = ({ onCancel }) => {
             setManageLoading(false);
         }
     };
+
+    // ── Bulk delete helpers ──────────────────────────────────────────────
+    const toggleSelectForDelete = (id) => {
+        setSelectedForDelete(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
+
+    const selectAllVisible = () => {
+        setSelectedForDelete(new Set(manageResults.map(s => s.id)));
+    };
+
+    const clearSelection = () => setSelectedForDelete(new Set());
+
+    // Paste a list of names → look them up across the WHOLE table → preselect matches
+    const handleBulkPasteSelect = async () => {
+        const names = bulkPasteText.split(/\r?\n/).map(n => n.trim()).filter(Boolean);
+        if (names.length === 0) return;
+        setManageLoading(true);
+        setManageError(null);
+        try {
+            // Case-insensitive exact match for each line
+            // Fetch all stones whose name matches any line (using OR of ilike)
+            const { data, error } = await supabase
+                .from('stones')
+                .select('*')
+                .order('name')
+                .limit(500);
+            if (error) throw error;
+
+            const namesLower = new Set(names.map(n => n.toLowerCase()));
+            const matched = (data || []).filter(s => namesLower.has((s.name || '').toLowerCase()));
+
+            setManageResults(matched);
+            setSelectedForDelete(new Set(matched.map(s => s.id)));
+            const notFound = names.filter(n => !matched.some(s => (s.name || '').toLowerCase() === n.toLowerCase()));
+            if (notFound.length) {
+                setManageError(`Matched ${matched.length} / ${names.length}. Not found: ${notFound.join(', ')}`);
+            }
+        } catch (err) {
+            setManageError(err.message);
+        } finally {
+            setManageLoading(false);
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        const ids = Array.from(selectedForDelete);
+        if (ids.length === 0) return;
+        setBulkDeleteLoading(true);
+        setManageError(null);
+        try {
+            const stonesToDelete = manageResults.filter(s => selectedForDelete.has(s.id));
+
+            // 1. Delete DB rows
+            const { error: dbError } = await supabase.from('stones').delete().in('id', ids);
+            if (dbError) throw dbError;
+
+            // 2. Best-effort storage cleanup
+            const storagePaths = [];
+            for (const stone of stonesToDelete) {
+                if (stone.image_url) {
+                    const parts = stone.image_url.split('/marble-images/');
+                    if (parts[1]) storagePaths.push(decodeURIComponent(parts[1].split('?')[0]));
+                }
+            }
+            if (storagePaths.length) {
+                await supabase.storage.from('marble-images').remove(storagePaths);
+            }
+
+            setManageResults(prev => prev.filter(s => !selectedForDelete.has(s.id)));
+            setBulkResult({ ok: true, count: ids.length, names: stonesToDelete.map(s => s.name) });
+            setSelectedForDelete(new Set());
+            setBulkConfirmOpen(false);
+        } catch (err) {
+            setBulkResult({ ok: false, msg: err.message });
+            setManageError(`Bulk delete failed: ${err.message}`);
+        } finally {
+            setBulkDeleteLoading(false);
+        }
+    };
+    // ─────────────────────────────────────────────────────────────────────
 
     const handleDeleteStone = async (stone) => {
         try {
@@ -1428,6 +1519,51 @@ const AdminUpload = ({ onCancel }) => {
                                 </div>
                             )}
 
+                            {/* Bulk action toolbar */}
+                            <div className="flex flex-wrap items-center gap-2 p-3 bg-stone-50 border border-stone-200 rounded-lg">
+                                <button
+                                    onClick={() => setBulkPasteOpen(true)}
+                                    className="px-3 py-1.5 bg-stone-900 text-white rounded-md text-[11px] font-bold uppercase tracking-wider hover:bg-stone-800"
+                                >
+                                    📋 Paste names to bulk-delete
+                                </button>
+                                {manageResults.length > 0 && (
+                                    <>
+                                        <button
+                                            onClick={selectAllVisible}
+                                            className="px-3 py-1.5 border border-stone-300 text-stone-700 rounded-md text-[11px] font-bold uppercase tracking-wider hover:bg-stone-100"
+                                        >
+                                            Select all visible ({manageResults.length})
+                                        </button>
+                                        {selectedForDelete.size > 0 && (
+                                            <>
+                                                <button
+                                                    onClick={clearSelection}
+                                                    className="px-3 py-1.5 border border-stone-300 text-stone-700 rounded-md text-[11px] font-bold uppercase tracking-wider hover:bg-stone-100"
+                                                >
+                                                    Clear ({selectedForDelete.size})
+                                                </button>
+                                                <button
+                                                    onClick={() => setBulkConfirmOpen(true)}
+                                                    className="ml-auto px-4 py-1.5 bg-red-600 text-white rounded-md text-[11px] font-bold uppercase tracking-wider hover:bg-red-700"
+                                                >
+                                                    🗑 Delete {selectedForDelete.size} selected
+                                                </button>
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Last bulk-delete result */}
+                            {bulkResult && (
+                                <div className={`p-3 rounded-md text-xs ${bulkResult.ok ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                                    {bulkResult.ok
+                                        ? `✓ Deleted ${bulkResult.count} stone${bulkResult.count !== 1 ? 's' : ''}: ${bulkResult.names.slice(0, 5).join(', ')}${bulkResult.names.length > 5 ? ` +${bulkResult.names.length - 5} more` : ''}`
+                                        : `✗ ${bulkResult.msg}`}
+                                </div>
+                            )}
+
                             {/* Results count */}
                             {manageResults.length > 0 && (
                                 <p className="text-xs text-stone-400 font-medium uppercase tracking-wider">
@@ -1435,10 +1571,90 @@ const AdminUpload = ({ onCancel }) => {
                                 </p>
                             )}
 
+                            {/* Paste names modal */}
+                            {bulkPasteOpen && (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setBulkPasteOpen(false)}>
+                                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 space-y-4" onClick={e => e.stopPropagation()}>
+                                        <div className="flex justify-between items-center">
+                                            <h3 className="text-lg font-serif font-bold text-stone-800">Paste stone names</h3>
+                                            <button onClick={() => setBulkPasteOpen(false)} className="text-stone-400 hover:text-stone-700 text-xl font-bold">✕</button>
+                                        </div>
+                                        <p className="text-xs text-stone-500">
+                                            One name per line. Matching is case-insensitive but must be exact text.
+                                            Matched stones will be selected — you can review before deleting.
+                                        </p>
+                                        <textarea
+                                            value={bulkPasteText}
+                                            onChange={e => setBulkPasteText(e.target.value)}
+                                            placeholder="Bianco Lasa Classic 3&#10;Charcoal Prime&#10;Champagne Veil&#10;…"
+                                            rows={10}
+                                            className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-stone-500"
+                                        />
+                                        <div className="flex gap-3">
+                                            <button
+                                                onClick={async () => { await handleBulkPasteSelect(); setBulkPasteOpen(false); }}
+                                                disabled={!bulkPasteText.trim() || manageLoading}
+                                                className="flex-1 py-2.5 bg-stone-900 text-white rounded-md font-medium text-sm hover:bg-stone-800 disabled:opacity-50"
+                                            >
+                                                {manageLoading ? 'Looking up…' : 'Look up & select matches'}
+                                            </button>
+                                            <button
+                                                onClick={() => setBulkPasteOpen(false)}
+                                                className="px-5 py-2.5 bg-stone-100 text-stone-600 rounded-md font-medium text-sm hover:bg-stone-200"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Bulk delete confirm modal */}
+                            {bulkConfirmOpen && (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !bulkDeleteLoading && setBulkConfirmOpen(false)}>
+                                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
+                                        <h3 className="text-lg font-serif font-bold text-red-700">Delete {selectedForDelete.size} stones?</h3>
+                                        <p className="text-sm text-stone-600">
+                                            This will permanently delete <strong>{selectedForDelete.size}</strong> stone{selectedForDelete.size !== 1 ? 's' : ''} from the database AND remove their images from storage. This cannot be undone.
+                                        </p>
+                                        <div className="max-h-40 overflow-y-auto bg-stone-50 border border-stone-200 rounded-md p-2 text-xs space-y-0.5">
+                                            {manageResults.filter(s => selectedForDelete.has(s.id)).map(s => (
+                                                <div key={s.id} className="text-stone-700 font-mono">• {s.name}</div>
+                                            ))}
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <button
+                                                onClick={handleBulkDelete}
+                                                disabled={bulkDeleteLoading}
+                                                className="flex-1 py-2.5 bg-red-600 text-white rounded-md font-medium text-sm hover:bg-red-700 disabled:opacity-50"
+                                            >
+                                                {bulkDeleteLoading ? 'Deleting…' : `Yes, delete ${selectedForDelete.size}`}
+                                            </button>
+                                            <button
+                                                onClick={() => setBulkConfirmOpen(false)}
+                                                disabled={bulkDeleteLoading}
+                                                className="px-5 py-2.5 bg-stone-100 text-stone-600 rounded-md font-medium text-sm hover:bg-stone-200 disabled:opacity-50"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Stone cards grid */}
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto pr-1">
                                 {manageResults.map(stone => (
-                                    <div key={stone.id} className="group relative rounded-xl border border-stone-200 bg-stone-50 overflow-hidden hover:shadow-md transition-shadow">
+                                    <div key={stone.id} className={`group relative rounded-xl border bg-stone-50 overflow-hidden hover:shadow-md transition-shadow ${selectedForDelete.has(stone.id) ? 'border-red-500 ring-2 ring-red-200' : 'border-stone-200'}`}>
+                                        {/* Selection checkbox */}
+                                        <label className="absolute top-2 left-2 z-10 flex items-center justify-center w-6 h-6 bg-white/90 rounded shadow border border-stone-300 cursor-pointer hover:bg-white">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedForDelete.has(stone.id)}
+                                                onChange={() => toggleSelectForDelete(stone.id)}
+                                                className="w-4 h-4 accent-red-600 cursor-pointer"
+                                            />
+                                        </label>
                                         {/* Thumbnail */}
                                         <div className="aspect-square overflow-hidden bg-stone-100">
                                             {stone.image_url ? (
