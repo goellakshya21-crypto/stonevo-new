@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { message, history, model: modelId = 'gemini-1.5-flash' } = req.body;
+        const { message, history, model: modelId = 'gemini-1.5-flash', imageBase64, mimeType } = req.body;
 
         // Secure Service Account Loading
         let keyData;
@@ -44,7 +44,25 @@ export default async function handler(req, res) {
 
         console.log(`[Vertex AI] Using model: ${modelId}`);
 
-        // Format history for Vertex AI (parts instead of raw strings)
+        // If an image is supplied, use multimodal one-shot generation (no chat history)
+        if (imageBase64) {
+            console.log(`[Vertex AI] Multimodal request with image (${mimeType || 'image/jpeg'})`);
+            const result = await generativeModel.generateContent({
+                contents: [{
+                    role: 'user',
+                    parts: [
+                        { text: message },
+                        { inlineData: { mimeType: mimeType || 'image/jpeg', data: imageBase64 } }
+                    ]
+                }]
+            });
+            const response = await result.response;
+            const candidate = response.candidates?.[0];
+            const text = candidate?.content?.parts?.find(p => p.text)?.text || "No response generated.";
+            return res.status(200).json({ text });
+        }
+
+        // Text-only chat (existing path)
         const chat = generativeModel.startChat({
             history: history ? history.map(h => ({
                 role: h.role === 'user' ? 'user' : 'model',

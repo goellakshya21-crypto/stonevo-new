@@ -152,15 +152,13 @@ const AdminUpload = ({ onCancel }) => {
         setError(null);
     };
 
-    const fileToGenerativePart = async (file) => {
-        const base64EncodedDataPromise = new Promise((resolve) => {
+    const fileToBase64 = async (file) => {
+        const base64 = await new Promise((resolve) => {
             const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result.split(',')[1]);
             reader.readAsDataURL(file);
         });
-        return {
-            inlineData: { data: await base64EncodedDataPromise, mimeType: file.type },
-        };
+        return { base64, mimeType: file.type || 'image/jpeg' };
     };
 
     // --- Array helpers for multi-value fields ---
@@ -277,25 +275,37 @@ const AdminUpload = ({ onCancel }) => {
                 return;
             }
 
-            const genAI = new GoogleGenerativeAI(apiKey);
-            const imagePart = await fileToGenerativePart(image);
+            // Convert image to base64 for server-side proxy
+            const { base64, mimeType } = await fileToBase64(image);
 
             const appInstruction = mappingMode
                 ? `THIS IS FOR ${activeMapping.value.toUpperCase()}.`
                 : 'Intended Application (Flooring, Bathroom, Countertop, Wall Cladding, or Exterior)';
 
-            const prompt = `Analyze this stone image (Name: ${extractedName}) for an architectural database. 
+            const prompt = `Analyze this stone image (Name: ${extractedName}) for an architectural database.
             ${appInstruction}
             Return ONLY a raw JSON object (no markdown formatting) with the following structure:
             {
                 "description": "A short, elegant architectural description of the stone's appearance, veining, and character (max 2 sentences). It should match the character of a stone named ${extractedName}.",
-                "tags": ["tag1", "tag2", "tag3", "etc"] 
+                "tags": ["tag1", "tag2", "tag3", "etc"]
             }`;
 
-            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-            const result = await model.generateContent([prompt, imagePart]);
-            const response = await result.response;
-            const text = response.text();
+            // Call server-side Vertex AI proxy (uses service account, not client API key)
+            const proxyRes = await fetch('/api/gemini-vertex', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: prompt,
+                    model: 'gemini-2.5-flash',
+                    imageBase64: base64,
+                    mimeType
+                })
+            });
+            if (!proxyRes.ok) {
+                const errData = await proxyRes.json().catch(() => ({}));
+                throw new Error(errData.error || `Proxy error: ${proxyRes.status}`);
+            }
+            const { text } = await proxyRes.json();
 
             const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
             const jsonResult = JSON.parse(cleanedText);

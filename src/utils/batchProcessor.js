@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { compressImage } from "./imageOptimizer";
 
 export class BatchProcessor {
@@ -15,7 +14,6 @@ export class BatchProcessor {
 
     async processImages(images) {
         const results = [];
-        const genAI = new GoogleGenerativeAI(this.apiKey);
 
         for (let i = 0; i < images.length; i++) {
             if (this.isStopped) break;
@@ -54,7 +52,7 @@ export class BatchProcessor {
                     optimizedFile = images[i]; // Skip compression if we already have it? 
                     // Actually, keep images[i] as is.
                 } else {
-                    const analysis = await this.analyzeImage(genAI, images[i]);
+                    const analysis = await this.analyzeImage(images[i]);
                     resultData = analysis.data;
                     optimizedFile = analysis.optimizedFile;
                 }
@@ -103,23 +101,35 @@ export class BatchProcessor {
         return results;
     }
 
-    async analyzeImage(genAI, imageFile) {
+    async analyzeImage(imageFile) {
         // Optimize image before sending to AI (reduces bandwidth and token usage)
         const optimizedFile = await compressImage(imageFile);
-        const imagePart = await this.fileToGenerativePart(optimizedFile);
+        const { base64, mimeType } = await this.fileToBase64(optimizedFile);
         const extractedName = this.cleanFileName(optimizedFile);
 
         const prompt = `Analyze this stone image (Name: ${extractedName}) for an architectural database.
     Return ONLY a raw JSON object (no markdown formatting) with the following structure:
     {
         "description": "A short, elegant architectural description of the stone's appearance, veining, and character (max 2 sentences). It should match the character of a stone named ${extractedName}.",
-        "tags": ["tag1", "tag2", "tag3", "etc"] // Include visual colors, descriptive textures, and style keywords.
+        "tags": ["tag1", "tag2", "tag3", "etc"]
     }`;
 
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-        const result = await model.generateContent([prompt, imagePart]);
-        const response = await result.response;
-        const text = response.text();
+        // Server-side Vertex AI proxy (uses service account, not client API key)
+        const proxyRes = await fetch('/api/gemini-vertex', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: prompt,
+                model: 'gemini-2.5-flash',
+                imageBase64: base64,
+                mimeType
+            })
+        });
+        if (!proxyRes.ok) {
+            const errData = await proxyRes.json().catch(() => ({}));
+            throw new Error(errData.error || `Proxy error: ${proxyRes.status}`);
+        }
+        const { text } = await proxyRes.json();
 
         // Clean up markdown if present
         const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -129,15 +139,13 @@ export class BatchProcessor {
         };
     }
 
-    async fileToGenerativePart(file) {
-        const base64EncodedDataPromise = new Promise((resolve) => {
+    async fileToBase64(file) {
+        const base64 = await new Promise((resolve) => {
             const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result.split(',')[1]);
             reader.readAsDataURL(file);
         });
-        return {
-            inlineData: { data: await base64EncodedDataPromise, mimeType: file.type },
-        };
+        return { base64, mimeType: file.type || 'image/jpeg' };
     }
 
     cleanFileName(file) {
