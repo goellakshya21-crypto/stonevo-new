@@ -3,6 +3,7 @@ import { Sparkles, Send, Loader2, MessageSquare, X, ArrowRight, Eye } from 'luci
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { logActivity } from '../utils/activityTracker';
+import { resolveAlias } from '../lib/stoneAliases';
 
 const ChatAssistant = ({ marbles, onStoneClick, onVisualizeRequest }) => {
     const [messages, setMessages] = useState([]);
@@ -130,26 +131,34 @@ const ChatAssistant = ({ marbles, onStoneClick, onVisualizeRequest }) => {
             if (!cleanedJson) throw new Error("No JSON found in AI response");
             const data = JSON.parse(cleanedJson);
 
+            // Helper: find a stone by name OR alias (case/space tolerant)
+            const findStoneByNameOrAlias = (rawName) => {
+                if (!rawName) return null;
+                const want = rawName.toLowerCase().trim();
+                // 1. Exact name match
+                let s = marbles.find(m => m.name?.toLowerCase().trim() === want);
+                if (s) return s;
+                // 2. Alias → resolves to canonical name → look that up
+                const canonical = resolveAlias(rawName);
+                if (canonical) {
+                    s = marbles.find(m => m.name?.toLowerCase().trim() === canonical.toLowerCase().trim());
+                    if (s) return s;
+                }
+                // 3. Loose substring fallback
+                return marbles.find(m => m.name?.toLowerCase().includes(want)) || null;
+            };
+
             setMessages(prev => [...prev, {
                 role: 'assistant',
                 content: data.text,
-                stones: (data.suggestedStoneNames || []).map(name =>
-                    marbles.find(m => m.name.toLowerCase().trim() === name.toLowerCase().trim())
-                ).filter(Boolean)
+                stones: (data.suggestedStoneNames || [])
+                    .map(name => findStoneByNameOrAlias(name))
+                    .filter(Boolean)
             }]);
 
             // Handle Visualization Intent
             if (data.visualization?.request && onVisualizeRequest) {
-                
-                // More robust stone matching: check name, then check if stoneName is IN the name
-                let stone = marbles.find(m => 
-                    m.name.toLowerCase().trim() === data.visualization.stoneName?.toLowerCase().trim()
-                );
-                
-                if (!stone && data.visualization.stoneName) {
-                    const searchName = data.visualization.stoneName.toLowerCase().trim();
-                    stone = marbles.find(m => m.name.toLowerCase().includes(searchName));
-                }
+                let stone = findStoneByNameOrAlias(data.visualization.stoneName);
 
                 if (stone) {
                     onVisualizeRequest({

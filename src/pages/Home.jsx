@@ -6,6 +6,7 @@ import ImageModal from '../components/ImageModal';
 import AIVisualizationModal from '../components/AIVisualizationModal';
 import { supabase } from '../lib/supabaseClient';
 import Fuse from 'fuse.js';
+import { enrichWithAliases, resolveAlias } from '../lib/stoneAliases';
 import ChatAssistant from '../components/ChatAssistant';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -481,14 +482,23 @@ function Home({ role }) {
     const filteredMarbles = useMemo(() => {
         let result = marbles;
         if (filters.name.trim()) {
-            const fuse = new Fuse(marbles, {
-                keys: ['name', 'physical_properties.application', 'tags', 'description'],
+            // 1. Resolve query → if user typed an alias, translate to canonical name
+            //    e.g. "Bianco Ciano" → "Angelo White"
+            const aliasResolved = resolveAlias(filters.name);
+            const searchTerm = aliasResolved || filters.name;
+
+            // 2. Enrich each stone with its known aliases so Fuse can match on them too
+            //    (handles fuzzy/partial alias matches like "bianco cian")
+            const enriched = enrichWithAliases(marbles);
+
+            const fuse = new Fuse(enriched, {
+                keys: ['name', '_aliases', 'physical_properties.application', 'tags', 'description'],
                 threshold: 0.35,
                 distance: 100,
                 minMatchCharLength: 2,
                 includeScore: true
             });
-            const searchResults = fuse.search(filters.name);
+            const searchResults = fuse.search(searchTerm);
             result = searchResults.map(res => res.item);
         }
         // Linked applications: filtering by one also shows stones tagged with the other
