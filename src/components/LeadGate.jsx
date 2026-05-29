@@ -551,7 +551,7 @@ const LeadGate = ({ children }) => {
                     >
                         <div className="glass-panel p-10 md:p-14 rounded-3xl border border-white/10 shadow-2xl backdrop-blur-xl">
                             <div className="text-center mb-10">
-                                <h1 className="text-4xl md:text-5xl font-serif text-luxury-cream mb-4 italic">Architectural Gate</h1>
+                                <h1 className="text-4xl md:text-5xl font-serif text-luxury-cream mb-4 italic">Secure Access</h1>
                                 <p className="text-bronze font-display text-xs uppercase tracking-[0.3em]">Institutional Access Only</p>
                             </div>
 
