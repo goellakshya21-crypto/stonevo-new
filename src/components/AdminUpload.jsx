@@ -72,6 +72,7 @@ const AdminUpload = ({ onCancel }) => {
                 unspecified,
                 { value: 'Dolomite', label: 'Dolomite' },
                 { value: 'Marble', label: 'Marble' },
+                { value: 'Onyx', label: 'Onyx' },
                 { value: 'Sandstones & Limestone', label: 'Sandstones & Limestone' },
                 { value: 'Semi-Precious', label: 'Semi-Precious' },
                 { value: 'Granite & Quartzite', label: 'Granite & Quartzite' },
