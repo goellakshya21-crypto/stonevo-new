@@ -457,12 +457,13 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, onChange, initialData, 
                         }
                     `}</style>
 
-                    {/* Close Button - Positioned in extreme corner to avoid header overlap */}
+                    {/* Close Button — fixed to viewport so it stays visible while scrolling */}
                     <button
                         onClick={onClose}
-                        className="absolute top-8 right-8 p-3 text-slate-500 hover:text-white transition-colors z-[110]"
+                        aria-label="Close"
+                        className="fixed top-4 right-4 md:top-6 md:right-6 z-[200] p-3 bg-black/70 hover:bg-[#eca413] text-white hover:text-black rounded-full transition-all backdrop-blur-md border border-white/20 shadow-lg"
                     >
-                        <X size={24} />
+                        <X size={20} />
                     </button>
 
                     <main className="p-8 lg:p-16 w-full">

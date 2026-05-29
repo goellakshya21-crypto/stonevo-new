@@ -78,13 +78,14 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
                     className="fixed inset-0 bg-white flex flex-col md:flex-row overflow-y-auto md:overflow-hidden animate-scale-up"
                     onClick={e => e.stopPropagation()}
                 >
-                    {/* Close Button */}
+                    {/* Close Button — fixed to viewport, high z-index, large tap target */}
                     <button
                         onClick={onClose}
-                        className="fixed top-4 right-4 z-[60] p-2.5 bg-white/80 hover:bg-stone-900 text-stone-900 hover:text-white rounded-full transition-all border border-stone-200 backdrop-blur-md shadow-lg"
+                        aria-label="Close"
+                        className="fixed top-4 right-4 md:top-6 md:right-6 z-[200] p-3 bg-stone-900/90 hover:bg-[#eca413] text-white hover:text-stone-900 rounded-full transition-all border border-white/20 backdrop-blur-md shadow-xl"
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
 

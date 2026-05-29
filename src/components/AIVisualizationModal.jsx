@@ -386,12 +386,13 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                 >
                     {/* Main UI Body */}
                     <div className="bg-[#0f0d0a] border border-white/10 w-full max-w-6xl h-[90vh] md:h-auto md:aspect-[16/9] rounded-2xl md:rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(236,164,19,0.15)] flex flex-col md:flex-row relative">
-                        {/* Close Button */}
+                        {/* Close Button — fixed to viewport so it stays visible while scrolling */}
                         <button
                             onClick={onClose}
-                            className="absolute top-4 md:top-6 right-4 md:right-6 z-[100] p-2.5 md:p-3 bg-black/60 hover:bg-[#eca413] text-white hover:text-black rounded-full transition-all backdrop-blur-md border border-white/10"
+                            aria-label="Close"
+                            className="fixed top-4 md:top-6 right-4 md:right-6 z-[300] p-2.5 md:p-3 bg-black/70 hover:bg-[#eca413] text-white hover:text-black rounded-full transition-all backdrop-blur-md border border-white/20 shadow-lg"
                         >
-                            <X size={18} />
+                            <X size={20} />
                         </button>
 
                         {/* Sequential Steps Overlay */}
