@@ -31,19 +31,18 @@ export const STONE_ALIASES = {
     "Albastar Flow":         ["Picasso Ardent"],
 
     // ── Multi-canonical aliases (shared aliases that map to several stones) ──
-    // "Volakas" → Angelo White, Velora White, Brown Statuario  (3 different stones share this alias)
+    // "Volakas" → Angelo White, Velora White  (Brown Statuario removed — no DB stones)
     "Angelo White":          ["Bianco Voque", "Volakas"],
     "Velora White":          ["Pirgon", "Volakas"],
-    "Brown Statuario":       ["Volakas", "Acropolis Grano", "Bianco Acropolis"],
 
     // "Dior Pearl" → 3 Vietnam White variants (and typo "Vientnam" tolerance)
     "Vietnam White Select":  ["Flawless White", "Dior Pearl", "Vientnam White Select"],
     "Vietnam White Classic": ["Dior Pearl"],
     "Vietnam White Elite":   ["Dior Pearl", "Newzealand Bianco"],
 
-    // "Callacata" → Callacata Gold AND Paonazzo
-    "Callacata Gold":        ["Pianazo", "Statuario Gold", "Callacata", "Golden Statuarion"],
-    "Paonazzo":              ["Callacata", "Callacata Gold"],
+    // Callacata Gold doesn't exist in the DB — everyone effectively means Paonazzo.
+    // Merge all those aliases into Paonazzo so users typing any of them find it.
+    "Paonazzo":              ["Callacata", "Callacata Gold", "Pianazo", "Statuario Gold", "Golden Statuarion"],
 
     // "Michel Angelo" → 4 family variants (covers numbered variants via contains-match)
     "Peach Michel Angelo":    ["Michel Angelo"],
