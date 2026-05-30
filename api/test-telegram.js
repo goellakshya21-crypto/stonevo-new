@@ -6,12 +6,11 @@
  *  - Whether env vars are configured
  *  - The result of trying to send a test message
  *  - Any error from Telegram's API
- *
- * Token/chat ID are partially masked in the response so it's safe to share screenshots.
- *
- * Build trigger: forcing fresh deploy to pick up env vars.
  */
 export default async function handler(req, res) {
+    // Prevent any caching of this debug response
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+
     const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
     const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
@@ -21,18 +20,27 @@ export default async function handler(req, res) {
         return s.slice(0, 4) + '...' + s.slice(-4);
     };
 
+    // Show ALL env keys starting with TELEGRAM so we can spot typos / wrong names
+    const allTelegramKeys = Object.keys(process.env).filter(k => k.toUpperCase().includes('TELEGRAM'));
+
     const diagnostics = {
         env: {
-            TELEGRAM_BOT_TOKEN: TOKEN ? `SET (${mask(TOKEN)})` : '❌ NOT SET',
+            TELEGRAM_BOT_TOKEN: TOKEN ? `SET (${mask(TOKEN)}, length=${TOKEN.length})` : '❌ NOT SET',
             TELEGRAM_CHAT_ID: CHAT_ID ? `SET (${CHAT_ID})` : '❌ NOT SET',
         },
+        allKeysContainingTelegram: allTelegramKeys.length > 0 ? allTelegramKeys : '(none found)',
+        envVarsTotal: Object.keys(process.env).length,
+        runtime: process.env.VERCEL_ENV || 'unknown',
+        region: process.env.VERCEL_REGION || 'unknown',
+        deploymentId: process.env.VERCEL_DEPLOYMENT_ID || 'unknown',
         timestamp: new Date().toISOString()
     };
 
     if (!TOKEN || !CHAT_ID) {
         return res.status(200).json({
             ok: false,
-            reason: 'Missing env vars — add them in Vercel → Settings → Environment Variables, then redeploy.',
+            reason: 'Missing env vars',
+            hint: 'In Vercel: 1) Make sure vars are NOT marked "Sensitive" — try un-checking, 2) Apply to Production environment, 3) Redeploy.',
             diagnostics
         });
     }
