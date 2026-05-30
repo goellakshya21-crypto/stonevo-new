@@ -5,6 +5,8 @@
  * Reads TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID from Vercel env vars.
  *
  * POST { text: "...", parseMode?: "HTML"|"Markdown" }
+ *
+ * Deploy: triggered to pick up new env vars.
  */
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
