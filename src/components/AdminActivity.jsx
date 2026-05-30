@@ -6,6 +6,7 @@ const ROLE_STYLES = {
     architect: 'bg-amber-100 text-amber-800 border border-amber-200',
     builder:   'bg-blue-100 text-blue-700 border border-blue-200',
     client:    'bg-purple-100 text-purple-700 border border-purple-200',
+    vendor:    'bg-emerald-100 text-emerald-800 border border-emerald-200',
     admin:     'bg-red-100 text-red-700 border border-red-200',
 };
 
@@ -100,7 +101,7 @@ CREATE POLICY "allow_read_login_events"
                     <div className="flex items-center gap-3">
                         {/* Role filter pills */}
                         <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-lg text-xs font-bold uppercase tracking-widest">
-                            {['all', 'architect', 'builder', 'client'].map(r => (
+                            {['all', 'architect', 'builder', 'client', 'vendor'].map(r => (
                                 <button
                                     key={r}
                                     onClick={() => setFilter(r)}
