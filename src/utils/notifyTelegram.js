@@ -30,6 +30,7 @@ const roleEmoji = (role) => {
     const r = (role || '').toLowerCase();
     if (r === 'architect') return '🏛';
     if (r === 'admin') return '👑';
+    if (r === 'vendor') return '📦';
     if (r === 'builder' || r === 'client') return '🏠';
     return '👤';
 };
@@ -38,6 +39,7 @@ const roleLabel = (role) => {
     const r = (role || '').toLowerCase();
     if (r === 'architect') return 'Architect';
     if (r === 'admin') return 'Admin';
+    if (r === 'vendor') return 'Vendor';
     if (r === 'builder' || r === 'client') return 'Project Owner';
     return role || 'User';
 };

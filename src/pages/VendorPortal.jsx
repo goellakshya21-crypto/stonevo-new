@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { compressImage } from '../utils/imageOptimizer';
 import { Phone, ShieldCheck, Plus, Upload, Trash2, Edit3, X, LogOut, Image as ImageIcon } from 'lucide-react';
+import { notifyLogin } from '../utils/notifyTelegram';
 
 const DEV_NUMBERS = ['7678320944', '7042353166']; // OTP bypass with 000000
 
@@ -377,6 +378,15 @@ const VendorGate = ({ onAuthorized }) => {
                 return;
             }
             localStorage.setItem('stonevo_vendor_id', vendor.id);
+            // Ping Telegram (fire-and-forget, never blocks login)
+            try {
+                notifyLogin({
+                    phone: vendor.phone,
+                    name: vendor.full_name,
+                    role: 'vendor',
+                    status: vendor.status
+                });
+            } catch { /* silent */ }
             onAuthorized(vendor);
         } catch (err) { setError(err.message); }
         finally { setSubmitting(false); }
