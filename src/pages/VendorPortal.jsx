@@ -384,7 +384,8 @@ const VendorGate = ({ onAuthorized }) => {
                     phone: vendor.phone,
                     name: vendor.full_name,
                     role: 'vendor',
-                    status: vendor.status
+                    status: vendor.status,
+                    leadId: vendor.id
                 });
             } catch { /* silent */ }
             onAuthorized(vendor);

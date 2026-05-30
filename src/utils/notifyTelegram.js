@@ -1,58 +1,21 @@
 /**
  * Telegram notification helper — fires-and-forgets, never blocks UX.
  *
- * Sends formatted login / signup / request alerts to the Stonevo Alerts group.
- *
- * All calls go through /api/notify-telegram (server-side, token-safe).
+ * Sends raw event data to /api/notify-telegram, which handles:
+ *   - team skip list
+ *   - quiet hours
+ *   - cooldown per phone
+ *   - activity context fetch
+ *   - message formatting
+ *   - inline buttons
  */
 
-// Internal dev/test numbers — skip notifications for these to avoid spam during testing.
-const SKIP_NUMBERS = new Set(['7678320944', '7042353166']);
-
-const escapeHtml = (s) => {
-    if (s == null) return '';
-    return String(s)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-};
-
-const formatTime = () => {
-    const now = new Date();
-    return now.toLocaleString('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        day: '2-digit', month: 'short', year: 'numeric',
-        hour: '2-digit', minute: '2-digit', hour12: true
-    });
-};
-
-const roleEmoji = (role) => {
-    const r = (role || '').toLowerCase();
-    if (r === 'architect') return '🏛';
-    if (r === 'admin') return '👑';
-    if (r === 'vendor') return '📦';
-    if (r === 'builder' || r === 'client') return '🏠';
-    return '👤';
-};
-
-const roleLabel = (role) => {
-    const r = (role || '').toLowerCase();
-    if (r === 'architect') return 'Architect';
-    if (r === 'admin') return 'Admin';
-    if (r === 'vendor') return 'Vendor';
-    if (r === 'builder' || r === 'client') return 'Project Owner';
-    return role || 'User';
-};
-
-/**
- * Low-level fire-and-forget send. Never throws — failures are silently logged.
- */
-const sendToTelegram = (text) => {
+const send = (payload) => {
     try {
         fetch('/api/notify-telegram', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text, parseMode: 'HTML' })
+            body: JSON.stringify(payload)
         }).catch(err => console.warn('[Telegram] notify failed (non-blocking):', err));
     } catch (err) {
         console.warn('[Telegram] notify error:', err);
@@ -60,78 +23,39 @@ const sendToTelegram = (text) => {
 };
 
 /**
- * Login notification — fires when a known user logs in (returning or new).
- *
- * @param {object} info
- * @param {string} info.phone        - 10-digit phone
- * @param {string} info.name         - Full name
- * @param {string} info.role         - architect | builder | client | admin
- * @param {string} [info.firm]       - Firm name (architects)
- * @param {string} [info.status]     - approved | pending | rejected
- * @param {boolean} [info.isFirstLogin] - True for first-ever login
+ * Plain login event (returning architect/client/vendor/etc.)
+ * Server applies cooldown — won't ping more than once per hour per phone.
  */
-export const notifyLogin = ({ phone, name, role, firm, status, isFirstLogin }) => {
-    const clean = (phone || '').replace(/\D/g, '').slice(-10);
-    if (SKIP_NUMBERS.has(clean)) return; // skip internal test numbers
-
-    const header = isFirstLogin ? '🎉 <b>FIRST LOGIN</b>' : '🪨 <b>NEW LOGIN</b>';
-    const lines = [
-        header,
-        '',
-        `${roleEmoji(role)} <b>${escapeHtml(name || 'Unknown')}</b>`,
-        `📞 +91 ${escapeHtml(clean)}`,
-        `${roleEmoji(role)} ${escapeHtml(roleLabel(role))}${status ? ` · ${escapeHtml(status)}` : ''}`,
-    ];
-    if (firm) lines.push(`🏢 ${escapeHtml(firm)}`);
-    lines.push(`⏰ ${formatTime()} IST`);
-
-    sendToTelegram(lines.join('\n'));
+export const notifyLogin = ({ phone, name, role, firm, status, isFirstLogin, leadId }) => {
+    send({
+        event: 'login',
+        phone, name, role, firm, status, isFirstLogin, leadId
+    });
 };
 
 /**
- * New architect signup — fires when an architect completes registration.
+ * New architect signup — always pings (bypasses cooldown + quiet hours).
  */
-export const notifyArchitectSignup = ({ phone, name, firm, email, website }) => {
-    const clean = (phone || '').replace(/\D/g, '').slice(-10);
-    if (SKIP_NUMBERS.has(clean)) return;
-
-    const lines = [
-        '🆕 <b>NEW ARCHITECT SIGNUP</b>',
-        '⚠️ Action needed — review in admin panel',
-        '',
-        `🏛 <b>${escapeHtml(name || 'Unknown')}</b>`,
-        `📞 +91 ${escapeHtml(clean)}`,
-    ];
-    if (firm) lines.push(`🏢 ${escapeHtml(firm)}`);
-    if (email) lines.push(`📧 ${escapeHtml(email)}`);
-    if (website) lines.push(`🌐 ${escapeHtml(website)}`);
-    lines.push(`⏰ ${formatTime()} IST`);
-
-    sendToTelegram(lines.join('\n'));
+export const notifyArchitectSignup = ({ phone, name, firm, email, website, leadId }) => {
+    send({
+        event: 'signup',
+        phone, name, role: 'architect', firm, email, website, leadId,
+        isFirstLogin: true
+    });
 };
 
 /**
- * New client request — fires when a client asks to join an architect's workspace.
+ * New client request — always pings.
  */
-export const notifyClientRequest = ({ phone, name, architectPhone, architectName }) => {
-    const clean = (phone || '').replace(/\D/g, '').slice(-10);
-    if (SKIP_NUMBERS.has(clean)) return;
-
-    const lines = [
-        '🤝 <b>NEW CLIENT REQUEST</b>',
-        '',
-        `🏠 <b>${escapeHtml(name || 'Unknown')}</b>`,
-        `📞 +91 ${escapeHtml(clean)}`,
-    ];
-    if (architectName || architectPhone) {
-        lines.push(`🔗 Requesting architect: ${escapeHtml(architectName || 'Unknown')}${architectPhone ? ` (${escapeHtml(architectPhone)})` : ''}`);
-    }
-    lines.push(`⏰ ${formatTime()} IST`);
-
-    sendToTelegram(lines.join('\n'));
+export const notifyClientRequest = ({ phone, name, architectPhone, leadId }) => {
+    send({
+        event: 'request',
+        phone, name, role: 'builder', architectPhone, leadId,
+        isFirstLogin: true
+    });
 };
 
 /**
  * Generic — send a custom message (debug / future events).
  */
-export const notifyTelegram = (text) => sendToTelegram(text);
+export const notifyTelegram = (text) => send({ event: 'custom', text });

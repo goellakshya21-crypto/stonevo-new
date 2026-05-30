@@ -49,7 +49,8 @@ const LeadGate = ({ children }) => {
                 role,
                 firm: extra.firm,
                 status: extra.status,
-                isFirstLogin: extra.isFirstLogin
+                isFirstLogin: extra.isFirstLogin,
+                leadId: extra.leadId
             });
         } catch { /* silent */ }
     };
@@ -114,7 +115,7 @@ const LeadGate = ({ children }) => {
             }
             // Log every visit where the session is already active
             if (data.status === 'approved') {
-                logLogin(data.phone, data.full_name, data.role || 'architect');
+                logLogin(data.phone, data.full_name, data.role || 'architect', { leadId: data.id, firm: data.company_name, status: data.status });
             }
             setStatus(data.status);
         } catch (err) {
@@ -226,7 +227,7 @@ const LeadGate = ({ children }) => {
                 // Already registered with a role — skip role selection, log straight in
                 setDiagnostics(`RETURNING USER: ${existingLead.full_name} (${existingLead.role})`);
                 await supabase.from('leads').update({ last_active: new Date().toISOString() }).eq('id', existingLead.id);
-                await logLogin(cleanPhone, existingLead.full_name, existingLead.role);
+                await logLogin(cleanPhone, existingLead.full_name, existingLead.role, { leadId: existingLead.id, firm: existingLead.company_name, status: existingLead.status });
                 localStorage.setItem('stonevo_lead_id', existingLead.id);
                 localStorage.setItem('stonevo_user_phone', existingLead.phone || cleanPhone);
                 localStorage.setItem('stonevo_user_name', existingLead.full_name);
@@ -275,7 +276,7 @@ const LeadGate = ({ children }) => {
 
             if (upsertError) throw upsertError;
 
-            await logLogin(data.phone || pendingLead.phone, data.full_name || pendingLead.full_name, chosenRole, { isFirstLogin: true, firm: data.company_name || pendingLead.company_name });
+            await logLogin(data.phone || pendingLead.phone, data.full_name || pendingLead.full_name, chosenRole, { isFirstLogin: true, firm: data.company_name || pendingLead.company_name, leadId: data.id });
             // Ping Telegram with rich architect signup details
             if (chosenRole === 'architect') {
                 try {
@@ -284,7 +285,8 @@ const LeadGate = ({ children }) => {
                         name: data.full_name || pendingLead.full_name,
                         firm: data.company_name || pendingLead.company_name,
                         email: data.email || pendingLead.email,
-                        website: data.website || pendingLead.website
+                        website: data.website || pendingLead.website,
+                        leadId: data.id
                     });
                 } catch { /* silent */ }
             }
@@ -389,14 +391,14 @@ const LeadGate = ({ children }) => {
                 .single();
 
             if (error) throw error;
-            await logLogin(cleanPhone, clientRequest.full_name, 'builder', { isFirstLogin: true, status: hasArchitect ? 'pending' : 'approved' });
+            await logLogin(cleanPhone, clientRequest.full_name, 'builder', { isFirstLogin: true, status: hasArchitect ? 'pending' : 'approved', leadId: data.id });
             // Ping Telegram with client-request specifics
             try {
                 notifyClientRequest({
                     phone: cleanPhone,
                     name: clientRequest.full_name,
                     architectPhone: hasArchitect ? cleanArchPhone : null,
-                    architectName: null
+                    leadId: data.id
                 });
             } catch { /* silent */ }
             localStorage.setItem('stonevo_lead_id', data.id);

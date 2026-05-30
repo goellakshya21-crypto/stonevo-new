@@ -1,0 +1,4712 @@
+[
+  {
+    "orig_name": "Bianco Lava",
+    "new_name": "Bianco Vulcanico",
+    "old_slug": "bianco-lava",
+    "new_slug": "bianco-vulcanico",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0000_Bianco_Lava.jpg"
+  },
+  {
+    "orig_name": "Dimond White",
+    "new_name": "Crystal Magnifico",
+    "old_slug": "dimond-white",
+    "new_slug": "crystal-magnifico",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0001_Dimond_White.jpg"
+  },
+  {
+    "orig_name": "Diamond white Shot Blast Finish",
+    "new_name": "Arctic Imperiale",
+    "old_slug": "diamond-white-shot-blast-finish",
+    "new_slug": "arctic-imperiale",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0002_Diamond_white_Shot_Blast_Finish.jpg"
+  },
+  {
+    "orig_name": "White On White (WOW)",
+    "new_name": "Alpine Classico",
+    "old_slug": "white-on-white-wow",
+    "new_slug": "alpine-classico",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0003_White_On_White__WOW_.jpg"
+  },
+  {
+    "orig_name": "Alaska Snow Sea",
+    "new_name": "Polar Niveo",
+    "old_slug": "alaska-snow-sea",
+    "new_slug": "polar-niveo",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0004_Alaska_Snow_Sea.jpg"
+  },
+  {
+    "orig_name": "Statuario SGR",
+    "new_name": "Snow Statuario",
+    "old_slug": "statuario-sgr",
+    "new_slug": "snow-statuario",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0005_Statuario_SGR.jpg"
+  },
+  {
+    "orig_name": "Statuario 1 Areka Finish",
+    "new_name": "Pearl Statuario",
+    "old_slug": "statuario-1-areka-finish",
+    "new_slug": "pearl-statuario",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0006_Statuario_1_Areka_Finish.jpg"
+  },
+  {
+    "orig_name": "Statuario 2",
+    "new_name": "Neve Statuario",
+    "old_slug": "statuario-2",
+    "new_slug": "neve-statuario",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0007_Statuario_2.jpg"
+  },
+  {
+    "orig_name": "Statuario 3",
+    "new_name": "Ghiaccio Statuario",
+    "old_slug": "statuario-3",
+    "new_slug": "ghiaccio-statuario",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0008_Statuario_3.jpg"
+  },
+  {
+    "orig_name": "Statuario 4",
+    "new_name": "Lunare Statuario",
+    "old_slug": "statuario-4",
+    "new_slug": "lunare-statuario",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0009_Statuario_4.jpg"
+  },
+  {
+    "orig_name": "Bianco Iceberg",
+    "new_name": "Bianco Puro",
+    "old_slug": "bianco-iceberg",
+    "new_slug": "bianco-puro",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0010_Bianco_Iceberg.jpg"
+  },
+  {
+    "orig_name": "Bianco Ajo Pelado",
+    "new_name": "Crystal Sontuoso",
+    "old_slug": "bianco-ajo-pelado",
+    "new_slug": "crystal-sontuoso",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0011_Bianco_Ajo_Pelado.jpg"
+  },
+  {
+    "orig_name": "Calacatta Galena",
+    "new_name": "Arctic Calacatta",
+    "old_slug": "calacatta-galena",
+    "new_slug": "arctic-calacatta",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0012_Calacatta_Galena.jpg"
+  },
+  {
+    "orig_name": "Foam White",
+    "new_name": "Alpine Nobile",
+    "old_slug": "foam-white",
+    "new_slug": "alpine-nobile",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0013_Foam_White.jpg"
+  },
+  {
+    "orig_name": "Foam White 2",
+    "new_name": "Polar Prezioso",
+    "old_slug": "foam-white-2",
+    "new_slug": "polar-prezioso",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0014_Foam_White_2.jpg"
+  },
+  {
+    "orig_name": "Whoopher Olar",
+    "new_name": "Snow Venato",
+    "old_slug": "whoopher-olar",
+    "new_slug": "snow-venato",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0015_Whoopher_Olar.jpg"
+  },
+  {
+    "orig_name": "Luminous Cloud",
+    "new_name": "Ash Nebuloso",
+    "old_slug": "luminous-cloud",
+    "new_slug": "ash-nebuloso",
+    "color": "grey",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0016_Luminous_Cloud.jpg"
+  },
+  {
+    "orig_name": "Bianco Carrara",
+    "new_name": "Sabbia Carrara",
+    "old_slug": "bianco-carrara",
+    "new_slug": "sabbia-carrara",
+    "color": "beige",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0017_Bianco_Carrara.jpg"
+  },
+  {
+    "orig_name": "Thassos White",
+    "new_name": "Ghiaccio Classico",
+    "old_slug": "thassos-white",
+    "new_slug": "ghiaccio-classico",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0018_Thassos_White.jpg"
+  },
+  {
+    "orig_name": "Artic white",
+    "new_name": "Lunare Artico",
+    "old_slug": "artic-white",
+    "new_slug": "lunare-artico",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0019_Artic_white.jpg"
+  },
+  {
+    "orig_name": "Bianco Lasa",
+    "new_name": "Avorio Elegante",
+    "old_slug": "bianco-lasa",
+    "new_slug": "avorio-elegante",
+    "color": "cream",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0020_Bianco_Lasa.jpg"
+  },
+  {
+    "orig_name": "Bianco Monte Rosa",
+    "new_name": "Ivory Brillante",
+    "old_slug": "bianco-monte-rosa",
+    "new_slug": "ivory-brillante",
+    "color": "cream",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0021_Bianco_Monte_Rosa.jpg"
+  },
+  {
+    "orig_name": "Bianco Rhino",
+    "new_name": "Vanilla Antico",
+    "old_slug": "bianco-rhino",
+    "new_slug": "vanilla-antico",
+    "color": "cream",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0022_Bianco_Rhino.jpg"
+  },
+  {
+    "orig_name": "Breccia Capraia",
+    "new_name": "Sahara Lustro",
+    "old_slug": "breccia-capraia",
+    "new_slug": "sahara-lustro",
+    "color": "beige",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0023_Breccia_Capraia.png"
+  },
+  {
+    "orig_name": "Albino Arowana",
+    "new_name": "Bisque Regale",
+    "old_slug": "albino-arowana",
+    "new_slug": "bisque-regale",
+    "color": "beige",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0024_Albino_Arowana.jpg"
+  },
+  {
+    "orig_name": "Bianco Husky",
+    "new_name": "Parchment Puro",
+    "old_slug": "bianco-husky",
+    "new_slug": "parchment-puro",
+    "color": "cream",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0025_Bianco_Husky.jpg"
+  },
+  {
+    "orig_name": "Capraia Areka Finish",
+    "new_name": "Pearl Sontuoso",
+    "old_slug": "capraia-areka-finish",
+    "new_slug": "pearl-sontuoso",
+    "color": "white",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0026_Capraia_Areka_Finish.jpg"
+  },
+  {
+    "orig_name": "Oyster white",
+    "new_name": "Sabbia Finissimo",
+    "old_slug": "oyster-white",
+    "new_slug": "sabbia-finissimo",
+    "color": "beige",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0027_Oyster_white.jpg"
+  },
+  {
+    "orig_name": "White Heron",
+    "new_name": "Avena Nobile",
+    "old_slug": "white-heron",
+    "new_slug": "avena-nobile",
+    "color": "beige",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0028_White_Heron.jpg"
+  },
+  {
+    "orig_name": "Crema Luna",
+    "new_name": "Candido Lunare",
+    "old_slug": "crema-luna",
+    "new_slug": "candido-lunare",
+    "color": "cream",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0029_Crema_Luna.jpg"
+  },
+  {
+    "orig_name": "BTC Classico",
+    "new_name": "Crema Classico",
+    "old_slug": "btc-classico",
+    "new_slug": "crema-classico",
+    "color": "beige",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0030_BTC_Classico.jpg"
+  },
+  {
+    "orig_name": "Euro Stella",
+    "new_name": "Sand Stellare",
+    "old_slug": "euro-stella",
+    "new_slug": "sand-stellare",
+    "color": "beige",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0031_Euro_Stella.jpg"
+  },
+  {
+    "orig_name": "Mandorla",
+    "new_name": "Dune Imperiale",
+    "old_slug": "mandorla",
+    "new_slug": "dune-imperiale",
+    "color": "beige",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0032_Mandorla.jpg"
+  },
+  {
+    "orig_name": "Crema Barita",
+    "new_name": "Sahara Crema",
+    "old_slug": "crema-barita",
+    "new_slug": "sahara-crema",
+    "color": "beige",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0033_Crema_Barita.jpg"
+  },
+  {
+    "orig_name": "Italian Beige",
+    "new_name": "Bisque Supremo",
+    "old_slug": "italian-beige",
+    "new_slug": "bisque-supremo",
+    "color": "beige",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0034_Italian_Beige.jpg"
+  },
+  {
+    "orig_name": "Crema Eve",
+    "new_name": "Parchment Crema",
+    "old_slug": "crema-eve",
+    "new_slug": "parchment-crema",
+    "color": "cream",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0035_Crema_Eve.jpg"
+  },
+  {
+    "orig_name": "Crema Eve Areka Finish",
+    "new_name": "Almond Crema",
+    "old_slug": "crema-eve-areka-finish",
+    "new_slug": "almond-crema",
+    "color": "cream",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0036_Crema_Eve_Areka_Finish.jpg"
+  },
+  {
+    "orig_name": "Image Stone",
+    "new_name": "Sabbia Antico",
+    "old_slug": "image-stone",
+    "new_slug": "sabbia-antico",
+    "color": "beige",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0037_Image_Stone.jpg"
+  },
+  {
+    "orig_name": "Indus Cream",
+    "new_name": "Avena Crema",
+    "old_slug": "indus-cream",
+    "new_slug": "avena-crema",
+    "color": "beige",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0038_Indus_Cream.jpg"
+  },
+  {
+    "orig_name": "Mond Areka Finish",
+    "new_name": "Paglia Regale",
+    "old_slug": "mond-areka-finish",
+    "new_slug": "paglia-regale",
+    "color": "beige",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0039_Mond_Areka_Finish.jpg"
+  },
+  {
+    "orig_name": "Mond",
+    "new_name": "Crema Puro",
+    "old_slug": "mond",
+    "new_slug": "crema-puro",
+    "color": "beige",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0040_Mond.jpg"
+  },
+  {
+    "orig_name": "BTC",
+    "new_name": "Ivory Sontuoso",
+    "old_slug": "btc",
+    "new_slug": "ivory-sontuoso",
+    "color": "cream",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0041_BTC.jpg"
+  },
+  {
+    "orig_name": "Whooper Olar",
+    "new_name": "Jade Finissimo",
+    "old_slug": "whooper-olar",
+    "new_slug": "jade-finissimo",
+    "color": "green",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0042_Whooper_Olar.jpg"
+  },
+  {
+    "orig_name": "Millefoglie",
+    "new_name": "Smoke Nebuloso",
+    "old_slug": "millefoglie",
+    "new_slug": "smoke-nebuloso",
+    "color": "grey",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0043_Millefoglie.jpg"
+  },
+  {
+    "orig_name": "Green Tortoise",
+    "new_name": "Sage Prezioso",
+    "old_slug": "green-tortoise",
+    "new_slug": "sage-prezioso",
+    "color": "green",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0044_Green_Tortoise.jpg"
+  },
+  {
+    "orig_name": "Ringtail Possum",
+    "new_name": "Fern Venato",
+    "old_slug": "ringtail-possum",
+    "new_slug": "fern-venato",
+    "color": "green",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0045_Ringtail_Possum.jpg"
+  },
+  {
+    "orig_name": "San Pedro",
+    "new_name": "Malachite Magnifico",
+    "old_slug": "san-pedro",
+    "new_slug": "malachite-magnifico",
+    "color": "green",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0046_San_Pedro.jpg"
+  },
+  {
+    "orig_name": "Lavamar",
+    "new_name": "Pietra Vulcanico",
+    "old_slug": "lavamar",
+    "new_slug": "pietra-vulcanico",
+    "color": "grey",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0047_Lavamar.jpg"
+  },
+  {
+    "orig_name": "Gun Metal Super Extra",
+    "new_name": "Mandorla Supremo",
+    "old_slug": "gun-metal-super-extra",
+    "new_slug": "mandorla-supremo",
+    "color": "cream",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0048_Gun_Metal_Super_Extra.jpg"
+  },
+  {
+    "orig_name": "Grego Pozzolana",
+    "new_name": "Candido Supremo",
+    "old_slug": "grego-pozzolana",
+    "new_slug": "candido-supremo",
+    "color": "cream",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0049_Grego_Pozzolana.jpg"
+  },
+  {
+    "orig_name": "Frill Back Light",
+    "new_name": "Grigio Elegante",
+    "old_slug": "frill-back-light",
+    "new_slug": "grigio-elegante",
+    "color": "grey",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0050_Frill_Back_Light.jpg"
+  },
+  {
+    "orig_name": "Bianco Nebbia",
+    "new_name": "Storm Brillante",
+    "old_slug": "bianco-nebbia",
+    "new_slug": "storm-brillante",
+    "color": "grey",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0051_Bianco_Nebbia.jpg"
+  },
+  {
+    "orig_name": "Gun Metal SE",
+    "new_name": "Parchment Elegante",
+    "old_slug": "gun-metal-se",
+    "new_slug": "parchment-elegante",
+    "color": "cream",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0052_Gun_Metal_SE.jpg"
+  },
+  {
+    "orig_name": "Lar grey Areka Finish",
+    "new_name": "Smoke Lustro",
+    "old_slug": "lar-grey-areka-finish",
+    "new_slug": "smoke-lustro",
+    "color": "grey",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0053_Lar_grey_Areka_Finish.jpg"
+  },
+  {
+    "orig_name": "Couger",
+    "new_name": "Teak Regale",
+    "old_slug": "couger",
+    "new_slug": "teak-regale",
+    "color": "brown",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0054_Couger.jpg"
+  },
+  {
+    "orig_name": "Marlin",
+    "new_name": "Mirror Puro",
+    "old_slug": "marlin",
+    "new_slug": "mirror-puro",
+    "color": "silver",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0055_Marlin.jpg"
+  },
+  {
+    "orig_name": "Silver Root",
+    "new_name": "Bronze Argento",
+    "old_slug": "silver-root",
+    "new_slug": "bronze-argento",
+    "color": "brown",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0056_Silver_Root.jpg"
+  },
+  {
+    "orig_name": "Gregio Pozzolano",
+    "new_name": "Noce Finissimo",
+    "old_slug": "gregio-pozzolano",
+    "new_slug": "noce-finissimo",
+    "color": "brown",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0057_Gregio_Pozzolano.jpg"
+  },
+  {
+    "orig_name": "Grigio Aurora",
+    "new_name": "Mogano Aurora",
+    "old_slug": "grigio-aurora",
+    "new_slug": "mogano-aurora",
+    "color": "brown",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0058_Grigio_Aurora.jpg"
+  },
+  {
+    "orig_name": "Crystal Light",
+    "new_name": "Castagno Cristallo",
+    "old_slug": "crystal-light",
+    "new_slug": "castagno-cristallo",
+    "color": "brown",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0059_Crystal_Light.jpg"
+  },
+  {
+    "orig_name": "Light Emperador Brown",
+    "new_name": "Marrone Imperiale",
+    "old_slug": "light-emperador-brown",
+    "new_slug": "marrone-imperiale",
+    "color": "brown",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0060_Light_Emperador_Brown.jpg"
+  },
+  {
+    "orig_name": "Dark Emperador",
+    "new_name": "Walnut Imperiale",
+    "old_slug": "dark-emperador",
+    "new_slug": "walnut-imperiale",
+    "color": "brown",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0061_Dark_Emperador.jpg"
+  },
+  {
+    "orig_name": "Marron Ketupa",
+    "new_name": "Mocha Imperiale",
+    "old_slug": "marron-ketupa",
+    "new_slug": "mocha-imperiale",
+    "color": "brown",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0062_Marron_Ketupa.jpg"
+  },
+  {
+    "orig_name": "Bronze Amani (ARK)",
+    "new_name": "Espresso Bronzato",
+    "old_slug": "bronze-amani-ark",
+    "new_slug": "espresso-bronzato",
+    "color": "brown",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0063_Bronze_Amani__ARK_.jpg"
+  },
+  {
+    "orig_name": "Black Diamond",
+    "new_name": "Carbon Supremo",
+    "old_slug": "black-diamond",
+    "new_slug": "carbon-supremo",
+    "color": "black",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0064_Black_Diamond.jpg"
+  },
+  {
+    "orig_name": "Panda White",
+    "new_name": "Shadow Elegante",
+    "old_slug": "panda-white",
+    "new_slug": "shadow-elegante",
+    "color": "black",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0065_Panda_White.jpg"
+  },
+  {
+    "orig_name": "Gregio Picaso",
+    "new_name": "Notturno Brillante",
+    "old_slug": "gregio-picaso",
+    "new_slug": "notturno-brillante",
+    "color": "black",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0066_Gregio_Picaso.jpg"
+  },
+  {
+    "orig_name": "Silver Cloud",
+    "new_name": "Ebano Argento",
+    "old_slug": "silver-cloud",
+    "new_slug": "ebano-argento",
+    "color": "black",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0067_Silver_Cloud.jpg"
+  },
+  {
+    "orig_name": "Nero St Laurent",
+    "new_name": "Oscuro Lustro",
+    "old_slug": "nero-st-laurent",
+    "new_slug": "oscuro-lustro",
+    "color": "black",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0068_Nero_St_Laurent.jpg"
+  },
+  {
+    "orig_name": "Belgium Black",
+    "new_name": "Abisso Regale",
+    "old_slug": "belgium-black",
+    "new_slug": "abisso-regale",
+    "color": "black",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0069_Belgium_Black.jpg"
+  },
+  {
+    "orig_name": "Mildew Algae",
+    "new_name": "Verde Puro",
+    "old_slug": "mildew-algae",
+    "new_slug": "verde-puro",
+    "color": "green",
+    "type": "marble",
+    "source": "hmg",
+    "local_img": "images/0070_Mildew_Algae.jpg"
+  },
+  {
+    "orig_name": "Silver Grey",
+    "new_name": "Storm Argento",
+    "old_slug": "silver-grey",
+    "new_slug": "storm-argento",
+    "color": "grey",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0071_Silver_Grey.jpg"
+  },
+  {
+    "orig_name": "Cotton White",
+    "new_name": "Slate Tableland",
+    "old_slug": "cotton-white",
+    "new_slug": "slate-tableland",
+    "color": "grey",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0072_Cotton_White.jpg"
+  },
+  {
+    "orig_name": "ALP",
+    "new_name": "Smoke Escarp",
+    "old_slug": "alp",
+    "new_slug": "smoke-escarp",
+    "color": "grey",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0073_ALP.jpg"
+  },
+  {
+    "orig_name": "Butter Fruit",
+    "new_name": "Steel Fastness",
+    "old_slug": "butter-fruit",
+    "new_slug": "steel-fastness",
+    "color": "grey",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0074_Butter_Fruit.jpg"
+  },
+  {
+    "orig_name": "Lemon Ice",
+    "new_name": "Silver Peak",
+    "old_slug": "lemon-ice",
+    "new_slug": "silver-peak",
+    "color": "grey",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0075_Lemon_Ice.jpg"
+  },
+  {
+    "orig_name": "White Petal",
+    "new_name": "Ash Ridge",
+    "old_slug": "white-petal",
+    "new_slug": "ash-ridge",
+    "color": "grey",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0076_White_Petal.jpg"
+  },
+  {
+    "orig_name": "Newton Gold",
+    "new_name": "Pietra Dorato",
+    "old_slug": "newton-gold",
+    "new_slug": "pietra-dorato",
+    "color": "grey",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0077_Newton_Gold.jpg"
+  },
+  {
+    "orig_name": "Dry Leap",
+    "new_name": "Mandorla Mountain",
+    "old_slug": "dry-leap",
+    "new_slug": "mandorla-mountain",
+    "color": "cream",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0078_Dry_Leap.jpg"
+  },
+  {
+    "orig_name": "Golden Eagle",
+    "new_name": "Fiamma Highland",
+    "old_slug": "golden-eagle",
+    "new_slug": "fiamma-highland",
+    "color": "red",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0079_Golden_Eagle.jpg"
+  },
+  {
+    "orig_name": "Pigeon Eye",
+    "new_name": "Rosso Boulder",
+    "old_slug": "pigeon-eye",
+    "new_slug": "rosso-boulder",
+    "color": "red",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0080_Pigeon_Eye.jpg"
+  },
+  {
+    "orig_name": "Colombo Juprana",
+    "new_name": "Walnut Massif",
+    "old_slug": "colombo-juprana",
+    "new_slug": "walnut-massif",
+    "color": "brown",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0081_Colombo_Juprana.jpg"
+  },
+  {
+    "orig_name": "Antarctic Wild Forest",
+    "new_name": "Slate Selvatico",
+    "old_slug": "antarctic-wild-forest",
+    "new_slug": "slate-selvatico",
+    "color": "grey",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0082_Antarctic_Wild_Forest.jpg"
+  },
+  {
+    "orig_name": "Monarch Butter Flies",
+    "new_name": "Forest Pinnacle",
+    "old_slug": "monarch-butter-flies",
+    "new_slug": "forest-pinnacle",
+    "color": "green",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0083_Monarch_Butter_Flies.jpg"
+  },
+  {
+    "orig_name": "Coasta Esmarald",
+    "new_name": "Sage Crest",
+    "old_slug": "coasta-esmarald",
+    "new_slug": "sage-crest",
+    "color": "green",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0084_Coasta_Esmarald.jpg"
+  },
+  {
+    "orig_name": "Copenhagen",
+    "new_name": "Saffron Upland",
+    "old_slug": "copenhagen",
+    "new_slug": "saffron-upland",
+    "color": "gold",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0085_Copenhagen.jpg"
+  },
+  {
+    "orig_name": "Igneous Gold",
+    "new_name": "Bronze Dorato",
+    "old_slug": "igneous-gold",
+    "new_slug": "bronze-dorato",
+    "color": "brown",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0086_Igneous_Gold.jpg"
+  },
+  {
+    "orig_name": "Tigrato",
+    "new_name": "Acciaio Tableland",
+    "old_slug": "tigrato",
+    "new_slug": "acciaio-tableland",
+    "color": "silver",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0087_Tigrato.jpg"
+  },
+  {
+    "orig_name": "Crystal Yellow",
+    "new_name": "Ardesia Cristallo",
+    "old_slug": "crystal-yellow",
+    "new_slug": "ardesia-cristallo",
+    "color": "grey",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0088_Crystal_Yellow.jpg"
+  },
+  {
+    "orig_name": "Brass Blue",
+    "new_name": "Giada Fastness",
+    "old_slug": "brass-blue",
+    "new_slug": "giada-fastness",
+    "color": "green",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0089_Brass_Blue.jpg"
+  },
+  {
+    "orig_name": "Blue Star",
+    "new_name": "Verde Stellare",
+    "old_slug": "blue-star",
+    "new_slug": "verde-stellare",
+    "color": "green",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0090_Blue_Star.jpg"
+  },
+  {
+    "orig_name": "Nero Foxtail 2",
+    "new_name": "Midnight Ridge",
+    "old_slug": "nero-foxtail-2",
+    "new_slug": "midnight-ridge",
+    "color": "black",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0091_Nero_Foxtail_2.jpg"
+  },
+  {
+    "orig_name": "Nero Foxtail",
+    "new_name": "Obsidian Summit",
+    "old_slug": "nero-foxtail",
+    "new_slug": "obsidian-summit",
+    "color": "black",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0092_Nero_Foxtail.jpg"
+  },
+  {
+    "orig_name": "Titanium Gold",
+    "new_name": "Eclipse Dorato",
+    "old_slug": "titanium-gold",
+    "new_slug": "eclipse-dorato",
+    "color": "black",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0093_Titanium_Gold.jpg"
+  },
+  {
+    "orig_name": "Cizglex",
+    "new_name": "Carbon Highland",
+    "old_slug": "cizglex",
+    "new_slug": "carbon-highland",
+    "color": "black",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0094_Cizglex.jpg"
+  },
+  {
+    "orig_name": "Cizglex Hydro Finish",
+    "new_name": "Shadow Boulder",
+    "old_slug": "cizglex-hydro-finish",
+    "new_slug": "shadow-boulder",
+    "color": "black",
+    "type": "granite",
+    "source": "hmg",
+    "local_img": "images/0095_Cizglex_Hydro_Finish.jpg"
+  },
+  {
+    "orig_name": "Diamon Cut",
+    "new_name": "Pearl Translux",
+    "old_slug": "diamon-cut",
+    "new_slug": "pearl-translux",
+    "color": "white",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0096_Diamon_Cut.jpg"
+  },
+  {
+    "orig_name": "Adamas",
+    "new_name": "Neve Aurora",
+    "old_slug": "adamas",
+    "new_slug": "neve-aurora",
+    "color": "white",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0097_Adamas.jpg"
+  },
+  {
+    "orig_name": "Adamas 1",
+    "new_name": "Ghiaccio Opal",
+    "old_slug": "adamas-1",
+    "new_slug": "ghiaccio-opal",
+    "color": "white",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0098_Adamas_1.jpg"
+  },
+  {
+    "orig_name": "Bianco Allium Cepa",
+    "new_name": "Lunare Nimbus",
+    "old_slug": "bianco-allium-cepa",
+    "new_slug": "lunare-nimbus",
+    "color": "white",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0099_Bianco_Allium_Cepa.jpg"
+  },
+  {
+    "orig_name": "Frozen Sea",
+    "new_name": "Bianco Oceano",
+    "old_slug": "frozen-sea",
+    "new_slug": "bianco-oceano",
+    "color": "white",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0100_Frozen_Sea.jpg"
+  },
+  {
+    "orig_name": "Yellow River",
+    "new_name": "Crystal Fluviale",
+    "old_slug": "yellow-river",
+    "new_slug": "crystal-fluviale",
+    "color": "white",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0101_Yellow_River.jpg"
+  },
+  {
+    "orig_name": "Bianco Lupine",
+    "new_name": "Mocha Radiant",
+    "old_slug": "bianco-lupine",
+    "new_slug": "mocha-radiant",
+    "color": "brown",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0102_Bianco_Lupine.jpg"
+  },
+  {
+    "orig_name": "Bianco Hellebore",
+    "new_name": "Alpine Vivid",
+    "old_slug": "bianco-hellebore",
+    "new_slug": "alpine-vivid",
+    "color": "white",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0103_Bianco_Hellebore.jpg"
+  },
+  {
+    "orig_name": "Aurum",
+    "new_name": "Teak Luminoso",
+    "old_slug": "aurum",
+    "new_slug": "teak-luminoso",
+    "color": "brown",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0104_Aurum.jpg"
+  },
+  {
+    "orig_name": "Crested 1",
+    "new_name": "Chestnut Incanto",
+    "old_slug": "crested-1",
+    "new_slug": "chestnut-incanto",
+    "color": "brown",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0105_Crested_1.jpg"
+  },
+  {
+    "orig_name": "Agouti",
+    "new_name": "Bronze Translux",
+    "old_slug": "agouti",
+    "new_slug": "bronze-translux",
+    "color": "brown",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0106_Agouti.jpg"
+  },
+  {
+    "orig_name": "Yellow River 1",
+    "new_name": "Noce Fluviale",
+    "old_slug": "yellow-river-1",
+    "new_slug": "noce-fluviale",
+    "color": "brown",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0107_Yellow_River_1.jpg"
+  },
+  {
+    "orig_name": "Bassent VC",
+    "new_name": "Mogano Opal",
+    "old_slug": "bassent-vc",
+    "new_slug": "mogano-opal",
+    "color": "brown",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0108_Bassent_VC.jpg"
+  },
+  {
+    "orig_name": "Arco Baleno 2",
+    "new_name": "Castagno Nimbus",
+    "old_slug": "arco-baleno-2",
+    "new_slug": "castagno-nimbus",
+    "color": "brown",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0109_Arco_Baleno_2.jpg"
+  },
+  {
+    "orig_name": "Horn Wiper",
+    "new_name": "Marrone Iridato",
+    "old_slug": "horn-wiper",
+    "new_slug": "marrone-iridato",
+    "color": "brown",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0110_Horn_Wiper.jpg"
+  },
+  {
+    "orig_name": "Golden Adams",
+    "new_name": "Walnut Splendore",
+    "old_slug": "golden-adams",
+    "new_slug": "walnut-splendore",
+    "color": "brown",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0111_Golden_Adams.jpg"
+  },
+  {
+    "orig_name": "Crested 2",
+    "new_name": "Mocha Bagliore",
+    "old_slug": "crested-2",
+    "new_slug": "mocha-bagliore",
+    "color": "brown",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0112_Crested_2.jpg"
+  },
+  {
+    "orig_name": "Aventurine",
+    "new_name": "Espresso Fiamma",
+    "old_slug": "aventurine",
+    "new_slug": "espresso-fiamma",
+    "color": "brown",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0113_Aventurine.jpg"
+  },
+  {
+    "orig_name": "Ambigonite",
+    "new_name": "Sage Candore",
+    "old_slug": "ambigonite",
+    "new_slug": "sage-candore",
+    "color": "green",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0114_Ambigonite.jpg"
+  },
+  {
+    "orig_name": "Azul Aurum",
+    "new_name": "Mirror Opalino",
+    "old_slug": "azul-aurum",
+    "new_slug": "mirror-opalino",
+    "color": "silver",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0115_Azul_Aurum.jpg"
+  },
+  {
+    "orig_name": "Bleu Dore",
+    "new_name": "Malachite Glow",
+    "old_slug": "bleu-dore",
+    "new_slug": "malachite-glow",
+    "color": "green",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0116_Bleu_Dore.jpg"
+  },
+  {
+    "orig_name": "Verde Tettigonia",
+    "new_name": "Smeraldo Radiant",
+    "old_slug": "verde-tettigonia",
+    "new_slug": "smeraldo-radiant",
+    "color": "green",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0117_Verde_Tettigonia.jpg"
+  },
+  {
+    "orig_name": "Fluorite",
+    "new_name": "Bosco Vivid",
+    "old_slug": "fluorite",
+    "new_slug": "bosco-vivid",
+    "color": "green",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0118_Fluorite.jpg"
+  },
+  {
+    "orig_name": "Misty Rose",
+    "new_name": "Giada Nebuloso",
+    "old_slug": "misty-rose",
+    "new_slug": "giada-nebuloso",
+    "color": "green",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0119_Misty_Rose.jpg"
+  },
+  {
+    "orig_name": "Fuego Narange",
+    "new_name": "Verde Incanto",
+    "old_slug": "fuego-narange",
+    "new_slug": "verde-incanto",
+    "color": "green",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0120_Fuego_Narange.jpg"
+  },
+  {
+    "orig_name": "Miyazaki",
+    "new_name": "Emerald Translux",
+    "old_slug": "miyazaki",
+    "new_slug": "emerald-translux",
+    "color": "green",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0121_Miyazaki.jpg"
+  },
+  {
+    "orig_name": "Maroon Tree Rainbow",
+    "new_name": "Jade Pluviale",
+    "old_slug": "maroon-tree-rainbow",
+    "new_slug": "jade-pluviale",
+    "color": "green",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0122_Maroon_Tree_Rainbow.jpg"
+  },
+  {
+    "orig_name": "Brown Sugar",
+    "new_name": "Amber Opal",
+    "old_slug": "brown-sugar",
+    "new_slug": "amber-opal",
+    "color": "gold",
+    "type": "onyx",
+    "source": "hmg",
+    "local_img": "images/0123_Brown_Sugar.jpg"
+  },
+  {
+    "orig_name": "Bone",
+    "new_name": "Linen Strata",
+    "old_slug": "bone",
+    "new_slug": "linen-strata",
+    "color": "cream",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0124_Bone.jpg"
+  },
+  {
+    "orig_name": "Cream",
+    "new_name": "Mandorla Crema",
+    "old_slug": "cream",
+    "new_slug": "mandorla-crema",
+    "color": "cream",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0125_Cream.jpg"
+  },
+  {
+    "orig_name": "Romano Classic Silver",
+    "new_name": "Almond Argento",
+    "old_slug": "romano-classic-silver",
+    "new_slug": "almond-argento",
+    "color": "cream",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0126_Romano_Classic_Silver.jpg"
+  },
+  {
+    "orig_name": "Crema Fabulous",
+    "new_name": "Burro Crema",
+    "old_slug": "crema-fabulous",
+    "new_slug": "burro-crema",
+    "color": "cream",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0127_Crema_Fabulous.jpg"
+  },
+  {
+    "orig_name": "Bianco Bone",
+    "new_name": "Mandorla Classico",
+    "old_slug": "bianco-bone",
+    "new_slug": "mandorla-classico",
+    "color": "cream",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0128_Bianco_Bone.jpg"
+  },
+  {
+    "orig_name": "St Andrea",
+    "new_name": "Candido Imperiale",
+    "old_slug": "st-andrea",
+    "new_slug": "candido-imperiale",
+    "color": "cream",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0129_St_Andrea.jpg"
+  },
+  {
+    "orig_name": "Dark Silver",
+    "new_name": "Avorio Argento",
+    "old_slug": "dark-silver",
+    "new_slug": "avorio-argento",
+    "color": "cream",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0130_Dark_Silver.jpg"
+  },
+  {
+    "orig_name": "Beige",
+    "new_name": "Ivory Antiqua",
+    "old_slug": "beige",
+    "new_slug": "ivory-antiqua",
+    "color": "cream",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0131_Beige.jpg"
+  },
+  {
+    "orig_name": "Silver Cork",
+    "new_name": "Vanilla Argento",
+    "old_slug": "silver-cork",
+    "new_slug": "vanilla-argento",
+    "color": "cream",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0132_Silver_Cork.jpg"
+  },
+  {
+    "orig_name": "Grey Silver",
+    "new_name": "Champagne Argento",
+    "old_slug": "grey-silver",
+    "new_slug": "champagne-argento",
+    "color": "cream",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0133_Grey_Silver.jpg"
+  },
+  {
+    "orig_name": "Grey",
+    "new_name": "Linen Rustico",
+    "old_slug": "grey",
+    "new_slug": "linen-rustico",
+    "color": "cream",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0134_Grey.jpg"
+  },
+  {
+    "orig_name": "Trionyx",
+    "new_name": "Chestnut Opalino",
+    "old_slug": "trionyx",
+    "new_slug": "chestnut-opalino",
+    "color": "brown",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0135_Trionyx.jpg"
+  },
+  {
+    "orig_name": "Silver Dark",
+    "new_name": "Castagno Argento",
+    "old_slug": "silver-dark",
+    "new_slug": "castagno-argento",
+    "color": "brown",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0136_Silver_Dark.jpg"
+  },
+  {
+    "orig_name": "Marrone Zucchero",
+    "new_name": "Noce Colosseum",
+    "old_slug": "marrone-zucchero",
+    "new_slug": "noce-colosseum",
+    "color": "brown",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0137_Marrone_Zucchero.jpg"
+  },
+  {
+    "orig_name": "Silver Dark",
+    "new_name": "Mogano Argento",
+    "old_slug": "silver-dark",
+    "new_slug": "mogano-argento",
+    "color": "brown",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0138_Silver_Dark.jpg"
+  },
+  {
+    "orig_name": "Cork",
+    "new_name": "Castagno Strata",
+    "old_slug": "cork",
+    "new_slug": "castagno-strata",
+    "color": "brown",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0139_Cork.jpg"
+  },
+  {
+    "orig_name": "Kona Gold 1",
+    "new_name": "Marrone Dorato",
+    "old_slug": "kona-gold-1",
+    "new_slug": "marrone-dorato",
+    "color": "brown",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0140_Kona_Gold_1.jpg"
+  },
+  {
+    "orig_name": "Kona Gold 2",
+    "new_name": "Walnut Dorato",
+    "old_slug": "kona-gold-2",
+    "new_slug": "walnut-dorato",
+    "color": "brown",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0141_Kona_Gold_2.jpg"
+  },
+  {
+    "orig_name": "Noche",
+    "new_name": "Mocha Storico",
+    "old_slug": "noche",
+    "new_slug": "mocha-storico",
+    "color": "brown",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0142_Noche.jpg"
+  },
+  {
+    "orig_name": "Rapalano Iron",
+    "new_name": "Espresso Classico",
+    "old_slug": "rapalano-iron",
+    "new_slug": "espresso-classico",
+    "color": "brown",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0143_Rapalano_Iron.jpg"
+  },
+  {
+    "orig_name": "Copper",
+    "new_name": "Teak Bronzato",
+    "old_slug": "copper",
+    "new_slug": "teak-bronzato",
+    "color": "brown",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0144_Copper.jpg"
+  },
+  {
+    "orig_name": "Saint Andriao",
+    "new_name": "Chestnut Romano",
+    "old_slug": "saint-andriao",
+    "new_slug": "chestnut-romano",
+    "color": "brown",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0145_Saint_Andriao.jpg"
+  },
+  {
+    "orig_name": "Titanium",
+    "new_name": "Bronze Antiqua",
+    "old_slug": "titanium",
+    "new_slug": "bronze-antiqua",
+    "color": "brown",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0146_Titanium.jpg"
+  },
+  {
+    "orig_name": "Yellow",
+    "new_name": "Aureo Heritage",
+    "old_slug": "yellow",
+    "new_slug": "aureo-heritage",
+    "color": "yellow",
+    "type": "travertine",
+    "source": "hmg",
+    "local_img": "images/0147_Yellow.jpg"
+  },
+  {
+    "orig_name": "Bronze Zuccaria",
+    "new_name": "Mogano Bronzato",
+    "old_slug": "bronze-zuccaria",
+    "new_slug": "mogano-bronzato",
+    "color": "brown",
+    "type": "shellstone",
+    "source": "hmg",
+    "local_img": "images/0148_Bronze_Zuccaria.jpg"
+  },
+  {
+    "orig_name": "Brown fossil",
+    "new_name": "Castagno Fossile",
+    "old_slug": "brown-fossil",
+    "new_slug": "castagno-fossile",
+    "color": "brown",
+    "type": "shellstone",
+    "source": "hmg",
+    "local_img": "images/0149_Brown_fossil.jpg"
+  },
+  {
+    "orig_name": "Bronze Zuccaria Areka Finish",
+    "new_name": "Marrone Bronzato",
+    "old_slug": "bronze-zuccaria-areka-finish",
+    "new_slug": "marrone-bronzato",
+    "color": "brown",
+    "type": "shellstone",
+    "source": "hmg",
+    "local_img": "images/0150_Bronze_Zuccaria_Areka_Finish.jpg"
+  },
+  {
+    "orig_name": "Bronze Zuccaria",
+    "new_name": "Walnut Bronzato",
+    "old_slug": "bronze-zuccaria",
+    "new_slug": "walnut-bronzato",
+    "color": "brown",
+    "type": "shellstone",
+    "source": "hmg",
+    "local_img": "images/0151_Bronze_Zuccaria.jpg"
+  },
+  {
+    "orig_name": "Mint Hydro Finish",
+    "new_name": "Arctic Basin",
+    "old_slug": "mint-hydro-finish",
+    "new_slug": "arctic-basin",
+    "color": "white",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0152_Mint_Hydro_Finish.jpg"
+  },
+  {
+    "orig_name": "Mint Ribbed Finish",
+    "new_name": "Alpine Plateau",
+    "old_slug": "mint-ribbed-finish",
+    "new_slug": "alpine-plateau",
+    "color": "white",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0153_Mint_Ribbed_Finish.jpg"
+  },
+  {
+    "orig_name": "Mint Scratch Finish",
+    "new_name": "Polar Arroya",
+    "old_slug": "mint-scratch-finish",
+    "new_slug": "polar-arroya",
+    "color": "white",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0154_Mint_Scratch_Finish.jpg"
+  },
+  {
+    "orig_name": "Mint Cypress Finish",
+    "new_name": "Snow Steppe",
+    "old_slug": "mint-cypress-finish",
+    "new_slug": "snow-steppe",
+    "color": "white",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0155_Mint_Cypress_Finish.jpg"
+  },
+  {
+    "orig_name": "Mint Hydro With Cypress Finish",
+    "new_name": "Pearl Badlands",
+    "old_slug": "mint-hydro-with-cypress-finish",
+    "new_slug": "pearl-badlands",
+    "color": "white",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0156_Mint_Hydro_With_Cypress_Finish.jpg"
+  },
+  {
+    "orig_name": "Mint Areka Finish",
+    "new_name": "Neve Savanna",
+    "old_slug": "mint-areka-finish",
+    "new_slug": "neve-savanna",
+    "color": "white",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0157_Mint_Areka_Finish.jpg"
+  },
+  {
+    "orig_name": "Algerian Gold",
+    "new_name": "Mogano Dorato",
+    "old_slug": "algerian-gold",
+    "new_slug": "mogano-dorato",
+    "color": "brown",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0158_Algerian_Gold.jpg"
+  },
+  {
+    "orig_name": "Teakwood Cypress Finish",
+    "new_name": "Castagno Mogano",
+    "old_slug": "teakwood-cypress-finish",
+    "new_slug": "castagno-mogano",
+    "color": "brown",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0159_Teakwood_Cypress_Finish.jpg"
+  },
+  {
+    "orig_name": "Rainbow Teak Aqua Jet Finish",
+    "new_name": "Marrone Pluviale",
+    "old_slug": "rainbow-teak-aqua-jet-finish",
+    "new_slug": "marrone-pluviale",
+    "color": "brown",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0160_Rainbow_Teak_Aqua_Jet_Finish.jpg"
+  },
+  {
+    "orig_name": "Teak Wood Aqua Jet Finish",
+    "new_name": "Walnut Mogano",
+    "old_slug": "teak-wood-aqua-jet-finish",
+    "new_slug": "walnut-mogano",
+    "color": "brown",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0161_Teak_Wood_Aqua_Jet_Finish.jpg"
+  },
+  {
+    "orig_name": "Teakwood Baby Bamboo Finish",
+    "new_name": "Mocha Bambuseto",
+    "old_slug": "teakwood-baby-bamboo-finish",
+    "new_slug": "mocha-bambuseto",
+    "color": "brown",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0162_Teakwood_Baby_Bamboo_Finish.jpg"
+  },
+  {
+    "orig_name": "Teakwood Combo Finish",
+    "new_name": "Espresso Mogano",
+    "old_slug": "teakwood-combo-finish",
+    "new_slug": "espresso-mogano",
+    "color": "brown",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0163_Teakwood_Combo_Finish.jpg"
+  },
+  {
+    "orig_name": "Rainbow Teak Cypess Finish",
+    "new_name": "Teak Pluviale",
+    "old_slug": "rainbow-teak-cypess-finish",
+    "new_slug": "teak-pluviale",
+    "color": "brown",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0164_Rainbow_Teak_Cypess_Finish.jpg"
+  },
+  {
+    "orig_name": "Teakwood Cypress Finish",
+    "new_name": "Chestnut Mogano",
+    "old_slug": "teakwood-cypress-finish",
+    "new_slug": "chestnut-mogano",
+    "color": "brown",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0165_Teakwood_Cypress_Finish.jpg"
+  },
+  {
+    "orig_name": "Teakwood Ribbon Finish",
+    "new_name": "Bronze Mogano",
+    "old_slug": "teakwood-ribbon-finish",
+    "new_slug": "bronze-mogano",
+    "color": "brown",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0166_Teakwood_Ribbon_Finish.jpg"
+  },
+  {
+    "orig_name": "Teakwood Ribbon Finish 2",
+    "new_name": "Noce Mogano",
+    "old_slug": "teakwood-ribbon-finish-2",
+    "new_slug": "noce-mogano",
+    "color": "brown",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0167_Teakwood_Ribbon_Finish_2.jpg"
+  },
+  {
+    "orig_name": "Rainbow Teak Scratch Finish",
+    "new_name": "Mogano Pluviale",
+    "old_slug": "rainbow-teak-scratch-finish",
+    "new_slug": "mogano-pluviale",
+    "color": "brown",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0168_Rainbow_Teak_Scratch_Finish.jpg"
+  },
+  {
+    "orig_name": "Teakwood Scratch Finish",
+    "new_name": "Mocha Mogano",
+    "old_slug": "teakwood-scratch-finish",
+    "new_slug": "mocha-mogano",
+    "color": "brown",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0169_Teakwood_Scratch_Finish.jpg"
+  },
+  {
+    "orig_name": "Teakwood Scratch Roller Finish",
+    "new_name": "Marrone Mogano",
+    "old_slug": "teakwood-scratch-roller-finish",
+    "new_slug": "marrone-mogano",
+    "color": "brown",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0170_Teakwood_Scratch_Roller_Finish.jpg"
+  },
+  {
+    "orig_name": "Rainbow Teak Scratch Roller Finish",
+    "new_name": "Walnut Pluviale",
+    "old_slug": "rainbow-teak-scratch-roller-finish",
+    "new_slug": "walnut-pluviale",
+    "color": "brown",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0171_Rainbow_Teak_Scratch_Roller_Finish.jpg"
+  },
+  {
+    "orig_name": "Teakwood Liner Finish",
+    "new_name": "Mogano Mogano",
+    "old_slug": "teakwood-liner-finish",
+    "new_slug": "mogano-mogano",
+    "color": "brown",
+    "type": "sandstone",
+    "source": "hmg",
+    "local_img": "images/0172_Teakwood_Liner_Finish.jpg"
+  },
+  {
+    "orig_name": "French",
+    "new_name": "Smoke Marina",
+    "old_slug": "french",
+    "new_slug": "smoke-marina",
+    "color": "grey",
+    "type": "limestone",
+    "source": "hmg",
+    "local_img": "images/0173_French.jpg"
+  },
+  {
+    "orig_name": "NS",
+    "new_name": "Steel Faro",
+    "old_slug": "ns",
+    "new_slug": "steel-faro",
+    "color": "grey",
+    "type": "limestone",
+    "source": "hmg",
+    "local_img": "images/0174_NS.jpg"
+  },
+  {
+    "orig_name": "Classic",
+    "new_name": "Silver Classico",
+    "old_slug": "classic",
+    "new_slug": "silver-classico",
+    "color": "grey",
+    "type": "limestone",
+    "source": "hmg",
+    "local_img": "images/0175_Classic.jpg"
+  },
+  {
+    "orig_name": "French Hond Finish",
+    "new_name": "Ash Shoreline",
+    "old_slug": "french-hond-finish",
+    "new_slug": "ash-shoreline",
+    "color": "grey",
+    "type": "limestone",
+    "source": "hmg",
+    "local_img": "images/0176_French_Hond_Finish.jpg"
+  },
+  {
+    "orig_name": "Leo Mocca Areka Finish",
+    "new_name": "Pietra Clifftop",
+    "old_slug": "leo-mocca-areka-finish",
+    "new_slug": "pietra-clifftop",
+    "color": "grey",
+    "type": "limestone",
+    "source": "hmg",
+    "local_img": "images/0177_Leo_Mocca_Areka_Finish.jpg"
+  },
+  {
+    "orig_name": "Sunny",
+    "new_name": "Mandorla Solare",
+    "old_slug": "sunny",
+    "new_slug": "mandorla-solare",
+    "color": "cream",
+    "type": "limestone",
+    "source": "hmg",
+    "local_img": "images/0178_Sunny.jpg"
+  },
+  {
+    "orig_name": "Sunny - Areka Finish",
+    "new_name": "Candido Solare",
+    "old_slug": "sunny---areka-finish",
+    "new_slug": "candido-solare",
+    "color": "cream",
+    "type": "limestone",
+    "source": "hmg",
+    "local_img": "images/0179_Sunny_-_Areka_Finish.jpg"
+  },
+  {
+    "orig_name": "Sunny Shot Blast Finish",
+    "new_name": "Avorio Solare",
+    "old_slug": "sunny-shot-blast-finish",
+    "new_slug": "avorio-solare",
+    "color": "cream",
+    "type": "limestone",
+    "source": "hmg",
+    "local_img": "images/0180_Sunny_Shot_Blast_Finish.jpg"
+  },
+  {
+    "orig_name": "Sand Beige",
+    "new_name": "Ivory Sediment",
+    "old_slug": "sand-beige",
+    "new_slug": "ivory-sediment",
+    "color": "cream",
+    "type": "limestone",
+    "source": "hmg",
+    "local_img": "images/0181_Sand_Beige.jpg"
+  },
+  {
+    "orig_name": "Sand Beige Shot Blast Finish",
+    "new_name": "Vanilla Stratum",
+    "old_slug": "sand-beige-shot-blast-finish",
+    "new_slug": "vanilla-stratum",
+    "color": "cream",
+    "type": "limestone",
+    "source": "hmg",
+    "local_img": "images/0182_Sand_Beige_Shot_Blast_Finish.jpg"
+  },
+  {
+    "orig_name": "Portugal",
+    "new_name": "Champagne Laguna",
+    "old_slug": "portugal",
+    "new_slug": "champagne-laguna",
+    "color": "cream",
+    "type": "limestone",
+    "source": "hmg",
+    "local_img": "images/0183_Portugal.jpg"
+  },
+  {
+    "orig_name": "Portugal Shot Blast Finish",
+    "new_name": "Linen Reef",
+    "old_slug": "portugal-shot-blast-finish",
+    "new_slug": "linen-reef",
+    "color": "cream",
+    "type": "limestone",
+    "source": "hmg",
+    "local_img": "images/0184_Portugal_Shot_Blast_Finish.jpg"
+  },
+  {
+    "orig_name": "Rockefeller Emerald",
+    "new_name": "Fern Smeraldo",
+    "old_slug": "rockefeller-emerald",
+    "new_slug": "fern-smeraldo",
+    "color": "green",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0185_Rockefeller_Emerald.jpg"
+  },
+  {
+    "orig_name": "Alpinus",
+    "new_name": "Ash Fulgente",
+    "old_slug": "alpinus",
+    "new_slug": "ash-fulgente",
+    "color": "grey",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0186_Alpinus.jpg"
+  },
+  {
+    "orig_name": "Columbian Emerald",
+    "new_name": "Noce Smeraldo",
+    "old_slug": "columbian-emerald",
+    "new_slug": "noce-smeraldo",
+    "color": "brown",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0187_Columbian_Emerald.jpg"
+  },
+  {
+    "orig_name": "Vitreum",
+    "new_name": "Bosco Nitido",
+    "old_slug": "vitreum",
+    "new_slug": "bosco-nitido",
+    "color": "green",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0188_Vitreum.jpg"
+  },
+  {
+    "orig_name": "Bacauraojo",
+    "new_name": "Oro Scintilla",
+    "old_slug": "bacauraojo",
+    "new_slug": "oro-scintilla",
+    "color": "gold",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0189_Bacauraojo.jpg"
+  },
+  {
+    "orig_name": "Cattle Egret",
+    "new_name": "Dorato Cristallo",
+    "old_slug": "cattle-egret",
+    "new_slug": "dorato-cristallo",
+    "color": "gold",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0190_Cattle_Egret.jpg"
+  },
+  {
+    "orig_name": "Kardia",
+    "new_name": "Crimson Gem",
+    "old_slug": "kardia",
+    "new_slug": "crimson-gem",
+    "color": "red",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0191_Kardia.jpg"
+  },
+  {
+    "orig_name": "Golden Alba",
+    "new_name": "Honey Prisma",
+    "old_slug": "golden-alba",
+    "new_slug": "honey-prisma",
+    "color": "gold",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0192_Golden_Alba.jpg"
+  },
+  {
+    "orig_name": "Summer Tanager",
+    "new_name": "Garnet Vein",
+    "old_slug": "summer-tanager",
+    "new_slug": "garnet-vein",
+    "color": "red",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0193_Summer_Tanager.jpg"
+  },
+  {
+    "orig_name": "Pied Kingfisher",
+    "new_name": "Teak Fusion",
+    "old_slug": "pied-kingfisher",
+    "new_slug": "teak-fusion",
+    "color": "brown",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0194_Pied_Kingfisher.jpg"
+  },
+  {
+    "orig_name": "Bianco Corella",
+    "new_name": "Zolfo Sparkle",
+    "old_slug": "bianco-corella",
+    "new_slug": "zolfo-sparkle",
+    "color": "yellow",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0195_Bianco_Corella.jpg"
+  },
+  {
+    "orig_name": "Blu Tramonto",
+    "new_name": "Solar Tramonto",
+    "old_slug": "blu-tramonto",
+    "new_slug": "solar-tramonto",
+    "color": "gold",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0196_Blu_Tramonto.jpg"
+  },
+  {
+    "orig_name": "Kiwano",
+    "new_name": "Aurum Facet",
+    "old_slug": "kiwano",
+    "new_slug": "aurum-facet",
+    "color": "gold",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0197_Kiwano.jpg"
+  },
+  {
+    "orig_name": "Blu Tramonto",
+    "new_name": "Miele Tramonto",
+    "old_slug": "blu-tramonto",
+    "new_slug": "miele-tramonto",
+    "color": "gold",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0198_Blu_Tramonto.jpg"
+  },
+  {
+    "orig_name": "Panthera Pardus",
+    "new_name": "Grano Maculato",
+    "old_slug": "panthera-pardus",
+    "new_slug": "grano-maculato",
+    "color": "yellow",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0199_Panthera_Pardus.jpg"
+  },
+  {
+    "orig_name": "Polar Ice Berg",
+    "new_name": "Grigio Cristallo",
+    "old_slug": "polar-ice-berg",
+    "new_slug": "grigio-cristallo",
+    "color": "grey",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0200_Polar_Ice_Berg.jpg"
+  },
+  {
+    "orig_name": "Azul Bahia",
+    "new_name": "Storm Gem",
+    "old_slug": "azul-bahia",
+    "new_slug": "storm-gem",
+    "color": "grey",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0201_Azul_Bahia.jpg"
+  },
+  {
+    "orig_name": "Bleu Damesfly",
+    "new_name": "Aegean Prisma",
+    "old_slug": "bleu-damesfly",
+    "new_slug": "aegean-prisma",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0202_Bleu_Damesfly.jpg"
+  },
+  {
+    "orig_name": "Soda Light",
+    "new_name": "Pacific Vein",
+    "old_slug": "soda-light",
+    "new_slug": "pacific-vein",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0203_Soda_Light.jpg"
+  },
+  {
+    "orig_name": "Soda Light 2",
+    "new_name": "Cobalt Fusion",
+    "old_slug": "soda-light-2",
+    "new_slug": "cobalt-fusion",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0204_Soda_Light_2.jpg"
+  },
+  {
+    "orig_name": "Fusion",
+    "new_name": "Saffron Sparkle",
+    "old_slug": "fusion",
+    "new_slug": "saffron-sparkle",
+    "color": "gold",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0205_Fusion.jpg"
+  },
+  {
+    "orig_name": "Giada Super Exotica",
+    "new_name": "Malachite Esotico",
+    "old_slug": "giada-super-exotica",
+    "new_slug": "malachite-esotico",
+    "color": "green",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0206_Giada_Super_Exotica.jpg"
+  },
+  {
+    "orig_name": "Verde Scapularis",
+    "new_name": "Smeraldo Facet",
+    "old_slug": "verde-scapularis",
+    "new_slug": "smeraldo-facet",
+    "color": "green",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0207_Verde_Scapularis.jpg"
+  },
+  {
+    "orig_name": "Verde Lapponia",
+    "new_name": "Bosco Radiant",
+    "old_slug": "verde-lapponia",
+    "new_slug": "bosco-radiant",
+    "color": "green",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0208_Verde_Lapponia.jpg"
+  },
+  {
+    "orig_name": "Golden Botanica",
+    "new_name": "Giada Lumina",
+    "old_slug": "golden-botanica",
+    "new_slug": "giada-lumina",
+    "color": "green",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0209_Golden_Botanica.jpg"
+  },
+  {
+    "orig_name": "Botanica",
+    "new_name": "Verde Brillante",
+    "old_slug": "botanica",
+    "new_slug": "verde-brillante",
+    "color": "green",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0210_Botanica.jpg"
+  },
+  {
+    "orig_name": "Treron",
+    "new_name": "Emerald Fulgente",
+    "old_slug": "treron",
+    "new_slug": "emerald-fulgente",
+    "color": "green",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0211_Treron.jpg"
+  },
+  {
+    "orig_name": "Oleander Hawk",
+    "new_name": "Jade Risplendente",
+    "old_slug": "oleander-hawk",
+    "new_slug": "jade-risplendente",
+    "color": "green",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0212_Oleander_Hawk.jpg"
+  },
+  {
+    "orig_name": "Verde Lapponia",
+    "new_name": "Forest Nitido",
+    "old_slug": "verde-lapponia",
+    "new_slug": "forest-nitido",
+    "color": "green",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0213_Verde_Lapponia.jpg"
+  },
+  {
+    "orig_name": "Verde Murina",
+    "new_name": "Sage Scintilla",
+    "old_slug": "verde-murina",
+    "new_slug": "sage-scintilla",
+    "color": "green",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0214_Verde_Murina.jpg"
+  },
+  {
+    "orig_name": "Colacasia",
+    "new_name": "Fern Cristallo",
+    "old_slug": "colacasia",
+    "new_slug": "fern-cristallo",
+    "color": "green",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0215_Colacasia.jpg"
+  },
+  {
+    "orig_name": "Ferro Corroso",
+    "new_name": "Bronze Gem",
+    "old_slug": "ferro-corroso",
+    "new_slug": "bronze-gem",
+    "color": "brown",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0216_Ferro_Corroso.jpg"
+  },
+  {
+    "orig_name": "Badger",
+    "new_name": "Pietra Prisma",
+    "old_slug": "badger",
+    "new_slug": "pietra-prisma",
+    "color": "grey",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0217_Badger.jpg"
+  },
+  {
+    "orig_name": "Badger 2",
+    "new_name": "Mogano Vein",
+    "old_slug": "badger-2",
+    "new_slug": "mogano-vein",
+    "color": "brown",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0218_Badger_2.jpg"
+  },
+  {
+    "orig_name": "Legno Arco Baleno",
+    "new_name": "Oro Fusion",
+    "old_slug": "legno-arco-baleno",
+    "new_slug": "oro-fusion",
+    "color": "gold",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0219_Legno_Arco_Baleno.jpg"
+  },
+  {
+    "orig_name": "Magma Gold",
+    "new_name": "Dorato Dorato",
+    "old_slug": "magma-gold",
+    "new_slug": "dorato-dorato",
+    "color": "gold",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0220_Magma_Gold.jpg"
+  },
+  {
+    "orig_name": "Marron Checkerspot",
+    "new_name": "Golden Glimmer",
+    "old_slug": "marron-checkerspot",
+    "new_slug": "golden-glimmer",
+    "color": "gold",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0221_Marron_Checkerspot.jpg"
+  },
+  {
+    "orig_name": "Mauna Lao",
+    "new_name": "Honey Facet",
+    "old_slug": "mauna-lao",
+    "new_slug": "honey-facet",
+    "color": "gold",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0222_Mauna_Lao.jpg"
+  },
+  {
+    "orig_name": "Nero Swan",
+    "new_name": "Smoke Radiant",
+    "old_slug": "nero-swan",
+    "new_slug": "smoke-radiant",
+    "color": "grey",
+    "type": "quartzite",
+    "source": "hmg",
+    "local_img": "images/0223_Nero_Swan.jpg"
+  },
+  {
+    "orig_name": "Albino Betta Dolomite",
+    "new_name": "Linen Snowfield",
+    "old_slug": "albino-betta-dolomite",
+    "new_slug": "linen-snowfield",
+    "color": "cream",
+    "type": "dolomite",
+    "source": "hmg",
+    "local_img": "images/0224_Albino_Betta_Dolomite.jpg"
+  },
+  {
+    "orig_name": "Dove White Dolomite",
+    "new_name": "Snow Serac",
+    "old_slug": "dove-white-dolomite",
+    "new_slug": "snow-serac",
+    "color": "white",
+    "type": "dolomite",
+    "source": "hmg",
+    "local_img": "images/0225_Dove_White_Dolomite.jpg"
+  },
+  {
+    "orig_name": "Jasmine Dolomite",
+    "new_name": "Solare Ghiaccio",
+    "old_slug": "jasmine-dolomite",
+    "new_slug": "solare-ghiaccio",
+    "color": "yellow",
+    "type": "dolomite",
+    "source": "hmg",
+    "local_img": "images/0226_Jasmine_Dolomite.jpg"
+  },
+  {
+    "orig_name": "White on White Lavabo",
+    "new_name": "Antico Vulcanico",
+    "old_slug": "white-on-white-lavabo",
+    "new_slug": "antico-vulcanico",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0227_White_on_White_Lavabo.jpg"
+  },
+  {
+    "orig_name": "Aspro European Cut",
+    "new_name": "Heritage Pregiato",
+    "old_slug": "aspro-european-cut",
+    "new_slug": "heritage-pregiato",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0228_Aspro_European_Cut.jpg"
+  },
+  {
+    "orig_name": "Aspro Lavabo Extra",
+    "new_name": "Grand Vulcanico",
+    "old_slug": "aspro-lavabo-extra",
+    "new_slug": "grand-vulcanico",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0229_Aspro_Lavabo_Extra.jpg"
+  },
+  {
+    "orig_name": "Aspro Trumpeter Lavabo",
+    "new_name": "Lusso Vulcanico",
+    "old_slug": "aspro-trumpeter-lavabo",
+    "new_slug": "lusso-vulcanico",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0230_Aspro_Trumpeter_Lavabo.jpg"
+  },
+  {
+    "orig_name": "Catamaran",
+    "new_name": "Elegante Nobile",
+    "old_slug": "catamaran",
+    "new_slug": "elegante-nobile",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0231_Catamaran.jpg"
+  },
+  {
+    "orig_name": "Indus Lava",
+    "new_name": "Imperial Vulcanico",
+    "old_slug": "indus-lava",
+    "new_slug": "imperial-vulcanico",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0232_Indus_Lava.jpg"
+  },
+  {
+    "orig_name": "Bez Lavabo",
+    "new_name": "Nobile Vulcanico",
+    "old_slug": "bez-lavabo",
+    "new_slug": "nobile-vulcanico",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0233_Bez_Lavabo.jpg"
+  },
+  {
+    "orig_name": "Bez Lavabo",
+    "new_name": "Regio Vulcanico",
+    "old_slug": "bez-lavabo",
+    "new_slug": "regio-vulcanico",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0234_Bez_Lavabo.jpg"
+  },
+  {
+    "orig_name": "Brown Shrike Lavabo",
+    "new_name": "Classic Vulcanico",
+    "old_slug": "brown-shrike-lavabo",
+    "new_slug": "classic-vulcanico",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0235_Brown_Shrike_Lavabo.jpg"
+  },
+  {
+    "orig_name": "Foglia Secca Lavabo",
+    "new_name": "Prestige Nebuloso",
+    "old_slug": "foglia-secca-lavabo",
+    "new_slug": "prestige-nebuloso",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0236_Foglia_Secca_Lavabo.jpg"
+  },
+  {
+    "orig_name": "Inchiastro Lavabo",
+    "new_name": "Prestige Vulcanico",
+    "old_slug": "inchiastro-lavabo",
+    "new_slug": "prestige-vulcanico",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0237_Inchiastro_Lavabo.jpg"
+  },
+  {
+    "orig_name": "Diaspro Lavabo",
+    "new_name": "Heritage Vulcanico",
+    "old_slug": "diaspro-lavabo",
+    "new_slug": "heritage-vulcanico",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0238_Diaspro_Lavabo.jpg"
+  },
+  {
+    "orig_name": "Golden Ocra Round",
+    "new_name": "Grand Heritage",
+    "old_slug": "golden-ocra-round",
+    "new_slug": "grand-heritage",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0239_Golden_Ocra_Round.jpg"
+  },
+  {
+    "orig_name": "Giallo Lavabo",
+    "new_name": "Elegante Vulcanico",
+    "old_slug": "giallo-lavabo",
+    "new_slug": "elegante-vulcanico",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0240_Giallo_Lavabo.jpg"
+  },
+  {
+    "orig_name": "Brown Sugar Onyx Lavabo",
+    "new_name": "Elegante Opalino",
+    "old_slug": "brown-sugar-onyx-lavabo",
+    "new_slug": "elegante-opalino",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0241_Brown_Sugar_Onyx_Lavabo.jpg"
+  },
+  {
+    "orig_name": "Golden Ocra Oval",
+    "new_name": "Imperial Esclusivo",
+    "old_slug": "golden-ocra-oval",
+    "new_slug": "imperial-esclusivo",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0242_Golden_Ocra_Oval.jpg"
+  },
+  {
+    "orig_name": "Golden Rain Forest Lavabo",
+    "new_name": "Nobile Selvatico",
+    "old_slug": "golden-rain-forest-lavabo",
+    "new_slug": "nobile-selvatico",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0243_Golden_Rain_Forest_Lavabo.jpg"
+  },
+  {
+    "orig_name": "Nero Sea Bass Lavabo",
+    "new_name": "Regio Oceano",
+    "old_slug": "nero-sea-bass-lavabo",
+    "new_slug": "regio-oceano",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0244_Nero_Sea_Bass_Lavabo.jpg"
+  },
+  {
+    "orig_name": "Coloumbian Noir II",
+    "new_name": "Classic Lusso",
+    "old_slug": "coloumbian-noir-ii",
+    "new_slug": "classic-lusso",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0245_Coloumbian_Noir_II.jpg"
+  },
+  {
+    "orig_name": "Aspro Diamond Cylindro",
+    "new_name": "Prestige Nobile",
+    "old_slug": "aspro-diamond-cylindro",
+    "new_slug": "prestige-nobile",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0246_Aspro_Diamond_Cylindro.jpg"
+  },
+  {
+    "orig_name": "Creme Brulee Cylindro",
+    "new_name": "Antico Prestige",
+    "old_slug": "creme-brulee-cylindro",
+    "new_slug": "antico-prestige",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0247_Creme_Brulee_Cylindro.jpg"
+  },
+  {
+    "orig_name": "Creme Brulee Cylindro",
+    "new_name": "Heritage Grand",
+    "old_slug": "creme-brulee-cylindro",
+    "new_slug": "heritage-grand",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0248_Creme_Brulee_Cylindro.jpg"
+  },
+  {
+    "orig_name": "Mildew Algae",
+    "new_name": "Grand Elite",
+    "old_slug": "mildew-algae",
+    "new_slug": "grand-elite",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0249_Mildew_Algae.jpg"
+  },
+  {
+    "orig_name": "Verde Antique Lavabo",
+    "new_name": "Lusso Vulcanico II",
+    "old_slug": "verde-antique-lavabo",
+    "new_slug": "lusso-vulcanico-ii",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0250_Verde_Antique_Lavabo.jpg"
+  },
+  {
+    "orig_name": "Amarone Lavabo Dark",
+    "new_name": "Elegante Vulcanico II",
+    "old_slug": "amarone-lavabo-dark",
+    "new_slug": "elegante-vulcanico-ii",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0251_Amarone_Lavabo_Dark.jpg"
+  },
+  {
+    "orig_name": "Aspro Ocra",
+    "new_name": "Imperial Regal",
+    "old_slug": "aspro-ocra",
+    "new_slug": "imperial-regal",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0252_Aspro_Ocra.jpg"
+  },
+  {
+    "orig_name": "Hydro Finish",
+    "new_name": "Nobile Artisan",
+    "old_slug": "hydro-finish",
+    "new_slug": "nobile-artisan",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0253_Hydro_Finish.jpg"
+  },
+  {
+    "orig_name": "Ribbed Finish",
+    "new_name": "Regio Heritage",
+    "old_slug": "ribbed-finish",
+    "new_slug": "regio-heritage",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0254_Ribbed_Finish.jpg"
+  },
+  {
+    "orig_name": "Cypress Finish",
+    "new_name": "Classic Raffinato",
+    "old_slug": "cypress-finish",
+    "new_slug": "classic-raffinato",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0255_Cypress_Finish.jpg"
+  },
+  {
+    "orig_name": "Hydro with Cypress Finish",
+    "new_name": "Prestige Distinto",
+    "old_slug": "hydro-with-cypress-finish",
+    "new_slug": "prestige-distinto",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0256_Hydro_with_Cypress_Finish.jpg"
+  },
+  {
+    "orig_name": "Areka Finish",
+    "new_name": "Antico Esclusivo",
+    "old_slug": "areka-finish",
+    "new_slug": "antico-esclusivo",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0257_Areka_Finish.jpg"
+  },
+  {
+    "orig_name": "Aqua Jet Finish",
+    "new_name": "Elegante Distinto",
+    "old_slug": "aqua-jet-finish",
+    "new_slug": "elegante-distinto",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0258_Aqua_Jet_Finish.jpg"
+  },
+  {
+    "orig_name": "Baby Bamboo Finish",
+    "new_name": "Grand Bambuseto",
+    "old_slug": "baby-bamboo-finish",
+    "new_slug": "grand-bambuseto",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0259_Baby_Bamboo_Finish.jpg"
+  },
+  {
+    "orig_name": "Combo Finish",
+    "new_name": "Lusso Lusso",
+    "old_slug": "combo-finish",
+    "new_slug": "lusso-lusso",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0260_Combo_Finish.jpg"
+  },
+  {
+    "orig_name": "Ribbon Finish",
+    "new_name": "Regio Eccellente",
+    "old_slug": "ribbon-finish",
+    "new_slug": "regio-eccellente",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0261_Ribbon_Finish.jpg"
+  },
+  {
+    "orig_name": "Scratch Finish",
+    "new_name": "Imperial Prestige",
+    "old_slug": "scratch-finish",
+    "new_slug": "imperial-prestige",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0262_Scratch_Finish.jpg"
+  },
+  {
+    "orig_name": "Scratch Roller Finish",
+    "new_name": "Nobile Grand",
+    "old_slug": "scratch-roller-finish",
+    "new_slug": "nobile-grand",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0263_Scratch_Roller_Finish.jpg"
+  },
+  {
+    "orig_name": "Liner Finish",
+    "new_name": "Regio Elite",
+    "old_slug": "liner-finish",
+    "new_slug": "regio-elite",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "hmg",
+    "local_img": "images/0264_Liner_Finish.jpg"
+  },
+  {
+    "orig_name": "BLACK BEAUTY",
+    "new_name": "Oscuro Mountain",
+    "old_slug": "black-beauty",
+    "new_slug": "oscuro-mountain",
+    "color": "black",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "LOTUS BEIGE",
+    "new_name": "Cashmere Brillante",
+    "old_slug": "lotus-beige",
+    "new_slug": "cashmere-brillante",
+    "color": "beige",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "ARABESCATO BLACK",
+    "new_name": "Ebano Arabescato",
+    "old_slug": "arabescato-black",
+    "new_slug": "ebano-arabescato",
+    "color": "black",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "DARK EMPERADOR",
+    "new_name": "Mogano Imperiale",
+    "old_slug": "dark-emperador",
+    "new_slug": "mogano-imperiale",
+    "color": "brown",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "EMERALD GREEN ONYX TRAVERTINE",
+    "new_name": "Giada Opalino",
+    "old_slug": "emerald-green-onyx-travertine",
+    "new_slug": "giada-opalino",
+    "color": "green",
+    "type": "onyx",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "CALACATTA PANAOZOO (II)",
+    "new_name": "Bianco Calacatta",
+    "old_slug": "calacatta-panaozoo-ii",
+    "new_slug": "bianco-calacatta",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "CALACATTA PANAOZOO (I)",
+    "new_name": "Crystal Calacatta",
+    "old_slug": "calacatta-panaozoo-i",
+    "new_slug": "crystal-calacatta",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "CALACATTA MONET",
+    "new_name": "Snow Calacatta",
+    "old_slug": "calacatta-monet",
+    "new_slug": "snow-calacatta",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "AJAX II",
+    "new_name": "Lunare Regale",
+    "old_slug": "ajax-ii",
+    "new_slug": "lunare-regale",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "BLACK CRYSTAL PATAGONIA",
+    "new_name": "Polar Cristallo",
+    "old_slug": "black-crystal-patagonia",
+    "new_slug": "polar-cristallo",
+    "color": "white",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "AVOCATUS",
+    "new_name": "Emerald Gem",
+    "old_slug": "avocatus",
+    "new_slug": "emerald-gem",
+    "color": "green",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "AMAZONITE",
+    "new_name": "Malachite Gem",
+    "old_slug": "amazonite",
+    "new_slug": "malachite-gem",
+    "color": "green",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Crystal Onyx",
+    "new_name": "Antico Opalino",
+    "old_slug": "crystal-onyx",
+    "new_slug": "antico-opalino",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Green Onyx (II)",
+    "new_name": "Heritage Opalino",
+    "old_slug": "green-onyx-ii",
+    "new_slug": "heritage-opalino",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Novana Travertine",
+    "new_name": "Classic Prime",
+    "old_slug": "novana-travertine",
+    "new_slug": "classic-prime",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Santorini (III)",
+    "new_name": "Lusso Prime",
+    "old_slug": "santorini-iii",
+    "new_slug": "lusso-prime",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Santorini (I)",
+    "new_name": "Elegante Opulente",
+    "old_slug": "santorini-i",
+    "new_slug": "elegante-opulente",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Le Fiemma",
+    "new_name": "Heritage Artisan",
+    "old_slug": "le-fiemma",
+    "new_slug": "heritage-artisan",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Zumaia Blue",
+    "new_name": "Prestige Opulente",
+    "old_slug": "zumaia-blue",
+    "new_slug": "prestige-opulente",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Volupia",
+    "new_name": "Antico Regal",
+    "old_slug": "volupia",
+    "new_slug": "antico-regal",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Crystal Tiffany",
+    "new_name": "Classic Cristallo",
+    "old_slug": "crystal-tiffany",
+    "new_slug": "classic-cristallo",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Pandora",
+    "new_name": "Grand Eccellente",
+    "old_slug": "pandora",
+    "new_slug": "grand-eccellente",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Aquarella",
+    "new_name": "Nobile Pregiato",
+    "old_slug": "aquarella",
+    "new_slug": "nobile-pregiato",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Roma Imperial",
+    "new_name": "Heritage Imperiale",
+    "old_slug": "roma-imperial",
+    "new_slug": "heritage-imperiale",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Tempest Green",
+    "new_name": "Lusso Raffinato",
+    "old_slug": "tempest-green",
+    "new_slug": "lusso-raffinato",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Rosso Coral Quartzite",
+    "new_name": "Lusso Corallo",
+    "old_slug": "rosso-coral-quartzite",
+    "new_slug": "lusso-corallo",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Chinese Mountain",
+    "new_name": "Elegante Alpino",
+    "old_slug": "chinese-mountain",
+    "new_slug": "elegante-alpino",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Patagonia Green",
+    "new_name": "Imperial Prestige II",
+    "old_slug": "patagonia-green",
+    "new_slug": "imperial-prestige-ii",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Volakas (ii)",
+    "new_name": "Nobile Grand II",
+    "old_slug": "volakas-ii",
+    "new_slug": "nobile-grand-ii",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Louis Blue",
+    "new_name": "Regio Elite II",
+    "old_slug": "louis-blue",
+    "new_slug": "regio-elite-ii",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Fossil Black",
+    "new_name": "Classic Fossile",
+    "old_slug": "fossil-black",
+    "new_slug": "classic-fossile",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "3D Grey",
+    "new_name": "Prestige Opulente II",
+    "old_slug": "3d-grey",
+    "new_slug": "prestige-opulente-ii",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "SODALITE BLUE (ii)",
+    "new_name": "Celeste Facet",
+    "old_slug": "sodalite-blue-ii",
+    "new_slug": "celeste-facet",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "MONTEBELLO",
+    "new_name": "Mogano Radiant",
+    "old_slug": "montebello",
+    "new_slug": "mogano-radiant",
+    "color": "brown",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Tiger Onyx",
+    "new_name": "Grano Opalino",
+    "old_slug": "tiger-onyx",
+    "new_slug": "grano-opalino",
+    "color": "yellow",
+    "type": "onyx",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Red Onyx",
+    "new_name": "Rosso Opalino",
+    "old_slug": "red-onyx",
+    "new_slug": "rosso-opalino",
+    "color": "red",
+    "type": "onyx",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Orange Onyx",
+    "new_name": "Copper Opalino",
+    "old_slug": "orange-onyx",
+    "new_slug": "copper-opalino",
+    "color": "orange",
+    "type": "onyx",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Onyx Travertine",
+    "new_name": "Mocha Opalino",
+    "old_slug": "onyx-travertine",
+    "new_slug": "mocha-opalino",
+    "color": "brown",
+    "type": "onyx",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Honey Onyx",
+    "new_name": "Citrine Opalino",
+    "old_slug": "honey-onyx",
+    "new_slug": "citrine-opalino",
+    "color": "yellow",
+    "type": "onyx",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Green Onyx (I)",
+    "new_name": "Sage Opalino",
+    "old_slug": "green-onyx-i",
+    "new_slug": "sage-opalino",
+    "color": "green",
+    "type": "onyx",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Crystal White Onyx",
+    "new_name": "Snow Opalino",
+    "old_slug": "crystal-white-onyx",
+    "new_slug": "snow-opalino",
+    "color": "white",
+    "type": "onyx",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Blue Onyx",
+    "new_name": "Lagoon Opalino",
+    "old_slug": "blue-onyx",
+    "new_slug": "lagoon-opalino",
+    "color": "blue",
+    "type": "onyx",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Blue Ice Onyx",
+    "new_name": "Celeste Opalino",
+    "old_slug": "blue-ice-onyx",
+    "new_slug": "celeste-opalino",
+    "color": "blue",
+    "type": "onyx",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Aravali Onyx",
+    "new_name": "Ardesia Opalino",
+    "old_slug": "aravali-onyx",
+    "new_slug": "ardesia-opalino",
+    "color": "grey",
+    "type": "onyx",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Silver Brown Travertine",
+    "new_name": "Mocha Argento",
+    "old_slug": "silver-brown-travertine",
+    "new_slug": "mocha-argento",
+    "color": "brown",
+    "type": "travertine",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Yellow Travertine",
+    "new_name": "Arancio Campestre",
+    "old_slug": "yellow-travertine",
+    "new_slug": "arancio-campestre",
+    "color": "orange",
+    "type": "travertine",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Walnut Travertine",
+    "new_name": "Walnut Arcaico",
+    "old_slug": "walnut-travertine",
+    "new_slug": "walnut-arcaico",
+    "color": "brown",
+    "type": "travertine",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Dark Silver Travertine",
+    "new_name": "Chestnut Argento",
+    "old_slug": "dark-silver-travertine",
+    "new_slug": "chestnut-argento",
+    "color": "brown",
+    "type": "travertine",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Red Travertine",
+    "new_name": "Garnet Classico",
+    "old_slug": "red-travertine",
+    "new_slug": "garnet-classico",
+    "color": "red",
+    "type": "travertine",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Platinum Travertine",
+    "new_name": "Teak Imperiale",
+    "old_slug": "platinum-travertine",
+    "new_slug": "teak-imperiale",
+    "color": "brown",
+    "type": "travertine",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Chestnut Travertine",
+    "new_name": "Indigo Romano",
+    "old_slug": "chestnut-travertine",
+    "new_slug": "indigo-romano",
+    "color": "blue",
+    "type": "travertine",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Blue Ocean Travertine",
+    "new_name": "Lagoon Oceano",
+    "old_slug": "blue-ocean-travertine",
+    "new_slug": "lagoon-oceano",
+    "color": "blue",
+    "type": "travertine",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Blue Travertine",
+    "new_name": "Celeste Heritage",
+    "old_slug": "blue-travertine",
+    "new_slug": "celeste-heritage",
+    "color": "blue",
+    "type": "travertine",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Tiger Travertine",
+    "new_name": "Marina Tigrato",
+    "old_slug": "tiger-travertine",
+    "new_slug": "marina-tigrato",
+    "color": "blue",
+    "type": "travertine",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Silver Travertine",
+    "new_name": "Riflesso Argento",
+    "old_slug": "silver-travertine",
+    "new_slug": "riflesso-argento",
+    "color": "silver",
+    "type": "travertine",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Classico Travertine",
+    "new_name": "Avorio Classico",
+    "old_slug": "classico-travertine",
+    "new_slug": "avorio-classico",
+    "color": "cream",
+    "type": "travertine",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Beige Travertine",
+    "new_name": "Sand Antico",
+    "old_slug": "beige-travertine",
+    "new_slug": "sand-antico",
+    "color": "beige",
+    "type": "travertine",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Volga Blue",
+    "new_name": "Obsidian Bedrock",
+    "old_slug": "volga-blue",
+    "new_slug": "obsidian-bedrock",
+    "color": "black",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Verde Uba Tuba",
+    "new_name": "Malachite Massif",
+    "old_slug": "verde-uba-tuba",
+    "new_slug": "malachite-massif",
+    "color": "green",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Platinum Black",
+    "new_name": "Carbon Crest",
+    "old_slug": "platinum-black",
+    "new_slug": "carbon-crest",
+    "color": "black",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Monte Carlo",
+    "new_name": "Snow Upland",
+    "old_slug": "monte-carlo",
+    "new_slug": "snow-upland",
+    "color": "white",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Marisma",
+    "new_name": "Malachite Plateau",
+    "old_slug": "marisma",
+    "new_slug": "malachite-plateau",
+    "color": "green",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Mari Blue",
+    "new_name": "Celeste Tableland",
+    "old_slug": "mari-blue",
+    "new_slug": "celeste-tableland",
+    "color": "blue",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Labrador",
+    "new_name": "Mogano Escarp",
+    "old_slug": "labrador",
+    "new_slug": "mogano-escarp",
+    "color": "brown",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Kashmir White",
+    "new_name": "Lunare Cenere",
+    "old_slug": "kashmir-white",
+    "new_slug": "lunare-cenere",
+    "color": "white",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Juparana",
+    "new_name": "Bianco Lusso",
+    "old_slug": "juparana",
+    "new_slug": "bianco-lusso",
+    "color": "white",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Gran Delicatus",
+    "new_name": "Ivory Ridge",
+    "old_slug": "gran-delicatus",
+    "new_slug": "ivory-ridge",
+    "color": "cream",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Emarald Pearl",
+    "new_name": "Obsidian Perla",
+    "old_slug": "emarald-pearl",
+    "new_slug": "obsidian-perla",
+    "color": "black",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Black Galaxy",
+    "new_name": "Eclipse Galattico",
+    "old_slug": "black-galaxy",
+    "new_slug": "eclipse-galattico",
+    "color": "black",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Black Cosmic",
+    "new_name": "Ebano Summit",
+    "old_slug": "black-cosmic",
+    "new_slug": "ebano-summit",
+    "color": "black",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Verde Butterfly",
+    "new_name": "Carbon Fastness",
+    "old_slug": "verde-butterfly",
+    "new_slug": "carbon-fastness",
+    "color": "black",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Viscont White",
+    "new_name": "Ash Massif",
+    "old_slug": "viscont-white",
+    "new_slug": "ash-massif",
+    "color": "grey",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Via Lattea",
+    "new_name": "Ebano Bedrock",
+    "old_slug": "via-lattea",
+    "new_slug": "ebano-bedrock",
+    "color": "black",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Titanium",
+    "new_name": "Oscuro Radiant",
+    "old_slug": "titanium",
+    "new_slug": "oscuro-radiant",
+    "color": "black",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Maori",
+    "new_name": "Abisso Crest",
+    "old_slug": "maori",
+    "new_slug": "abisso-crest",
+    "color": "black",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Lemurian Blue",
+    "new_name": "Nero Upland",
+    "old_slug": "lemurian-blue",
+    "new_slug": "nero-upland",
+    "color": "black",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Gold Sparkles",
+    "new_name": "Crystal Dorato",
+    "old_slug": "gold-sparkles",
+    "new_slug": "crystal-dorato",
+    "color": "white",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Delicatus",
+    "new_name": "Vanilla Tableland",
+    "old_slug": "delicatus",
+    "new_slug": "vanilla-tableland",
+    "color": "cream",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Cosmic Silver",
+    "new_name": "Eclipse Argento",
+    "old_slug": "cosmic-silver",
+    "new_slug": "eclipse-argento",
+    "color": "black",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Cosmic Gold",
+    "new_name": "Carbon Dorato",
+    "old_slug": "cosmic-gold",
+    "new_slug": "carbon-dorato",
+    "color": "black",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Blue Pearl",
+    "new_name": "Indigo Perla",
+    "old_slug": "blue-pearl",
+    "new_slug": "indigo-perla",
+    "color": "blue",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Azul Imperial",
+    "new_name": "Ash Imperiale",
+    "old_slug": "azul-imperial",
+    "new_slug": "ash-imperiale",
+    "color": "grey",
+    "type": "granite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Swizz Alps",
+    "new_name": "Neve Prisma",
+    "old_slug": "swizz-alps",
+    "new_slug": "neve-prisma",
+    "color": "white",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Silver Silk",
+    "new_name": "Cromo Argento",
+    "old_slug": "silver-silk",
+    "new_slug": "cromo-argento",
+    "color": "silver",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Patagonia Arancia",
+    "new_name": "Castagno Fusion",
+    "old_slug": "patagonia-arancia",
+    "new_slug": "castagno-fusion",
+    "color": "brown",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Palladium Green",
+    "new_name": "Verde Sparkle",
+    "old_slug": "palladium-green",
+    "new_slug": "verde-sparkle",
+    "color": "green",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Matrix",
+    "new_name": "Storm Glimmer",
+    "old_slug": "matrix",
+    "new_slug": "storm-glimmer",
+    "color": "grey",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Matrix II",
+    "new_name": "Slate Facet",
+    "old_slug": "matrix-ii",
+    "new_slug": "slate-facet",
+    "color": "grey",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Marine Blue",
+    "new_name": "Pacific Oceano",
+    "old_slug": "marine-blue",
+    "new_slug": "pacific-oceano",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Marinace",
+    "new_name": "Carbon Lumina",
+    "old_slug": "marinace",
+    "new_slug": "carbon-lumina",
+    "color": "black",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Joya Blue",
+    "new_name": "Indigo Brillante",
+    "old_slug": "joya-blue",
+    "new_slug": "indigo-brillante",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Invisible Fantasy",
+    "new_name": "Cenere Lumina",
+    "old_slug": "invisible-fantasy",
+    "new_slug": "cenere-lumina",
+    "color": "grey",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Iron Red",
+    "new_name": "Pietra Risplendente",
+    "old_slug": "iron-red",
+    "new_slug": "pietra-risplendente",
+    "color": "grey",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Grey Fantasy",
+    "new_name": "Ardesia Nitido",
+    "old_slug": "grey-fantasy",
+    "new_slug": "ardesia-nitido",
+    "color": "grey",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Green Turtle",
+    "new_name": "Grand Scintilla",
+    "old_slug": "green-turtle",
+    "new_slug": "grand-scintilla",
+    "color": "unknown",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Cristallo",
+    "new_name": "Bianco Cristallo",
+    "old_slug": "cristallo",
+    "new_slug": "bianco-cristallo",
+    "color": "white",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Calcite Azul",
+    "new_name": "Sapphire Gem",
+    "old_slug": "calcite-azul",
+    "new_slug": "sapphire-gem",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Botanic Green",
+    "new_name": "Jade Prisma",
+    "old_slug": "botanic-green",
+    "new_slug": "jade-prisma",
+    "color": "green",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Blue Roma",
+    "new_name": "Lagoon Gem",
+    "old_slug": "blue-roma",
+    "new_slug": "lagoon-gem",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Bethany Blue",
+    "new_name": "Celeste Prisma",
+    "old_slug": "bethany-blue",
+    "new_slug": "celeste-prisma",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Bamboo Green",
+    "new_name": "Fern Bambuseto",
+    "old_slug": "bamboo-green",
+    "new_slug": "fern-bambuseto",
+    "color": "green",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Azul Macaubus",
+    "new_name": "Lagoon Glimmer",
+    "old_slug": "azul-macaubus",
+    "new_slug": "lagoon-glimmer",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Amazonite Crystallo",
+    "new_name": "Celeste Cristallo",
+    "old_slug": "amazonite-crystallo",
+    "new_slug": "celeste-cristallo",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Vibranium",
+    "new_name": "Ardesia Radiant",
+    "old_slug": "vibranium",
+    "new_slug": "ardesia-radiant",
+    "color": "grey",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "White Princess",
+    "new_name": "Jade Facet",
+    "old_slug": "white-princess",
+    "new_slug": "jade-facet",
+    "color": "green",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "White Macaubus",
+    "new_name": "Bianco Brillante",
+    "old_slug": "white-macaubus",
+    "new_slug": "bianco-brillante",
+    "color": "white",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Tropical Storm",
+    "new_name": "Midnight Tempesta",
+    "old_slug": "tropical-storm",
+    "new_slug": "midnight-tempesta",
+    "color": "black",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Taj Mahal (Nacarado)",
+    "new_name": "Slate Risplendente",
+    "old_slug": "taj-mahal-nacarado",
+    "new_slug": "slate-risplendente",
+    "color": "grey",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Super White",
+    "new_name": "Smoke Supremo",
+    "old_slug": "super-white",
+    "new_slug": "smoke-supremo",
+    "color": "grey",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Sodalite Blue",
+    "new_name": "Cobalt Scintilla",
+    "old_slug": "sodalite-blue",
+    "new_slug": "cobalt-scintilla",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Sequoia Brown",
+    "new_name": "Chestnut Cristallo",
+    "old_slug": "sequoia-brown",
+    "new_slug": "chestnut-cristallo",
+    "color": "brown",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Santorini (II)",
+    "new_name": "Oceano Scintilla",
+    "old_slug": "santorini-ii",
+    "new_slug": "oceano-scintilla",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Santorini (I)",
+    "new_name": "Azzurro Cristallo",
+    "old_slug": "santorini-i",
+    "new_slug": "azzurro-cristallo",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "River Blue",
+    "new_name": "Marina Fluviale",
+    "old_slug": "river-blue",
+    "new_slug": "marina-fluviale",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Patagonia Rose",
+    "new_name": "Fiorino Fusion",
+    "old_slug": "patagonia-rose",
+    "new_slug": "fiorino-fusion",
+    "color": "pink",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Patagonia Rose Crystallo",
+    "new_name": "Rosa Cristallo",
+    "old_slug": "patagonia-rose-crystallo",
+    "new_slug": "rosa-cristallo",
+    "color": "pink",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Patagonia",
+    "new_name": "Crystal Glimmer",
+    "old_slug": "patagonia",
+    "new_slug": "crystal-glimmer",
+    "color": "white",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Palomino",
+    "new_name": "Mocha Facet",
+    "old_slug": "palomino",
+    "new_slug": "mocha-facet",
+    "color": "brown",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Mont Blanc",
+    "new_name": "Alpine Radiant",
+    "old_slug": "mont-blanc",
+    "new_slug": "alpine-radiant",
+    "color": "white",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Moldavite",
+    "new_name": "Sage Lumina",
+    "old_slug": "moldavite",
+    "new_slug": "sage-lumina",
+    "color": "green",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Michael Angelo",
+    "new_name": "Marina Radiant",
+    "old_slug": "michael-angelo",
+    "new_slug": "marina-radiant",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Mappa Del Mondo",
+    "new_name": "Prestige Opulente III",
+    "old_slug": "mappa-del-mondo",
+    "new_slug": "prestige-opulente-iii",
+    "color": "unknown",
+    "type": "unknown",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Crytos",
+    "new_name": "Ebano Risplendente",
+    "old_slug": "crytos",
+    "new_slug": "ebano-risplendente",
+    "color": "black",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Tiffany Green",
+    "new_name": "Smeraldo Risplendente",
+    "old_slug": "tiffany-green",
+    "new_slug": "smeraldo-risplendente",
+    "color": "green",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Copenhagen",
+    "new_name": "Lunare Scintilla",
+    "old_slug": "copenhagen",
+    "new_slug": "lunare-scintilla",
+    "color": "white",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Copacabana",
+    "new_name": "Smoke Vein",
+    "old_slug": "copacabana",
+    "new_slug": "smoke-vein",
+    "color": "grey",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Botanic Gold",
+    "new_name": "Copper Dorato",
+    "old_slug": "botanic-gold",
+    "new_slug": "copper-dorato",
+    "color": "orange",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Brown Silk",
+    "new_name": "Mocha Prisma",
+    "old_slug": "brown-silk",
+    "new_slug": "mocha-prisma",
+    "color": "brown",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Black Fantasy",
+    "new_name": "Eclipse Vein",
+    "old_slug": "black-fantasy",
+    "new_slug": "eclipse-vein",
+    "color": "black",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Black Phatus",
+    "new_name": "Carbon Fusion",
+    "old_slug": "black-phatus",
+    "new_slug": "carbon-fusion",
+    "color": "black",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Azul Bahia",
+    "new_name": "Indigo Sparkle",
+    "old_slug": "azul-bahia",
+    "new_slug": "indigo-sparkle",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Azul Azurite",
+    "new_name": "Bronze Glimmer",
+    "old_slug": "azul-azurite",
+    "new_slug": "bronze-glimmer",
+    "color": "brown",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Wenge",
+    "new_name": "Noce Antico",
+    "old_slug": "wenge",
+    "new_slug": "noce-antico",
+    "color": "brown",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Verde Alpi",
+    "new_name": "Bosco Lustro",
+    "old_slug": "verde-alpi",
+    "new_slug": "bosco-lustro",
+    "color": "green",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Verde Tropicus",
+    "new_name": "Giada Regale",
+    "old_slug": "verde-tropicus",
+    "new_slug": "giada-regale",
+    "color": "green",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Verde Gianda",
+    "new_name": "Verde Venato",
+    "old_slug": "verde-gianda",
+    "new_slug": "verde-venato",
+    "color": "green",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Verias Grey",
+    "new_name": "Storm Magnifico",
+    "old_slug": "verias-grey",
+    "new_slug": "storm-magnifico",
+    "color": "grey",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Trambisera",
+    "new_name": "Slate Imperiale",
+    "old_slug": "trambisera",
+    "new_slug": "slate-imperiale",
+    "color": "grey",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Thassos White",
+    "new_name": "Pearl Magnifico",
+    "old_slug": "thassos-white",
+    "new_slug": "pearl-magnifico",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Super White",
+    "new_name": "Polar Supremo",
+    "old_slug": "super-white",
+    "new_slug": "polar-supremo",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Sivec White",
+    "new_name": "Snow Elegante",
+    "old_slug": "sivec-white",
+    "new_slug": "snow-elegante",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Rosso Perlino",
+    "new_name": "Powder Brillante",
+    "old_slug": "rosso-perlino",
+    "new_slug": "powder-brillante",
+    "color": "pink",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Palissandro Blue",
+    "new_name": "Celeste Antico",
+    "old_slug": "palissandro-blue",
+    "new_slug": "celeste-antico",
+    "color": "blue",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Ombra Di Caravaggio",
+    "new_name": "Ardesia Lustro",
+    "old_slug": "ombra-di-caravaggio",
+    "new_slug": "ardesia-lustro",
+    "color": "grey",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Macchia Vecchia",
+    "new_name": "Arctic Antico",
+    "old_slug": "macchia-vecchia",
+    "new_slug": "arctic-antico",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Lincoln White",
+    "new_name": "Alpine Lustro",
+    "old_slug": "lincoln-white",
+    "new_slug": "alpine-lustro",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Black Forest",
+    "new_name": "Midnight Selvatico",
+    "old_slug": "black-forest",
+    "new_slug": "midnight-selvatico",
+    "color": "black",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Fushion",
+    "new_name": "Aegean Risplendente",
+    "old_slug": "fushion",
+    "new_slug": "aegean-risplendente",
+    "color": "blue",
+    "type": "quartzite",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Golden Spider",
+    "new_name": "Sahara Nobile",
+    "old_slug": "golden-spider",
+    "new_slug": "sahara-nobile",
+    "color": "beige",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Galaxy White (ii)",
+    "new_name": "Steel Galattico",
+    "old_slug": "galaxy-white-ii",
+    "new_slug": "steel-galattico",
+    "color": "grey",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Camellia Green",
+    "new_name": "Bosco Nobile",
+    "old_slug": "camellia-green",
+    "new_slug": "bosco-nobile",
+    "color": "green",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Calacatta White",
+    "new_name": "Pearl Calacatta",
+    "old_slug": "calacatta-white",
+    "new_slug": "pearl-calacatta",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Calacatta Gold",
+    "new_name": "Neve Calacatta",
+    "old_slug": "calacatta-gold",
+    "new_slug": "neve-calacatta",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Calacatta Oro",
+    "new_name": "Ghiaccio Calacatta",
+    "old_slug": "calacatta-oro",
+    "new_slug": "ghiaccio-calacatta",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Breccia Oniciatta",
+    "new_name": "Vanilla Imperiale",
+    "old_slug": "breccia-oniciatta",
+    "new_slug": "vanilla-imperiale",
+    "color": "cream",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Breccia Pernice",
+    "new_name": "Smoke Classico",
+    "old_slug": "breccia-pernice",
+    "new_slug": "smoke-classico",
+    "color": "grey",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Breccia Nuvolato",
+    "new_name": "Linen Supremo",
+    "old_slug": "breccia-nuvolato",
+    "new_slug": "linen-supremo",
+    "color": "cream",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Breccia Di Azul",
+    "new_name": "Slate Antico",
+    "old_slug": "breccia-di-azul",
+    "new_slug": "slate-antico",
+    "color": "grey",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Breccia Aurora (II)",
+    "new_name": "Espresso Aurora",
+    "old_slug": "breccia-aurora-ii",
+    "new_slug": "espresso-aurora",
+    "color": "brown",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Breccia Aurora (I)",
+    "new_name": "Cobalt Aurora",
+    "old_slug": "breccia-aurora-i",
+    "new_slug": "cobalt-aurora",
+    "color": "blue",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Bianco Perlino",
+    "new_name": "Snow Puro",
+    "old_slug": "bianco-perlino",
+    "new_slug": "snow-puro",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Arabescato Vagli",
+    "new_name": "Pearl Arabescato",
+    "old_slug": "arabescato-vagli",
+    "new_slug": "pearl-arabescato",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Amarillo",
+    "new_name": "Aureo Finissimo",
+    "old_slug": "amarillo",
+    "new_slug": "aureo-finissimo",
+    "color": "yellow",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Volakas Marble",
+    "new_name": "Ghiaccio Nobile",
+    "old_slug": "volakas-marble",
+    "new_slug": "ghiaccio-nobile",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Verde Levanto",
+    "new_name": "Abisso Prezioso",
+    "old_slug": "verde-levanto",
+    "new_slug": "abisso-prezioso",
+    "color": "black",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Tuscan White",
+    "new_name": "Bianco Venato",
+    "old_slug": "tuscan-white",
+    "new_slug": "bianco-venato",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Grigio Pellini",
+    "new_name": "Steel Prezioso",
+    "old_slug": "grigio-pellini",
+    "new_slug": "steel-prezioso",
+    "color": "grey",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Statuario White",
+    "new_name": "Arctic Statuario",
+    "old_slug": "statuario-white",
+    "new_slug": "arctic-statuario",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Statuerietto",
+    "new_name": "Lunare Prezioso",
+    "old_slug": "statuerietto",
+    "new_slug": "lunare-prezioso",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Statuario Carrara",
+    "new_name": "Polar Carrara",
+    "old_slug": "statuario-carrara",
+    "new_slug": "polar-carrara",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Silvabella Serpeggiante",
+    "new_name": "Silver Elegante",
+    "old_slug": "silvabella-serpeggiante",
+    "new_slug": "silver-elegante",
+    "color": "grey",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Sahara Noir",
+    "new_name": "Notturno Sahariano",
+    "old_slug": "sahara-noir",
+    "new_slug": "notturno-sahariano",
+    "color": "black",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Rosso Palissandro",
+    "new_name": "Petalo Antico",
+    "old_slug": "rosso-palissandro",
+    "new_slug": "petalo-antico",
+    "color": "pink",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Rosso Orobico",
+    "new_name": "Corallo Lustro",
+    "old_slug": "rosso-orobico",
+    "new_slug": "corallo-lustro",
+    "color": "red",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Rosso Levanto",
+    "new_name": "Fiamma Regale",
+    "old_slug": "rosso-levanto",
+    "new_slug": "fiamma-regale",
+    "color": "red",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Portoro Gold",
+    "new_name": "Nero Dorato",
+    "old_slug": "portoro-gold",
+    "new_slug": "nero-dorato",
+    "color": "black",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Polaris",
+    "new_name": "Crystal Polare",
+    "old_slug": "polaris",
+    "new_slug": "crystal-polare",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Palisandro",
+    "new_name": "Petal Finissimo",
+    "old_slug": "palisandro",
+    "new_slug": "petal-finissimo",
+    "color": "pink",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Panda White",
+    "new_name": "Ghiaccio Lustro",
+    "old_slug": "panda-white",
+    "new_slug": "ghiaccio-lustro",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Obama",
+    "new_name": "Teak Prezioso",
+    "old_slug": "obama",
+    "new_slug": "teak-prezioso",
+    "color": "brown",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Manhattan Grey",
+    "new_name": "Silver Venato",
+    "old_slug": "manhattan-grey",
+    "new_slug": "silver-venato",
+    "color": "grey",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Grigio Carnico",
+    "new_name": "Ash Magnifico",
+    "old_slug": "grigio-carnico",
+    "new_slug": "ash-magnifico",
+    "color": "grey",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Grey Saint Laurent",
+    "new_name": "Pietra Imperiale",
+    "old_slug": "grey-saint-laurent",
+    "new_slug": "pietra-imperiale",
+    "color": "grey",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Grey Serpeggiante",
+    "new_name": "Ardesia Classico",
+    "old_slug": "grey-serpeggiante",
+    "new_slug": "ardesia-classico",
+    "color": "grey",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Galaxy White",
+    "new_name": "Lunare Galattico",
+    "old_slug": "galaxy-white",
+    "new_slug": "lunare-galattico",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Forest Green",
+    "new_name": "Verde Selvatico",
+    "old_slug": "forest-green",
+    "new_slug": "verde-selvatico",
+    "color": "green",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Forest Brown",
+    "new_name": "Walnut Selvatico",
+    "old_slug": "forest-brown",
+    "new_slug": "walnut-selvatico",
+    "color": "brown",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Fior Di Bosco",
+    "new_name": "Steel Supremo",
+    "old_slug": "fior-di-bosco",
+    "new_slug": "steel-supremo",
+    "color": "grey",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Fior De Pesco",
+    "new_name": "Ash Brillante",
+    "old_slug": "fior-de-pesco",
+    "new_slug": "ash-brillante",
+    "color": "grey",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Daino",
+    "new_name": "Linen Regale",
+    "old_slug": "daino",
+    "new_slug": "linen-regale",
+    "color": "cream",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Calcite Blue",
+    "new_name": "Indigo Puro",
+    "old_slug": "calcite-blue",
+    "new_slug": "indigo-puro",
+    "color": "blue",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Crema Marfill",
+    "new_name": "Candido Crema",
+    "old_slug": "crema-marfill",
+    "new_slug": "candido-crema",
+    "color": "cream",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Calacatta Viola",
+    "new_name": "Alpine Calacatta",
+    "old_slug": "calacatta-viola",
+    "new_slug": "alpine-calacatta",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Calacatta Bluetto",
+    "new_name": "Marina Calacatta",
+    "old_slug": "calacatta-bluetto",
+    "new_slug": "marina-calacatta",
+    "color": "blue",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Calacatta Armani",
+    "new_name": "Lunare Calacatta",
+    "old_slug": "calacatta-armani",
+    "new_slug": "lunare-calacatta",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Brecia Macchia Vecchia",
+    "new_name": "Grigio Venato",
+    "old_slug": "brecia-macchia-vecchia",
+    "new_slug": "grigio-venato",
+    "color": "grey",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Botticino Classico",
+    "new_name": "Sand Botticino",
+    "old_slug": "botticino-classico",
+    "new_slug": "sand-botticino",
+    "color": "beige",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Nero Marquina",
+    "new_name": "Obsidian Marquina",
+    "old_slug": "nero-marquina",
+    "new_slug": "obsidian-marquina",
+    "color": "black",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Bianco Venato",
+    "new_name": "Alpine Venato",
+    "old_slug": "bianco-venato",
+    "new_slug": "alpine-venato",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Bianco Carrara",
+    "new_name": "Neve Carrara",
+    "old_slug": "bianco-carrara",
+    "new_slug": "neve-carrara",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Bardiglio Carrara",
+    "new_name": "Silver Carrara",
+    "old_slug": "bardiglio-carrara",
+    "new_slug": "silver-carrara",
+    "color": "grey",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Arabescato White",
+    "new_name": "Lunare Arabescato",
+    "old_slug": "arabescato-white",
+    "new_slug": "lunare-arabescato",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Arabescato Orobico",
+    "new_name": "Pietra Arabescato",
+    "old_slug": "arabescato-orobico",
+    "new_slug": "pietra-arabescato",
+    "color": "grey",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Arabescato Corchia",
+    "new_name": "Ghiaccio Arabescato",
+    "old_slug": "arabescato-corchia",
+    "new_slug": "ghiaccio-arabescato",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Arabescato Carrara",
+    "new_name": "Lunare Carrara",
+    "old_slug": "arabescato-carrara",
+    "new_slug": "lunare-carrara",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  },
+  {
+    "orig_name": "Ajax (Volakas Gold)",
+    "new_name": "Bianco Dorato",
+    "old_slug": "ajax-volakas-gold",
+    "new_slug": "bianco-dorato",
+    "color": "white",
+    "type": "marble",
+    "source": "marmo",
+    "local_img": ""
+  }
+]
