@@ -192,9 +192,10 @@ export default async function handler(req, res) {
         // Routine logins during quiet hours go silent
         const silentNotification = inQuietHours && body.event === 'login' && !body.isFirstLogin;
 
-        // 3. Cooldown — only applies to plain 'login' events (signups/requests always ping)
-        const cooldownMin = parseInt(process.env.TELEGRAM_COOLDOWN_MIN || '60', 10);
-        if (body.event === 'login' && !body.isFirstLogin && cleanPhone) {
+        // 3. Cooldown — disabled by default (0 = ping every visit).
+        // To enable: set TELEGRAM_COOLDOWN_MIN env var to a positive number of minutes.
+        const cooldownMin = parseInt(process.env.TELEGRAM_COOLDOWN_MIN || '0', 10);
+        if (cooldownMin > 0 && body.event === 'login' && !body.isFirstLogin && cleanPhone) {
             if (await shouldSkipForCooldown(cleanPhone, cooldownMin)) {
                 return res.status(200).json({ ok: true, skipped: true, reason: 'cooldown' });
             }
