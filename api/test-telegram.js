@@ -8,6 +8,8 @@
  *  - Any error from Telegram's API
  *
  * Token/chat ID are partially masked in the response so it's safe to share screenshots.
+ *
+ * Build trigger: forcing fresh deploy to pick up env vars.
  */
 export default async function handler(req, res) {
     const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
