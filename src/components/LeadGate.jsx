@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { Phone, Mail, Building, Globe, User, ShieldCheck, Compass, Hammer, X } from 'lucide-react';
 import { useRequirements } from '../context/RequirementsContext';
+import { notifyLogin, notifyArchitectSignup, notifyClientRequest } from '../utils/notifyTelegram';
 
 const LeadGate = ({ children }) => {
     const { setLeadId: setContextLeadId, clearSession } = useRequirements();
@@ -29,7 +30,7 @@ const LeadGate = ({ children }) => {
         checkLeadStatus();
     }, []);
 
-    const logLogin = async (phone, name, role) => {
+    const logLogin = async (phone, name, role, extra = {}) => {
         try {
             await supabase.from('login_events').insert({
                 phone_number: phone,
@@ -40,6 +41,17 @@ const LeadGate = ({ children }) => {
         } catch {
             // Silently skip — table may not exist yet
         }
+        // Ping Telegram (fire-and-forget, never blocks the login flow)
+        try {
+            notifyLogin({
+                phone,
+                name,
+                role,
+                firm: extra.firm,
+                status: extra.status,
+                isFirstLogin: extra.isFirstLogin
+            });
+        } catch { /* silent */ }
     };
 
     const promoteUnverifiedRequests = async (archPhone) => {
@@ -263,7 +275,19 @@ const LeadGate = ({ children }) => {
 
             if (upsertError) throw upsertError;
 
-            await logLogin(data.phone || pendingLead.phone, data.full_name || pendingLead.full_name, chosenRole);
+            await logLogin(data.phone || pendingLead.phone, data.full_name || pendingLead.full_name, chosenRole, { isFirstLogin: true, firm: data.company_name || pendingLead.company_name });
+            // Ping Telegram with rich architect signup details
+            if (chosenRole === 'architect') {
+                try {
+                    notifyArchitectSignup({
+                        phone: data.phone || pendingLead.phone,
+                        name: data.full_name || pendingLead.full_name,
+                        firm: data.company_name || pendingLead.company_name,
+                        email: data.email || pendingLead.email,
+                        website: data.website || pendingLead.website
+                    });
+                } catch { /* silent */ }
+            }
             localStorage.setItem('stonevo_lead_id', data.id);
             localStorage.setItem('stonevo_user_phone', data.phone || pendingLead.phone || '');
             localStorage.setItem('stonevo_user_name', data.full_name || pendingLead.full_name || '');
@@ -365,7 +389,16 @@ const LeadGate = ({ children }) => {
                 .single();
 
             if (error) throw error;
-            await logLogin(cleanPhone, clientRequest.full_name, 'builder');
+            await logLogin(cleanPhone, clientRequest.full_name, 'builder', { isFirstLogin: true, status: hasArchitect ? 'pending' : 'approved' });
+            // Ping Telegram with client-request specifics
+            try {
+                notifyClientRequest({
+                    phone: cleanPhone,
+                    name: clientRequest.full_name,
+                    architectPhone: hasArchitect ? cleanArchPhone : null,
+                    architectName: null
+                });
+            } catch { /* silent */ }
             localStorage.setItem('stonevo_lead_id', data.id);
             localStorage.setItem('stonevo_user_phone', cleanPhone);
             localStorage.setItem('stonevo_user_name', clientRequest.full_name);
