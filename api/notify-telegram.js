@@ -179,16 +179,18 @@ export default async function handler(req, res) {
             return res.status(200).json({ ok: true, skipped: true, reason: 'team phone' });
         }
 
-        // 2. Quiet hours (default 23:00–08:00 IST) — but signups/requests bypass
+        // 2. Quiet hours (default 23:00–08:00 IST)
+        // Notification is still SENT — just silently (no buzz/ring on phone).
+        // You'll see overnight activity in the morning when you open Telegram.
         const quietStart = parseInt(process.env.TELEGRAM_QUIET_START || '23', 10);
         const quietEnd = parseInt(process.env.TELEGRAM_QUIET_END || '8', 10);
         const hour = getISTHour();
         const inQuietHours = quietStart > quietEnd
             ? (hour >= quietStart || hour < quietEnd)
             : (hour >= quietStart && hour < quietEnd);
-        if (inQuietHours && body.event === 'login' && !body.isFirstLogin) {
-            return res.status(200).json({ ok: true, skipped: true, reason: 'quiet hours' });
-        }
+        // Signups and requests always notify with sound (high priority)
+        // Routine logins during quiet hours go silent
+        const silentNotification = inQuietHours && body.event === 'login' && !body.isFirstLogin;
 
         // 3. Cooldown — only applies to plain 'login' events (signups/requests always ping)
         const cooldownMin = parseInt(process.env.TELEGRAM_COOLDOWN_MIN || '60', 10);
@@ -201,11 +203,14 @@ export default async function handler(req, res) {
         // 4. Fetch recent activity context
         const recentActivity = await fetchRecentActivity(body.leadId);
 
-        // 5. Build message
-        const text = buildMessage({ ...body, phone: cleanPhone, recentActivity });
+        // 5. Build message (add 🌙 prefix during quiet hours so it's visually distinct in the morning)
+        let text = buildMessage({ ...body, phone: cleanPhone, recentActivity });
+        if (silentNotification) {
+            text = '🌙 <i>Overnight</i>\n' + text;
+        }
         const reply_markup = buildInlineKeyboard({ event: body.event, phone: cleanPhone });
 
-        // 6. Send
+        // 6. Send — silent during quiet hours (no buzz/ring), normal otherwise
         const url = `https://api.telegram.org/bot${TOKEN}/sendMessage`;
         const tgRes = await fetch(url, {
             method: 'POST',
@@ -215,6 +220,7 @@ export default async function handler(req, res) {
                 text,
                 parse_mode: 'HTML',
                 disable_web_page_preview: true,
+                disable_notification: silentNotification,
                 reply_markup
             })
         });
