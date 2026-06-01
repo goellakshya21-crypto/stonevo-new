@@ -190,6 +190,8 @@ const AboutPage = () => {
                         onMouseEnter={e=>e.target.style.color='#FDFCF8'} onMouseLeave={e=>e.target.style.color='rgba(253,252,248,0.55)'}>Stone Intelligence</Link>
                     <Link to="/team" className="sv-nav-tab" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.28em', textTransform:'uppercase', color:'rgba(253,252,248,0.55)', background:'transparent', textDecoration:'none', padding:'10px 22px', borderRadius:100, whiteSpace:'nowrap', transition:'color 0.3s, background 0.3s' }}
                         onMouseEnter={e=>e.target.style.color='#FDFCF8'} onMouseLeave={e=>e.target.style.color='rgba(253,252,248,0.55)'}>Our Team</Link>
+                    <Link to="/advisory" className="sv-nav-tab" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.28em', textTransform:'uppercase', color:'rgba(253,252,248,0.55)', background:'transparent', textDecoration:'none', padding:'10px 22px', borderRadius:100, whiteSpace:'nowrap', transition:'color 0.3s, background 0.3s' }}
+                        onMouseEnter={e=>e.target.style.color='#FDFCF8'} onMouseLeave={e=>e.target.style.color='rgba(253,252,248,0.55)'}>Audit & Advisory</Link>
                 </div>
             </nav>
 

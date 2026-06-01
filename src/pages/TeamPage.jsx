@@ -342,6 +342,7 @@ const TeamPage = () => {
                         <Link to="/about" className="tp-tab">About</Link>
                         <Link to="/stone-intelligence" className="tp-tab">Stone Intelligence</Link>
                         <Link to="/team" className="tp-tab active">Our Team</Link>
+                        <Link to="/advisory" className="tp-tab">Audit & Advisory</Link>
                     </div>
                 </nav>
 
