@@ -94,10 +94,19 @@ const AdvisoryServices = () => {
                         </div>
                         <h1 className="font-serif text-xl font-semibold tracking-widest text-white">STONEVO</h1>
                     </Link>
-                    <nav className="hidden md:flex items-center gap-10">
-                        <Link to="/" className="text-xs uppercase tracking-[0.2em] text-stone-400 hover:text-white transition-colors">Gallery</Link>
-                        <button 
-                            onClick={() => setIsConfiguratorOpen(true)} 
+                    <nav className="hidden md:flex items-center gap-4">
+                        {/* 4-tab pill nav — matches About / Team / Stone Intelligence pages */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(28,24,20,0.55)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 100, padding: 5 }}>
+                            <Link to="/about" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.28em', textTransform:'uppercase', color:'rgba(253,252,248,0.55)', background:'transparent', textDecoration:'none', padding:'10px 22px', borderRadius:100, whiteSpace:'nowrap', transition:'color 0.3s' }}
+                                onMouseEnter={e=>e.target.style.color='#FDFCF8'} onMouseLeave={e=>e.target.style.color='rgba(253,252,248,0.55)'}>About</Link>
+                            <Link to="/stone-intelligence" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.28em', textTransform:'uppercase', color:'rgba(253,252,248,0.55)', background:'transparent', textDecoration:'none', padding:'10px 22px', borderRadius:100, whiteSpace:'nowrap', transition:'color 0.3s' }}
+                                onMouseEnter={e=>e.target.style.color='#FDFCF8'} onMouseLeave={e=>e.target.style.color='rgba(253,252,248,0.55)'}>Stone Intelligence</Link>
+                            <Link to="/team" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.28em', textTransform:'uppercase', color:'rgba(253,252,248,0.55)', background:'transparent', textDecoration:'none', padding:'10px 22px', borderRadius:100, whiteSpace:'nowrap', transition:'color 0.3s' }}
+                                onMouseEnter={e=>e.target.style.color='#FDFCF8'} onMouseLeave={e=>e.target.style.color='rgba(253,252,248,0.55)'}>Our Team</Link>
+                            <Link to="/advisory" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.28em', textTransform:'uppercase', color:'#0d0c0a', background:'#A37D4B', textDecoration:'none', padding:'10px 22px', borderRadius:100, whiteSpace:'nowrap' }}>Audit & Advisory</Link>
+                        </div>
+                        <button
+                            onClick={() => setIsConfiguratorOpen(true)}
                             className="bg-luxury-bronze text-stone-950 px-5 py-2 rounded-full text-[10px] uppercase tracking-[0.2em] font-bold hover:bg-bronze transition-all flex items-center gap-2"
                         >
                             {stoneCount > 0 ? `Requirements (${stoneCount})` : 'Add Requirement'}
