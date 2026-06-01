@@ -111,57 +111,79 @@ async function buildPDF(stones) {
         pdf.text(text, x, y, { align });
     };
 
-    // Image inside a black tint overlay (for cover / divider bgs)
-    const drawCoverBG = (dataUrl) => {
-        if (dataUrl) {
-            embedImage(dataUrl, 0, 0, W, H);
-            // Dark gradient-ish overlay: layered semi-transparent rects
-            // (jsPDF gradients are tricky — we approximate with stacked rects)
-            const gradSteps = 12;
-            for (let i = 0; i < gradSteps; i++) {
-                const alpha = 0.92 - (i / gradSteps) * 0.5;
-                pdf.setGState && pdf.setGState(new (pdf.GState)({ opacity: alpha }));
-                setFill(C.bg);
-                const sliceW = (W * 0.55) / gradSteps;
-                pdf.rect(i * sliceW, 0, sliceW + 0.5, H, 'F');
-            }
-            // Right-side fade is gentler
-            pdf.setGState && pdf.setGState(new (pdf.GState)({ opacity: 0.45 }));
-            setFill(C.bg);
-            pdf.rect(W * 0.55, 0, W * 0.45, H, 'F');
-            pdf.setGState && pdf.setGState(new (pdf.GState)({ opacity: 1 }));
-        }
-        // Fill bottom edge solid bg for foot legibility
-        setFill(C.bg);
-        pdf.rect(0, H - 22, W, 22, 'F');
+    // Pre-process an image dataURL via canvas: apply grayscale + dim it to ~34% opacity
+    // over the dark bg. Matches the design's `opacity:.34; filter:grayscale(.2)` look
+    // baked into the image (so jsPDF embeds a single flattened image — no overlay needed).
+    const dimImage = (dataUrl, opacity = 0.34, grayscale = 0.2) =>
+        new Promise((resolve) => {
+            if (!dataUrl) return resolve(null);
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                const c = document.createElement('canvas');
+                c.width = img.naturalWidth;
+                c.height = img.naturalHeight;
+                const ctx = c.getContext('2d');
+                // Fill bg ink color
+                ctx.fillStyle = `rgb(${C.bg[0]}, ${C.bg[1]}, ${C.bg[2]})`;
+                ctx.fillRect(0, 0, c.width, c.height);
+                // Draw image at requested opacity with grayscale filter
+                ctx.globalAlpha = opacity;
+                ctx.filter = `grayscale(${grayscale * 100}%) contrast(1.05)`;
+                ctx.drawImage(img, 0, 0);
+                ctx.filter = 'none';
+                ctx.globalAlpha = 1;
+                try { resolve(c.toDataURL('image/jpeg', 0.9)); } catch { resolve(null); }
+            };
+            img.onerror = () => resolve(null);
+            img.src = dataUrl;
+        });
+
+    // Embed a pre-dimmed background image full-bleed (no gradient overlay).
+    const drawCoverBG = (dimmedDataUrl) => {
+        if (dimmedDataUrl) embedImage(dimmedDataUrl, 0, 0, W, H);
+    };
+
+    // Apply character spacing (matches CSS `letter-spacing`) — jsPDF supports
+    // this natively via setCharSpace when available. Saves the prior value
+    // and restores on exit.
+    const withTracking = (mm, fn) => {
+        const has = typeof pdf.setCharSpace === 'function';
+        if (has) pdf.setCharSpace(mm);
+        fn();
+        if (has) pdf.setCharSpace(0);
     };
 
     // Running header (top of every page)
     const drawRunHead = () => {
         const y = 12;
-        // "STONEVO" in accent
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(7);
-        setText(C.accent);
-        pdf.text('STONEVO', PAD_X, y);
-        // " — STONE DOSSIER" in ink
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(7);
-        setText(C.faint);
-        const stonevoW = pdf.getTextWidth('STONEVO');
-        pdf.text('  —  STONE DOSSIER', PAD_X + stonevoW, y);
-        // Right side
-        pdf.text('CONFIDENTIAL · ARCHITECTURAL INTELLIGENCE', W - PAD_X, y, { align: 'right' });
+        withTracking(0.6, () => {
+            // "STONEVO" in accent
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(7);
+            setText(C.accent);
+            pdf.text('STONEVO', PAD_X, y);
+            // " — STONE DOSSIER" in ink
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(7);
+            setText(C.faint);
+            const stonevoW = pdf.getTextWidth('STONEVO');
+            pdf.text('  —  STONE DOSSIER', PAD_X + stonevoW + 1.5, y);
+            // Right side
+            pdf.text('CONFIDENTIAL · ARCHITECTURAL INTELLIGENCE', W - PAD_X, y, { align: 'right' });
+        });
     };
 
     // Footer bar (bottom of every page except cover variations)
     const drawFoot = (left = 'STONEVO ATELIER', right = '') => {
         const y = H - 10;
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(6.5);
-        setText(C.faint);
-        pdf.text(left, PAD_X, y);
-        if (right) pdf.text(right, W - PAD_X, y, { align: 'right' });
+        withTracking(0.5, () => {
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(6.5);
+            setText(C.faint);
+            pdf.text(left, PAD_X, y);
+            if (right) pdf.text(right, W - PAD_X, y, { align: 'right' });
+        });
     };
 
     // Solid black page bg
@@ -175,10 +197,12 @@ async function buildPDF(stones) {
         setDraw(C.accent);
         pdf.setLineWidth(0.4);
         pdf.line(x, y - 1.4, x + 9, y - 1.4);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(7);
-        setText(C.accent);
-        pdf.text(text, x + 13, y, { baseline: 'middle' });
+        withTracking(0.7, () => {
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(7);
+            setText(C.accent);
+            pdf.text(text, x + 13, y, { baseline: 'middle' });
+        });
     };
 
     const addPage = (first = false) => {
@@ -204,12 +228,14 @@ async function buildPDF(stones) {
         groups[upper].items.push({ stone, app });
     });
 
-    // Pre-fetch render images we'll need for cover/divider backgrounds as dataURLs
-    const firstRenderDataUrl = pairs.length ? await urlToDataUrl(pairs[0].app.renderUrl) : null;
+    // Pre-fetch + dim background images for cover/divider pages.
+    // Dimming is baked into the image (no overlay rects in the PDF).
+    const firstRender = pairs.length ? await urlToDataUrl(pairs[0].app.renderUrl) : null;
+    const firstRenderDataUrl = await dimImage(firstRender, 0.34, 0.2);
     const dividerBgs = {};
     for (const k of order) {
-        const item = groups[k].items[0];
-        dividerBgs[k] = await urlToDataUrl(item.app.renderUrl);
+        const raw = await urlToDataUrl(groups[k].items[0].app.renderUrl);
+        dividerBgs[k] = await dimImage(raw, 0.42, 0.15);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -329,11 +355,19 @@ async function buildPDF(stones) {
         drawCoverBG(dividerBgs[appKey]);
         drawRunHead();
 
-        // Ghost numeral
+        // Ghost numeral — outline-only text (matches design's text-stroke)
         pdf.setFont('times', 'normal');
         pdf.setFontSize(110);
-        setText(C.lineStrong);
-        pdf.text(String(appIndex + 1).padStart(2, '0'), PAD_X, 100);
+        setDraw(C.lineStrong);
+        pdf.setLineWidth(0.4);
+        if (typeof pdf.setTextRenderingMode === 'function') {
+            pdf.setTextRenderingMode(1); // 1 = stroke text only
+            pdf.text(String(appIndex + 1).padStart(2, '0'), PAD_X, 100);
+            pdf.setTextRenderingMode(0); // back to fill
+        } else {
+            setText(C.lineStrong);
+            pdf.text(String(appIndex + 1).padStart(2, '0'), PAD_X, 100);
+        }
 
         // App name (huge)
         pdf.setFont('times', 'normal');
@@ -341,7 +375,7 @@ async function buildPDF(stones) {
         setText(C.ink);
         pdf.text(groups[appKey].label, PAD_X, 140);
 
-        // Tick + specimen count
+        // Tick + specimen count (with mono-style tracking)
         const noteY = 158;
         setDraw(C.accent);
         pdf.setLineWidth(0.6);
@@ -350,7 +384,9 @@ async function buildPDF(stones) {
         pdf.setFontSize(8);
         setText(C.muted);
         const n = groups[appKey].items.length;
+        if (typeof pdf.setCharSpace === 'function') pdf.setCharSpace(0.6);
         pdf.text(`${n} SPECIMEN${n !== 1 ? 'S' : ''}`, PAD_X + 18, noteY + 1);
+        if (typeof pdf.setCharSpace === 'function') pdf.setCharSpace(0);
 
         pageNum++;
         drawFoot(`APPLICATION ${String(appIndex + 1).padStart(2, '0')}`, String(pageNum).padStart(2, '0'));
@@ -432,15 +468,11 @@ async function buildPDF(stones) {
             if (renderDataUrl) {
                 embedImage(renderDataUrl, splitX, 0, W - splitX, H);
             }
-            // Caption gradient at bottom of render
-            const capH = 32;
-            // Approximate dark gradient with stacked semi-transparent rects
-            for (let i = 0; i < 8; i++) {
-                pdf.setGState && pdf.setGState(new (pdf.GState)({ opacity: 0.12 + i * 0.1 }));
-                setFill([8, 8, 8]);
-                pdf.rect(splitX, H - capH + (i * (capH / 8)), W - splitX, capH / 8, 'F');
-            }
-            pdf.setGState && pdf.setGState(new (pdf.GState)({ opacity: 1 }));
+            // Caption band — solid dark strip at bottom of render
+            // (No gradient — kept flat to match the updated design.)
+            const capH = 24;
+            setFill([8, 8, 8]);
+            pdf.rect(splitX, H - capH, W - splitX, capH, 'F');
 
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(7.5);
