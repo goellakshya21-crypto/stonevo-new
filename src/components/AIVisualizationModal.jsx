@@ -421,36 +421,64 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                                     </p>
                                                 </div>
                                             ) : (
-                                                <div
-                                                    onDragOver={(e) => { e.preventDefault(); setIsDraggingStone(true); }}
-                                                    onDragLeave={() => setIsDraggingStone(false)}
-                                                    onDrop={(e) => {
-                                                        e.preventDefault();
-                                                        setIsDraggingStone(false);
-                                                        const file = e.dataTransfer.files[0];
-                                                        if (file) handleStoneImageUpload(file);
-                                                    }}
-                                                    className={`relative border-2 border-dashed rounded-3xl p-12 transition-all cursor-pointer ${
-                                                        isDraggingStone ? 'border-[#eca413] bg-[#eca413]/5' : 'border-white/10 hover:border-[#eca413]/40 bg-white/[0.02]'
-                                                    }`}
-                                                >
-                                                    <input
-                                                        type="file"
-                                                        accept="image/*"
-                                                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                                                        onChange={(e) => {
-                                                            const file = e.target.files?.[0];
+                                                <>
+                                                    {/* Drop zone with informational hint (desktop drag-and-drop) */}
+                                                    <div
+                                                        onDragOver={(e) => { e.preventDefault(); setIsDraggingStone(true); }}
+                                                        onDragLeave={() => setIsDraggingStone(false)}
+                                                        onDrop={(e) => {
+                                                            e.preventDefault();
+                                                            setIsDraggingStone(false);
+                                                            const file = e.dataTransfer.files[0];
                                                             if (file) handleStoneImageUpload(file);
                                                         }}
-                                                    />
-                                                    <div className="flex flex-col items-center pointer-events-none">
-                                                        <div className="w-16 h-16 bg-white/[0.03] rounded-full flex items-center justify-center mb-5 border border-white/10">
-                                                            <Upload className="text-[#eca413]" size={28} />
+                                                        className={`relative border-2 border-dashed rounded-3xl p-8 md:p-10 transition-all ${
+                                                            isDraggingStone ? 'border-[#eca413] bg-[#eca413]/5' : 'border-white/10 bg-white/[0.02]'
+                                                        }`}
+                                                    >
+                                                        <div className="flex flex-col items-center">
+                                                            <div className="w-14 h-14 bg-white/[0.03] rounded-full flex items-center justify-center mb-4 border border-white/10">
+                                                                <Upload className="text-[#eca413]" size={24} />
+                                                            </div>
+                                                            <p className="text-white font-serif text-lg italic mb-1">Add Your Stone Sample</p>
+                                                            <p className="text-white/30 text-[10px] uppercase tracking-widest mb-6">JPG, PNG, WEBP · Max 20MB</p>
+
+                                                            {/* Two clear options: Browse OR Camera */}
+                                                            <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+                                                                <label className="relative flex flex-col items-center justify-center gap-2 px-4 py-4 bg-white/[0.05] hover:bg-[#eca413]/20 border border-white/10 hover:border-[#eca413]/50 rounded-xl cursor-pointer transition-all group">
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="image/*"
+                                                                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file) handleStoneImageUpload(file);
+                                                                        }}
+                                                                    />
+                                                                    <ImageIcon size={20} className="text-[#eca413]" />
+                                                                    <span className="text-[11px] font-bold uppercase tracking-widest text-white">Browse</span>
+                                                                </label>
+
+                                                                <label className="relative flex flex-col items-center justify-center gap-2 px-4 py-4 bg-white/[0.05] hover:bg-[#eca413]/20 border border-white/10 hover:border-[#eca413]/50 rounded-xl cursor-pointer transition-all group">
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="image/*"
+                                                                        capture="environment"
+                                                                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file) handleStoneImageUpload(file);
+                                                                        }}
+                                                                    />
+                                                                    <Camera size={20} className="text-[#eca413]" />
+                                                                    <span className="text-[11px] font-bold uppercase tracking-widest text-white">Camera</span>
+                                                                </label>
+                                                            </div>
+
+                                                            <p className="text-white/20 text-[9px] uppercase tracking-widest mt-4 hidden md:block">or drag & drop into this area</p>
                                                         </div>
-                                                        <p className="text-white font-serif text-lg italic mb-1">Tap to upload or drag & drop</p>
-                                                        <p className="text-white/30 text-[10px] uppercase tracking-widest">JPG, PNG, WEBP · Max 20MB</p>
                                                     </div>
-                                                </div>
+                                                </>
                                             )}
 
                                             {stoneUploadError && (
@@ -560,7 +588,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                                 Ensure the room is well-lit and the {selectedApp} surfaces are clearly visible.
                                             </p>
 
-                                            <div 
+                                            <div
                                                 onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                                                 onDragLeave={() => setIsDragging(false)}
                                                 onDrop={(e) => {
@@ -569,25 +597,50 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                                     const file = e.dataTransfer.files[0];
                                                     if (file) handleImageUpload(file);
                                                 }}
-                                                className={`relative border-2 border-dashed rounded-3xl p-12 transition-all ${
-                                                    isDragging ? 'border-[#eca413] bg-[#eca413]/5' : 'border-white/10 hover:border-white/20 bg-white/[0.02]'
+                                                className={`relative border-2 border-dashed rounded-3xl p-8 md:p-10 transition-all ${
+                                                    isDragging ? 'border-[#eca413] bg-[#eca413]/5' : 'border-white/10 bg-white/[0.02]'
                                                 }`}
                                             >
-                                                <input 
-                                                    type="file" 
-                                                    className="absolute inset-0 opacity-0 cursor-pointer"
-                                                    accept="image/*"
-                                                    onChange={(e) => {
-                                                        const file = e.target.files?.[0];
-                                                        if (file) handleImageUpload(file);
-                                                    }}
-                                                />
                                                 <div className="flex flex-col items-center">
-                                                    <div className="w-16 h-16 bg-white/[0.03] rounded-full flex items-center justify-center mb-6">
-                                                        <Upload className="text-white/40" size={32} />
+                                                    <div className="w-14 h-14 bg-white/[0.03] rounded-full flex items-center justify-center mb-4">
+                                                        <Upload className="text-white/40" size={24} />
                                                     </div>
-                                                    <p className="text-white font-medium mb-2 font-serif text-lg italic">Tap to upload or drag & drop</p>
-                                                    <p className="text-white/30 text-[10px] uppercase tracking-widest">Supports JPG, PNG (Max 10MB)</p>
+                                                    <p className="text-white font-medium mb-1 font-serif text-lg italic">Add Your Room Photo</p>
+                                                    <p className="text-white/30 text-[10px] uppercase tracking-widest mb-6">Supports JPG, PNG (Max 10MB)</p>
+
+                                                    {/* Browse OR Camera */}
+                                                    <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+                                                        <label className="relative flex flex-col items-center justify-center gap-2 px-4 py-4 bg-white/[0.05] hover:bg-[#eca413]/20 border border-white/10 hover:border-[#eca413]/50 rounded-xl cursor-pointer transition-all">
+                                                            <input
+                                                                type="file"
+                                                                accept="image/*"
+                                                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                                                onChange={(e) => {
+                                                                    const file = e.target.files?.[0];
+                                                                    if (file) handleImageUpload(file);
+                                                                }}
+                                                            />
+                                                            <ImageIcon size={20} className="text-[#eca413]" />
+                                                            <span className="text-[11px] font-bold uppercase tracking-widest text-white">Browse</span>
+                                                        </label>
+
+                                                        <label className="relative flex flex-col items-center justify-center gap-2 px-4 py-4 bg-white/[0.05] hover:bg-[#eca413]/20 border border-white/10 hover:border-[#eca413]/50 rounded-xl cursor-pointer transition-all">
+                                                            <input
+                                                                type="file"
+                                                                accept="image/*"
+                                                                capture="environment"
+                                                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                                                onChange={(e) => {
+                                                                    const file = e.target.files?.[0];
+                                                                    if (file) handleImageUpload(file);
+                                                                }}
+                                                            />
+                                                            <Camera size={20} className="text-[#eca413]" />
+                                                            <span className="text-[11px] font-bold uppercase tracking-widest text-white">Camera</span>
+                                                        </label>
+                                                    </div>
+
+                                                    <p className="text-white/20 text-[9px] uppercase tracking-widest mt-4 hidden md:block">or drag & drop into this area</p>
                                                 </div>
                                             </div>
 
