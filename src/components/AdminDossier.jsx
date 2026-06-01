@@ -40,207 +40,469 @@ function fileToDataUrl(file) {
 }
 
 // ─── PDF builder ─────────────────────────────────────────────────────────────
+// Implements the "Stonevo Stone Dossier" Claude Design (1920×1080 deck) as a
+// landscape A4 PDF. Each design slide = one PDF page.
+//
+// Palette (from design CSS variables):
+//   --bg     #0E0D0C   ink-black background
+//   --ink    #F2EEE7   primary text
+//   --muted  #9A938A   body / lead text
+//   --faint  #6A645B   labels, foot text
+//   --accent #C8A86E   champagne / brass accent
+//   --line   rgba(F2EEE7, .14)
 async function buildPDF(stones) {
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const W = 210; // A4 width mm
-    const H = 297; // A4 height mm
-    const margin = 14;
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const W = 297; // A4 landscape width
+    const H = 210; // A4 landscape height
+    const PAD_X = 17;   // ≈ design's --pad-x: 110px at our proportional scale
 
-    const addPage = (isFirst = false) => {
-        if (!isFirst) pdf.addPage();
-
-        // Background
-        pdf.setFillColor(18, 17, 15);
-        pdf.rect(0, 0, W, H, 'F');
-
-        // Gold top rule
-        pdf.setDrawColor(180, 138, 70);
-        pdf.setLineWidth(0.5);
-        pdf.line(margin, 12, W - margin, 12);
-
-        // Wordmark
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(8);
-        pdf.setTextColor(180, 138, 70);
-        pdf.text('STONEVO', margin, 9);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(6);
-        pdf.setTextColor(120, 110, 100);
-        pdf.text('STONE DOSSIER', W - margin, 9, { align: 'right' });
-
-        // Gold bottom rule
-        pdf.line(margin, H - 10, W - margin, H - 10);
-        pdf.setFontSize(6);
-        pdf.setTextColor(80, 75, 65);
-        pdf.text('Confidential · Stonevo Architectural Intelligence', W / 2, H - 6, { align: 'center' });
+    // Color helpers (jsPDF wants RGB triples)
+    const C = {
+        bg:     [14, 13, 12],
+        panel:  [22, 20, 18],
+        ink:    [242, 238, 231],
+        muted:  [154, 147, 138],
+        faint:  [106, 100, 91],
+        line:   [56, 54, 50],
+        lineStrong: [80, 78, 72],
+        accent: [200, 168, 110],
     };
+    const setText = (rgb) => pdf.setTextColor(rgb[0], rgb[1], rgb[2]);
+    const setDraw = (rgb) => pdf.setDrawColor(rgb[0], rgb[1], rgb[2]);
+    const setFill = (rgb) => pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
 
-    const toMM = (px, dpi = 96) => px * 25.4 / dpi;
-
+    // ── Image helpers ────────────────────────────────────────────────────────
     const embedImage = (dataUrl, x, y, w, h) => {
-        const fmt = dataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG';
-        pdf.addImage(dataUrl, fmt, x, y, w, h);
+        const fmt = dataUrl?.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+        try { pdf.addImage(dataUrl, fmt, x, y, w, h); } catch (e) { console.warn('addImage failed', e); }
     };
 
-    // ── Cover page ──────────────────────────────────────────────────────────
-    addPage(true);
+    // Fetch an image URL → dataURL via canvas (so jsPDF can embed it).
+    const urlToDataUrl = async (url) => {
+        if (!url) return null;
+        if (url.startsWith('data:')) return url;
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                const c = document.createElement('canvas');
+                c.width = img.naturalWidth;
+                c.height = img.naturalHeight;
+                c.getContext('2d').drawImage(img, 0, 0);
+                try { resolve(c.toDataURL('image/jpeg', 0.92)); }
+                catch { resolve(null); }
+            };
+            img.onerror = () => resolve(null);
+            img.src = url;
+        });
+    };
 
-    // Large title
-    pdf.setFont('times', 'italic');
-    pdf.setFontSize(36);
-    pdf.setTextColor(230, 215, 185);
-    pdf.text('Stone Dossier', W / 2, 80, { align: 'center' });
+    // Tracking text — jsPDF doesn't support letter-spacing natively, so for
+    // mono labels we manually space characters by drawing word-by-word with
+    // a calculated gap. For now we lean on uppercase + small size to approximate.
+    const drawText = (text, x, y, opts = {}) => {
+        const {
+            font = 'helvetica', style = 'normal', size = 8,
+            color = C.ink, align = 'left',
+        } = opts;
+        pdf.setFont(font, style);
+        pdf.setFontSize(size);
+        setText(color);
+        pdf.text(text, x, y, { align });
+    };
 
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(9);
-    pdf.setTextColor(130, 120, 105);
-    pdf.text(`${stones.length} specimen${stones.length !== 1 ? 's' : ''} · AI-rendered applications`, W / 2, 92, { align: 'center' });
+    // Image inside a black tint overlay (for cover / divider bgs)
+    const drawCoverBG = (dataUrl) => {
+        if (dataUrl) {
+            embedImage(dataUrl, 0, 0, W, H);
+            // Dark gradient-ish overlay: layered semi-transparent rects
+            // (jsPDF gradients are tricky — we approximate with stacked rects)
+            const gradSteps = 12;
+            for (let i = 0; i < gradSteps; i++) {
+                const alpha = 0.92 - (i / gradSteps) * 0.5;
+                pdf.setGState && pdf.setGState(new (pdf.GState)({ opacity: alpha }));
+                setFill(C.bg);
+                const sliceW = (W * 0.55) / gradSteps;
+                pdf.rect(i * sliceW, 0, sliceW + 0.5, H, 'F');
+            }
+            // Right-side fade is gentler
+            pdf.setGState && pdf.setGState(new (pdf.GState)({ opacity: 0.45 }));
+            setFill(C.bg);
+            pdf.rect(W * 0.55, 0, W * 0.45, H, 'F');
+            pdf.setGState && pdf.setGState(new (pdf.GState)({ opacity: 1 }));
+        }
+        // Fill bottom edge solid bg for foot legibility
+        setFill(C.bg);
+        pdf.rect(0, H - 22, W, 22, 'F');
+    };
 
-    // Decorative line
-    pdf.setDrawColor(180, 138, 70);
-    pdf.setLineWidth(0.3);
-    pdf.line(W / 2 - 30, 98, W / 2 + 30, 98);
+    // Running header (top of every page)
+    const drawRunHead = () => {
+        const y = 12;
+        // "STONEVO" in accent
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(7);
+        setText(C.accent);
+        pdf.text('STONEVO', PAD_X, y);
+        // " — STONE DOSSIER" in ink
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7);
+        setText(C.faint);
+        const stonevoW = pdf.getTextWidth('STONEVO');
+        pdf.text('  —  STONE DOSSIER', PAD_X + stonevoW, y);
+        // Right side
+        pdf.text('CONFIDENTIAL · ARCHITECTURAL INTELLIGENCE', W - PAD_X, y, { align: 'right' });
+    };
 
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(7);
-    pdf.setTextColor(100, 95, 85);
-    pdf.text(new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }), W / 2, 106, { align: 'center' });
+    // Footer bar (bottom of every page except cover variations)
+    const drawFoot = (left = 'STONEVO ATELIER', right = '') => {
+        const y = H - 10;
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(6.5);
+        setText(C.faint);
+        pdf.text(left, PAD_X, y);
+        if (right) pdf.text(right, W - PAD_X, y, { align: 'right' });
+    };
+
+    // Solid black page bg
+    const paintBg = () => {
+        setFill(C.bg);
+        pdf.rect(0, 0, W, H, 'F');
+    };
+
+    // Eyebrow: "— EYEBROW TEXT" with a leading accent tick
+    const drawEyebrow = (text, x, y) => {
+        setDraw(C.accent);
+        pdf.setLineWidth(0.4);
+        pdf.line(x, y - 1.4, x + 9, y - 1.4);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(7);
+        setText(C.accent);
+        pdf.text(text, x + 13, y, { baseline: 'middle' });
+    };
+
+    const addPage = (first = false) => {
+        if (!first) pdf.addPage();
+        paintBg();
+    };
 
     // ── Build flat list of (stone, application) pairs with renders ───────────
-    const pairs = []; // { stone, app }
+    const pairs = [];
     stones.forEach(stone => {
         stone.applications.forEach(app => {
             if (app.renderUrl) pairs.push({ stone, app });
         });
     });
 
-    // ── Group pairs by application label, preserving first-seen order ─────────
+    // Group pairs by application label, preserving first-seen order
     const order = [];
     const groups = {};
     pairs.forEach(({ stone, app }) => {
-        const key = (app.label || app.application).toUpperCase();
-        if (!groups[key]) { groups[key] = []; order.push(key); }
-        groups[key].push({ stone, app });
+        const key = (app.label || app.application);
+        const upper = key.toUpperCase();
+        if (!groups[upper]) { groups[upper] = { label: key, items: [] }; order.push(upper); }
+        groups[upper].items.push({ stone, app });
     });
 
-    // ── Table of contents ─────────────────────────────────────────────────────
-    let tocY = 125;
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(7);
-    pdf.setTextColor(180, 138, 70);
-    pdf.text('CONTENTS', margin, tocY);
-    tocY += 6;
+    // Pre-fetch render images we'll need for cover/divider backgrounds as dataURLs
+    const firstRenderDataUrl = pairs.length ? await urlToDataUrl(pairs[0].app.renderUrl) : null;
+    const dividerBgs = {};
+    for (const k of order) {
+        const item = groups[k].items[0];
+        dividerBgs[k] = await urlToDataUrl(item.app.renderUrl);
+    }
 
-    order.forEach((appKey, gi) => {
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(8);
-        pdf.setTextColor(200, 190, 170);
-        pdf.text(`${String(gi + 1).padStart(2, '0')}.  ${appKey}`, margin + 4, tocY);
+    // ─────────────────────────────────────────────────────────────────────────
+    // SLIDE 01 — COVER
+    // ─────────────────────────────────────────────────────────────────────────
+    addPage(true);
+    drawCoverBG(firstRenderDataUrl);
+    drawRunHead();
+
+    // Eyebrow
+    const eyebrowY = 70;
+    drawEyebrow('VOLUME 01 · PRIVATE COLLECTION', PAD_X, eyebrowY);
+
+    // Headline: "Stone Dossier" — huge, with italic accent
+    pdf.setFont('times', 'normal');
+    pdf.setFontSize(72);
+    setText(C.ink);
+    pdf.text('Stone', PAD_X, 105);
+    pdf.setFont('times', 'italic');
+    setText(C.accent);
+    pdf.text('Dossier', PAD_X, 138);
+
+    // Sub copy
+    const subY = 152;
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(11);
+    setText(C.muted);
+    const subText = `${stones.length} specimen${stones.length !== 1 ? 's' : ''}, sourced and matched to application — presented with AI-rendered interiors.`;
+    pdf.text(pdf.splitTextToSize(subText, W * 0.55), PAD_X, subY);
+
+    // Meta row
+    const metaY = 178;
+    const metaCol = (x, label, value) => {
         pdf.setFont('helvetica', 'normal');
         pdf.setFontSize(7);
-        pdf.setTextColor(100, 95, 85);
-        pdf.text(`${groups[appKey].length} stone${groups[appKey].length > 1 ? 's' : ''}`, W - margin, tocY, { align: 'right' });
-        tocY += 7;
-    });
-
-    // ── Section divider page ──────────────────────────────────────────────────
-    const addDivider = (appLabel) => {
-        addPage();
-        // Big centered application name
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(7);
-        pdf.setTextColor(180, 138, 70);
-        pdf.text('APPLICATION', W / 2, H / 2 - 22, { align: 'center' });
-
-        pdf.setFont('times', 'italic');
-        pdf.setFontSize(40);
-        pdf.setTextColor(230, 215, 185);
-        pdf.text(appLabel, W / 2, H / 2 - 8, { align: 'center' });
-
-        pdf.setDrawColor(180, 138, 70);
-        pdf.setLineWidth(0.4);
-        pdf.line(W / 2 - 40, H / 2 + 2, W / 2 + 40, H / 2 + 2);
+        setText(C.faint);
+        pdf.text(label, x, metaY);
+        pdf.setFont('times', 'normal');
+        pdf.setFontSize(11);
+        setText(C.ink);
+        pdf.text(value, x, metaY + 6);
     };
+    metaCol(PAD_X, 'SPECIMENS', `${String(stones.length).padStart(2, '0')} — CURATED`);
+    metaCol(PAD_X + 65, 'APPLICATIONS', order.map(o => groups[o].label).join(' · ') || '—');
+    metaCol(PAD_X + 175, 'ISSUED', new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase());
 
-    // ── Stone + application page ──────────────────────────────────────────────
-    const addStonePage = (stone, app) => {
-        addPage();
-        let y = 18;
+    drawFoot('STONEVO ATELIER', 'PREPARED FOR PRIVATE VIEWING');
 
-        // Stone name header
+    // ─────────────────────────────────────────────────────────────────────────
+    // SLIDE 02 — CONTENTS
+    // ─────────────────────────────────────────────────────────────────────────
+    addPage();
+    drawRunHead();
+
+    // LEFT column: eyebrow + title + lead
+    drawEyebrow('CONTENTS', PAD_X, 56);
+
+    pdf.setFont('times', 'normal');
+    pdf.setFontSize(42);
+    setText(C.ink);
+    pdf.text('The Collection', PAD_X, 82);
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    setText(C.muted);
+    const leadText = 'Each specimen is presented as a raw slab and as an AI-rendered application, with format, lot availability and indicative price for private clients.';
+    pdf.text(pdf.splitTextToSize(leadText, 110), PAD_X, 100);
+
+    // RIGHT column: TOC entries
+    const tocX = W * 0.5;
+    let tocY = 56;
+    setDraw(C.line);
+    pdf.setLineWidth(0.3);
+
+    order.forEach((appKey, gi) => {
+        pdf.line(tocX, tocY, W - PAD_X, tocY);
+        tocY += 13;
+
+        // Number
         pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(7);
-        pdf.setTextColor(180, 138, 70);
-        pdf.text((app.label || app.application).toUpperCase(), margin, y);
+        pdf.setFontSize(8.5);
+        setText(C.accent);
+        pdf.text(String(gi + 1).padStart(2, '0'), tocX, tocY);
 
-        y += 5;
-        pdf.setFont('times', 'italic');
+        // Application name (serif)
+        pdf.setFont('times', 'normal');
         pdf.setFontSize(22);
-        pdf.setTextColor(230, 215, 185);
-        pdf.text(stone.name, margin, y);
+        setText(C.ink);
+        pdf.text(groups[appKey].label, tocX + 18, tocY);
 
-        y += 4;
-        pdf.setDrawColor(180, 138, 70);
-        pdf.setLineWidth(0.3);
-        pdf.line(margin, y, margin + 60, y);
-        y += 8;
+        // Stone names below
+        const stoneNames = groups[appKey].items.map(i => i.stone.name).join(' · ');
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7);
+        setText(C.faint);
+        pdf.text(stoneNames, tocX + 18, tocY + 6);
 
-        // ── Slab image (left) ──
-        const slabW = 75;
-        const slabH = 52;
-        if (stone.imageDataUrl) {
-            embedImage(stone.imageDataUrl, margin, y, slabW, slabH);
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(6);
-            pdf.setTextColor(100, 95, 85);
-            pdf.text('RAW SLAB', margin + slabW / 2, y + slabH + 4, { align: 'center' });
-        }
+        // Specimen count (right)
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7);
+        setText(C.muted);
+        pdf.text(`${groups[appKey].items.length} SPECIMEN${groups[appKey].items.length !== 1 ? 'S' : ''}`, W - PAD_X, tocY, { align: 'right' });
 
-        // ── Spec block (right of slab) ──
-        const specX = margin + slabW + 8;
-        let specY = y + 2;
+        tocY += 14;
+    });
+    pdf.line(tocX, tocY, W - PAD_X, tocY);
 
-        const specRow = (label, value) => {
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(6);
-            pdf.setTextColor(120, 110, 100);
-            pdf.text(label, specX, specY);
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(7.5);
-            pdf.setTextColor(200, 190, 170);
-            // Wrap long values
-            const maxW = W - specX - margin;
-            const lines = pdf.splitTextToSize(value, maxW);
-            pdf.text(lines, specX, specY + 4);
-            specY += 10 + (lines.length - 1) * 4;
-        };
+    drawFoot('STONEVO ATELIER', '02');
 
-        specRow('STONE NAME', stone.name);
-        if (stone.lotSize)     specRow('LOT SIZE', stone.lotSize);
-        if (stone.price)       specRow('PRICE', stone.price);
-        if (stone.description) specRow('NOTES', stone.description);
+    // ─────────────────────────────────────────────────────────────────────────
+    // SLIDES 03+ — DIVIDERS + STONE DETAILS (grouped by application)
+    // ─────────────────────────────────────────────────────────────────────────
+    let pageNum = 2;
 
-        y += slabH + 12;
+    const addDividerPage = (appKey, appIndex) => {
+        addPage();
+        drawCoverBG(dividerBgs[appKey]);
+        drawRunHead();
 
-        // ── Full-width AI render ──
-        if (app.renderUrl) {
-            const renderW = W - margin * 2;
-            const renderH = renderW * 0.58;
-            embedImage(app.renderUrl, margin, y, renderW, renderH);
+        // Ghost numeral
+        pdf.setFont('times', 'normal');
+        pdf.setFontSize(110);
+        setText(C.lineStrong);
+        pdf.text(String(appIndex + 1).padStart(2, '0'), PAD_X, 100);
 
-            // Caption bar
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(6);
-            pdf.setTextColor(180, 138, 70);
-            pdf.text('AI-RENDERED · ' + (app.label || app.application).toUpperCase(), margin, y + renderH + 4);
-        }
+        // App name (huge)
+        pdf.setFont('times', 'normal');
+        pdf.setFontSize(72);
+        setText(C.ink);
+        pdf.text(groups[appKey].label, PAD_X, 140);
+
+        // Tick + specimen count
+        const noteY = 158;
+        setDraw(C.accent);
+        pdf.setLineWidth(0.6);
+        pdf.line(PAD_X, noteY, PAD_X + 14, noteY);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(8);
+        setText(C.muted);
+        const n = groups[appKey].items.length;
+        pdf.text(`${n} SPECIMEN${n !== 1 ? 'S' : ''}`, PAD_X + 18, noteY + 1);
+
+        pageNum++;
+        drawFoot(`APPLICATION ${String(appIndex + 1).padStart(2, '0')}`, String(pageNum).padStart(2, '0'));
     };
 
-    // ── Emit all pages grouped by application ─────────────────────────────────
-    order.forEach(appKey => {
-        addDivider(appKey);
-        groups[appKey].forEach(({ stone, app }) => addStonePage(stone, app));
-    });
+    const addStoneDetailPage = async (stone, app, specIdx, totalSpecs) => {
+        addPage();
+        drawRunHead();
+
+        // Split layout: left card (text + slab) | right (full-bleed render)
+        const splitX = W * 0.46;
+
+        // Eyebrow
+        drawEyebrow(`APPLICATION · ${(app.label || app.application).toUpperCase()}`, PAD_X, 50);
+
+        // Stone name (huge serif)
+        pdf.setFont('times', 'normal');
+        pdf.setFontSize(48);
+        setText(C.ink);
+        const stoneNameLines = pdf.splitTextToSize(stone.name || '—', splitX - PAD_X - 4);
+        pdf.text(stoneNameLines, PAD_X, 72);
+
+        // Description (italic muted)
+        if (stone.description) {
+            pdf.setFont('times', 'italic');
+            pdf.setFontSize(11);
+            setText(C.muted);
+            const descLines = pdf.splitTextToSize(stone.description, splitX - PAD_X - 8);
+            pdf.text(descLines, PAD_X, 88);
+        }
+
+        // Slab caption row
+        const slabY = 122;
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(6.5);
+        setText(C.faint);
+        pdf.text('RAW SLAB', PAD_X, slabY);
+        pdf.text('POLISHED', splitX - 4, slabY, { align: 'right' });
+
+        // Slab image
+        const slabH = 32;
+        const slabW = splitX - PAD_X - 4;
+        if (stone.imageDataUrl) {
+            embedImage(stone.imageDataUrl, PAD_X, slabY + 2, slabW, slabH);
+        }
+        setDraw(C.line);
+        pdf.setLineWidth(0.3);
+        pdf.rect(PAD_X, slabY + 2, slabW, slabH);
+
+        // Specs row (Format / Lot / Price) — 3 cells under slab
+        const specsY = slabY + 2 + slabH + 10;
+        pdf.line(PAD_X, specsY - 4, splitX - 4, specsY - 4); // top rule
+
+        const cellW = (splitX - PAD_X - 4) / 3;
+        const drawSpec = (idx, label, value, sub) => {
+            const x = PAD_X + idx * cellW;
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(6.5);
+            setText(C.faint);
+            pdf.text(label, x, specsY);
+            pdf.setFont('times', 'normal');
+            pdf.setFontSize(18);
+            setText(C.ink);
+            pdf.text(value || '—', x, specsY + 9);
+            if (sub) {
+                pdf.setFont('helvetica', 'normal');
+                pdf.setFontSize(7);
+                setText(C.muted);
+                pdf.text(sub, x + pdf.getTextWidth(value || '—') + 2, specsY + 8);
+            }
+        };
+        drawSpec(0, 'FORMAT', stone.format || '—');
+        drawSpec(1, 'LOT', stone.lotSize || '—');
+        drawSpec(2, 'PRICE', stone.price || '—');
+
+        // RIGHT: full-bleed render
+        if (app.renderUrl) {
+            const renderDataUrl = await urlToDataUrl(app.renderUrl);
+            if (renderDataUrl) {
+                embedImage(renderDataUrl, splitX, 0, W - splitX, H);
+            }
+            // Caption gradient at bottom of render
+            const capH = 32;
+            // Approximate dark gradient with stacked semi-transparent rects
+            for (let i = 0; i < 8; i++) {
+                pdf.setGState && pdf.setGState(new (pdf.GState)({ opacity: 0.12 + i * 0.1 }));
+                setFill([8, 8, 8]);
+                pdf.rect(splitX, H - capH + (i * (capH / 8)), W - splitX, capH / 8, 'F');
+            }
+            pdf.setGState && pdf.setGState(new (pdf.GState)({ opacity: 1 }));
+
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(7.5);
+            setText(C.ink);
+            pdf.text(`AI-RENDERED · ${(app.label || app.application).toUpperCase()}`, splitX + 12, H - 12);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(7.5);
+            setText(C.accent);
+            pdf.text(`SPECIMEN ${String(specIdx).padStart(2, '0')}`, W - PAD_X, H - 12, { align: 'right' });
+            pdf.setFont('helvetica', 'normal');
+            setText(C.ink);
+            pdf.text(` / ${String(totalSpecs).padStart(2, '0')}`, W - PAD_X + pdf.getTextWidth(` / ${String(totalSpecs).padStart(2, '0')}`) * 0 + 0.5, H - 12, { align: 'right' });
+        }
+
+        pageNum++;
+        drawFoot('STONEVO ATELIER', String(pageNum).padStart(2, '0'));
+    };
+
+    let specCounter = 0;
+    const totalSpecimens = pairs.length;
+    for (let gi = 0; gi < order.length; gi++) {
+        const k = order[gi];
+        addDividerPage(k, gi);
+        for (const { stone, app } of groups[k].items) {
+            specCounter++;
+            await addStoneDetailPage(stone, app, specCounter, totalSpecimens);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CLOSING SLIDE
+    // ─────────────────────────────────────────────────────────────────────────
+    addPage();
+    drawRunHead();
+
+    drawEyebrow('PRIVATE ENQUIRY', PAD_X, 80);
+
+    pdf.setFont('times', 'normal');
+    pdf.setFontSize(56);
+    setText(C.ink);
+    pdf.text('Reserve a', PAD_X, 112);
+    pdf.setFont('times', 'italic');
+    setText(C.accent);
+    pdf.text('specimen', PAD_X + pdf.getTextWidth('Reserve a ') + 4, 112);
+
+    // Contact rows
+    const cy = 148;
+    const drawContact = (x, label, value) => {
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(7);
+        setText(C.faint);
+        pdf.text(label, x, cy);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(11);
+        setText(C.ink);
+        pdf.text(value, x, cy + 8);
+    };
+    drawContact(PAD_X, 'ATELIER', 'Stonevo — by appointment');
+    drawContact(PAD_X + 90, 'ENQUIRIES', 'advisory@stonevo.in');
+    drawContact(PAD_X + 175, 'DIRECT', 'stonevo.in');
+
+    drawFoot('STONEVO ATELIER', 'END OF DOSSIER');
 
     return pdf;
 }
@@ -262,6 +524,7 @@ const AdminDossier = () => {
             id: Date.now(),
             name: '',
             description: '',
+            format: '',
             lotSize: '',
             price: '',
             imageFile: null,
@@ -534,16 +797,28 @@ const AdminDossier = () => {
                                     </label>
                                 )}
 
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-3 gap-3">
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest flex items-center gap-1">
-                                            <Ruler size={10} /> Lot Size
+                                            <Ruler size={10} /> Format
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={stone.format || ''}
+                                            onChange={e => updateStone(stone.id, { format: e.target.value })}
+                                            placeholder="e.g. 3200×1600 mm"
+                                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 focus:outline-none focus:border-bronze"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest flex items-center gap-1">
+                                            <Ruler size={10} /> Lot
                                         </label>
                                         <input
                                             type="text"
                                             value={stone.lotSize}
                                             onChange={e => updateStone(stone.id, { lotSize: e.target.value })}
-                                            placeholder="e.g. 120×60 cm"
+                                            placeholder="e.g. 123 m²"
                                             className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 focus:outline-none focus:border-bronze"
                                         />
                                     </div>
@@ -555,7 +830,7 @@ const AdminDossier = () => {
                                             type="text"
                                             value={stone.price}
                                             onChange={e => updateStone(stone.id, { price: e.target.value })}
-                                            placeholder="e.g. ₹450/sq.ft"
+                                            placeholder="e.g. ₹34,500"
                                             className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 focus:outline-none focus:border-bronze"
                                         />
                                     </div>
