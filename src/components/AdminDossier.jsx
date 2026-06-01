@@ -39,9 +39,45 @@ function fileToDataUrl(file) {
     });
 }
 
+// ─── Font loader ──────────────────────────────────────────────────────────────
+// Fetches Cormorant Garamond + Space Mono TTFs from /public/fonts and registers
+// them with the jsPDF instance. Cached at module scope so subsequent renders
+// don't re-fetch.
+const _fontCache = {};
+async function loadFont(path) {
+    if (_fontCache[path]) return _fontCache[path];
+    const res = await fetch(path);
+    if (!res.ok) throw new Error(`Font fetch failed: ${path}`);
+    const buf = await res.arrayBuffer();
+    // Convert ArrayBuffer → base64 (without using btoa on long binary strings)
+    const bytes = new Uint8Array(buf);
+    let binary = '';
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    }
+    const b64 = btoa(binary);
+    _fontCache[path] = b64;
+    return b64;
+}
+
+async function registerDossierFonts(pdf) {
+    const fonts = [
+        { vfs: 'Cormorant-Regular.ttf',  family: 'Cormorant', style: 'normal', path: '/fonts/cormorant-variable.ttf' },
+        { vfs: 'Cormorant-Italic.ttf',   family: 'Cormorant', style: 'italic', path: '/fonts/cormorant-italic-variable.ttf' },
+        { vfs: 'SpaceMono-Regular.ttf',  family: 'SpaceMono', style: 'normal', path: '/fonts/spacemono-regular.ttf' },
+        { vfs: 'SpaceMono-Bold.ttf',     family: 'SpaceMono', style: 'bold',   path: '/fonts/spacemono-bold.ttf' },
+    ];
+    for (const f of fonts) {
+        const b64 = await loadFont(f.path);
+        pdf.addFileToVFS(f.vfs, b64);
+        pdf.addFont(f.vfs, f.family, f.style);
+    }
+}
+
 // ─── PDF builder ─────────────────────────────────────────────────────────────
 // Implements the "Stonevo Stone Dossier" Claude Design (1920×1080 deck) as a
-// landscape A4 PDF. Each design slide = one PDF page.
+// landscape 16:9 PDF. Each design slide = one PDF page.
 //
 // Palette (from design CSS variables):
 //   --bg     #0E0D0C   ink-black background
@@ -51,10 +87,17 @@ function fileToDataUrl(file) {
 //   --accent #C8A86E   champagne / brass accent
 //   --line   rgba(F2EEE7, .14)
 async function buildPDF(stones) {
-    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    const W = 297; // A4 landscape width
-    const H = 210; // A4 landscape height
-    const PAD_X = 17;   // ≈ design's --pad-x: 110px at our proportional scale
+    // 16:9 landscape page sized to A4 width (297mm × 167mm).
+    // Matches the design's 1920×1080 aspect exactly.
+    const W = 297;
+    const H = 167;
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [W, H] });
+    await registerDossierFonts(pdf);
+    const PAD_X = 17;   // ≈ design's --pad-x: 110px at proportional scale
+
+    // Font shortcuts — Cormorant Garamond (serif) + Space Mono (technical labels)
+    const SERIF = 'Cormorant';
+    const MONO = 'SpaceMono';
 
     // Color helpers (jsPDF wants RGB triples)
     const C = {
@@ -129,12 +172,12 @@ async function buildPDF(stones) {
         const y = 12;
         withTracking(0.6, () => {
             // "STONEVO" in accent
-            pdf.setFont('helvetica', 'bold');
+            pdf.setFont(MONO, 'bold');
             pdf.setFontSize(7);
             setText(C.accent);
             pdf.text('STONEVO', PAD_X, y);
             // " — STONE DOSSIER" in ink
-            pdf.setFont('helvetica', 'normal');
+            pdf.setFont(MONO, 'normal');
             pdf.setFontSize(7);
             setText(C.faint);
             const stonevoW = pdf.getTextWidth('STONEVO');
@@ -148,7 +191,7 @@ async function buildPDF(stones) {
     const drawFoot = (left = 'STONEVO ATELIER', right = '') => {
         const y = H - 10;
         withTracking(0.5, () => {
-            pdf.setFont('helvetica', 'normal');
+            pdf.setFont(MONO, 'normal');
             pdf.setFontSize(6.5);
             setText(C.faint);
             pdf.text(left, PAD_X, y);
@@ -168,7 +211,7 @@ async function buildPDF(stones) {
         pdf.setLineWidth(0.4);
         pdf.line(x, y - 1.4, x + 9, y - 1.4);
         withTracking(0.7, () => {
-            pdf.setFont('helvetica', 'bold');
+            pdf.setFont(MONO, 'bold');
             pdf.setFontSize(7);
             setText(C.accent);
             pdf.text(text, x + 13, y, { baseline: 'middle' });
@@ -212,8 +255,8 @@ async function buildPDF(stones) {
     drawRunHead();
 
     // Image panel — right side, full body height
-    const bodyTop = 30;            // approx where body starts under run-head
-    const bodyBot = H - 20;        // approx where body ends above foot
+    const bodyTop = 24;            // approx where body starts under run-head
+    const bodyBot = H - 18;        // approx where body ends above foot
     const splitRatio = 1.06 / (1.06 + 0.94);
     const splitColX = W * splitRatio; // x boundary between text and image
     if (coverPanelDataUrl) {
@@ -230,35 +273,35 @@ async function buildPDF(stones) {
     const textCenterY = (bodyTop + bodyBot) / 2;
 
     // Eyebrow
-    drawEyebrow('VOLUME 01 · PRIVATE COLLECTION', PAD_X, textCenterY - 50);
+    drawEyebrow('VOLUME 01 · PRIVATE COLLECTION', PAD_X, textCenterY - 42);
 
     // Headline: "Stone Dossier" — italic accent on "Dossier"
-    pdf.setFont('times', 'normal');
-    pdf.setFontSize(74);
+    pdf.setFont(SERIF, 'normal');
+    pdf.setFontSize(60);
     setText(C.ink);
-    pdf.text('Stone', PAD_X, textCenterY - 12);
-    pdf.setFont('times', 'italic');
+    pdf.text('Stone', PAD_X, textCenterY - 8);
+    pdf.setFont(SERIF, 'italic');
     setText(C.accent);
     pdf.text('Dossier', PAD_X, textCenterY + 18);
 
     // Sub copy
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(10);
+    pdf.setFont(MONO, 'normal');
+    pdf.setFontSize(9);
     setText(C.muted);
     const subText = `${stones.length} specimen${stones.length !== 1 ? 's' : ''}, sourced and matched to application — presented with AI-rendered interiors.`;
-    pdf.text(pdf.splitTextToSize(subText, textColW), PAD_X, textCenterY + 34);
+    pdf.text(pdf.splitTextToSize(subText, textColW), PAD_X, textCenterY + 30);
 
     // Meta row (3 columns)
-    const metaY = textCenterY + 56;
+    const metaY = textCenterY + 48;
     const metaCol = (x, label, value) => {
         withTracking(0.4, () => {
-            pdf.setFont('helvetica', 'normal');
+            pdf.setFont(MONO, 'normal');
             pdf.setFontSize(6.5);
             setText(C.faint);
             pdf.text(label, x, metaY);
         });
         withTracking(0.6, () => {
-            pdf.setFont('helvetica', 'bold');
+            pdf.setFont(MONO, 'bold');
             pdf.setFontSize(8);
             setText(C.ink);
             pdf.text(value, x, metaY + 5);
@@ -278,22 +321,22 @@ async function buildPDF(stones) {
     drawRunHead();
 
     // LEFT column: eyebrow + title + lead
-    drawEyebrow('CONTENTS', PAD_X, 56);
+    drawEyebrow('CONTENTS', PAD_X, 45);
 
-    pdf.setFont('times', 'normal');
-    pdf.setFontSize(42);
+    pdf.setFont(SERIF, 'normal');
+    pdf.setFontSize(38);
     setText(C.ink);
-    pdf.text('The Collection', PAD_X, 82);
+    pdf.text('The Collection', PAD_X, 65);
 
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(10);
+    pdf.setFont(MONO, 'normal');
+    pdf.setFontSize(9);
     setText(C.muted);
     const leadText = 'Each specimen is presented as a raw slab and as an AI-rendered application, with format, lot availability and indicative price for private clients.';
-    pdf.text(pdf.splitTextToSize(leadText, 110), PAD_X, 100);
+    pdf.text(pdf.splitTextToSize(leadText, 110), PAD_X, 82);
 
     // RIGHT column: TOC entries
     const tocX = W * 0.5;
-    let tocY = 56;
+    let tocY = 45;
     setDraw(C.line);
     pdf.setLineWidth(0.3);
 
@@ -302,26 +345,26 @@ async function buildPDF(stones) {
         tocY += 13;
 
         // Number
-        pdf.setFont('helvetica', 'bold');
+        pdf.setFont(MONO, 'bold');
         pdf.setFontSize(8.5);
         setText(C.accent);
         pdf.text(String(gi + 1).padStart(2, '0'), tocX, tocY);
 
         // Application name (serif)
-        pdf.setFont('times', 'normal');
+        pdf.setFont(SERIF, 'normal');
         pdf.setFontSize(22);
         setText(C.ink);
         pdf.text(groups[appKey].label, tocX + 18, tocY);
 
         // Stone names below
         const stoneNames = groups[appKey].items.map(i => i.stone.name).join(' · ');
-        pdf.setFont('helvetica', 'normal');
+        pdf.setFont(MONO, 'normal');
         pdf.setFontSize(7);
         setText(C.faint);
         pdf.text(stoneNames, tocX + 18, tocY + 6);
 
         // Specimen count (right)
-        pdf.setFont('helvetica', 'normal');
+        pdf.setFont(MONO, 'normal');
         pdf.setFontSize(7);
         setText(C.muted);
         pdf.text(`${groups[appKey].items.length} SPECIMEN${groups[appKey].items.length !== 1 ? 'S' : ''}`, W - PAD_X, tocY, { align: 'right' });
@@ -342,8 +385,8 @@ async function buildPDF(stones) {
         drawRunHead();
 
         // Same split layout as cover: text left (1.06fr), image panel right (.94fr)
-        const dBodyTop = 30;
-        const dBodyBot = H - 20;
+        const dBodyTop = 24;
+        const dBodyBot = H - 18;
         const dSplitX = W * (1.06 / (1.06 + 0.94));
         if (dividerPanels[appKey]) {
             embedImage(dividerPanels[appKey], dSplitX, dBodyTop, W - dSplitX, dBodyBot - dBodyTop);
@@ -356,24 +399,24 @@ async function buildPDF(stones) {
         const centerY = (dBodyTop + dBodyBot) / 2;
 
         // Ghost numeral — outline-only stroke (matches design's text-stroke)
-        pdf.setFont('times', 'normal');
-        pdf.setFontSize(125);
+        pdf.setFont(SERIF, 'normal');
+        pdf.setFontSize(88);
         setDraw(C.lineStrong);
         pdf.setLineWidth(0.4);
         if (typeof pdf.setTextRenderingMode === 'function') {
             pdf.setTextRenderingMode(1);
-            pdf.text(String(appIndex + 1).padStart(2, '0'), PAD_X, centerY - 30);
+            pdf.text(String(appIndex + 1).padStart(2, '0'), PAD_X, centerY - 22);
             pdf.setTextRenderingMode(0);
         } else {
             setText(C.lineStrong);
-            pdf.text(String(appIndex + 1).padStart(2, '0'), PAD_X, centerY - 30);
+            pdf.text(String(appIndex + 1).padStart(2, '0'), PAD_X, centerY - 22);
         }
 
         // App name (huge serif)
-        pdf.setFont('times', 'normal');
-        pdf.setFontSize(85);
+        pdf.setFont(SERIF, 'normal');
+        pdf.setFontSize(70);
         setText(C.ink);
-        pdf.text(groups[appKey].label, PAD_X, centerY + 18);
+        pdf.text(groups[appKey].label, PAD_X, centerY + 14);
 
         // Tick + specimen count
         const noteY = centerY + 38;
@@ -381,7 +424,7 @@ async function buildPDF(stones) {
         pdf.setLineWidth(0.6);
         pdf.line(PAD_X, noteY, PAD_X + 16, noteY);
         withTracking(0.6, () => {
-            pdf.setFont('helvetica', 'bold');
+            pdf.setFont(MONO, 'bold');
             pdf.setFontSize(8);
             setText(C.muted);
             const n = groups[appKey].items.length;
@@ -392,6 +435,23 @@ async function buildPDF(stones) {
         drawFoot(`APPLICATION ${String(appIndex + 1).padStart(2, '0')}`, String(pageNum).padStart(2, '0'));
     };
 
+    // Split a spec value into a primary number part and a secondary unit part —
+    // mirrors the design's `<small>` styling. Examples:
+    //   "3200×1600 mm"  → { value: "3200", sub: "×1600 mm" }
+    //   "123 m²"        → { value: "123",  sub: "m²" }
+    //   "$34,567"       → { value: "$34,567", sub: "" }
+    //   "₹25,000/sq.ft" → { value: "₹25,000", sub: "/sq.ft" }
+    const splitSpec = (raw) => {
+        if (!raw) return { value: '—', sub: '' };
+        const s = String(raw).trim();
+        // Match: optional currency + digits/commas/dot + optional simple suffix word
+        const m = s.match(/^([₹$€£¥]?\s?[\d.,]+)(.*)$/);
+        if (!m) return { value: s, sub: '' };
+        const value = m[1].trim();
+        const sub = m[2].trim();
+        return { value, sub };
+    };
+
     const addStoneDetailPage = async (stone, app, specIdx, totalSpecs) => {
         addPage();
         drawRunHead();
@@ -400,34 +460,36 @@ async function buildPDF(stones) {
         const splitX = W * 0.46;
 
         // Eyebrow
-        drawEyebrow(`APPLICATION · ${(app.label || app.application).toUpperCase()}`, PAD_X, 50);
+        drawEyebrow(`APPLICATION · ${(app.label || app.application).toUpperCase()}`, PAD_X, 38);
 
         // Stone name (huge serif)
-        pdf.setFont('times', 'normal');
-        pdf.setFontSize(48);
+        pdf.setFont(SERIF, 'normal');
+        pdf.setFontSize(56);
         setText(C.ink);
         const stoneNameLines = pdf.splitTextToSize(stone.name || '—', splitX - PAD_X - 4);
-        pdf.text(stoneNameLines, PAD_X, 72);
+        pdf.text(stoneNameLines, PAD_X, 60);
 
         // Description (italic muted)
         if (stone.description) {
-            pdf.setFont('times', 'italic');
+            pdf.setFont(SERIF, 'italic');
             pdf.setFontSize(11);
             setText(C.muted);
             const descLines = pdf.splitTextToSize(stone.description, splitX - PAD_X - 8);
-            pdf.text(descLines, PAD_X, 88);
+            pdf.text(descLines, PAD_X, 76);
         }
 
         // Slab caption row
-        const slabY = 122;
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(6.5);
-        setText(C.faint);
-        pdf.text('RAW SLAB', PAD_X, slabY);
-        pdf.text('POLISHED', splitX - 4, slabY, { align: 'right' });
+        const slabY = 100;
+        withTracking(0.5, () => {
+            pdf.setFont(MONO, 'bold');
+            pdf.setFontSize(6.5);
+            setText(C.faint);
+            pdf.text('RAW SLAB', PAD_X, slabY);
+            pdf.text('POLISHED', splitX - 4, slabY, { align: 'right' });
+        });
 
         // Slab image
-        const slabH = 32;
+        const slabH = 26;
         const slabW = splitX - PAD_X - 4;
         if (stone.imageDataUrl) {
             embedImage(stone.imageDataUrl, PAD_X, slabY + 2, slabW, slabH);
@@ -441,26 +503,29 @@ async function buildPDF(stones) {
         pdf.line(PAD_X, specsY - 4, splitX - 4, specsY - 4); // top rule
 
         const cellW = (splitX - PAD_X - 4) / 3;
-        const drawSpec = (idx, label, value, sub) => {
+        const drawSpec = (idx, label, raw) => {
             const x = PAD_X + idx * cellW;
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(6.5);
-            setText(C.faint);
-            pdf.text(label, x, specsY);
-            pdf.setFont('times', 'normal');
-            pdf.setFontSize(18);
+            const { value, sub } = splitSpec(raw);
+            withTracking(0.45, () => {
+                pdf.setFont(MONO, 'bold');
+                pdf.setFontSize(6.5);
+                setText(C.faint);
+                pdf.text(label, x, specsY);
+            });
+            pdf.setFont(SERIF, 'normal');
+            pdf.setFontSize(20);
             setText(C.ink);
-            pdf.text(value || '—', x, specsY + 9);
+            pdf.text(value, x, specsY + 9);
             if (sub) {
-                pdf.setFont('helvetica', 'normal');
-                pdf.setFontSize(7);
+                pdf.setFont(MONO, 'normal');
+                pdf.setFontSize(8);
                 setText(C.muted);
-                pdf.text(sub, x + pdf.getTextWidth(value || '—') + 2, specsY + 8);
+                pdf.text(sub, x + pdf.getTextWidth(value) + 1.6, specsY + 8.5);
             }
         };
-        drawSpec(0, 'FORMAT', stone.format || '—');
-        drawSpec(1, 'LOT', stone.lotSize || '—');
-        drawSpec(2, 'PRICE', stone.price || '—');
+        drawSpec(0, 'FORMAT', stone.format);
+        drawSpec(1, 'LOT',    stone.lotSize);
+        drawSpec(2, 'PRICE',  stone.price);
 
         // RIGHT: full-bleed render
         if (app.renderUrl) {
@@ -479,7 +544,7 @@ async function buildPDF(stones) {
             const specText = `SPECIMEN ${String(specIdx).padStart(2, '0')} / ${String(totalSpecs).padStart(2, '0')}`;
 
             withTracking(0.5, () => {
-                pdf.setFont('helvetica', 'bold');
+                pdf.setFont(MONO, 'bold');
                 pdf.setFontSize(7);
                 const labelW = pdf.getTextWidth(labelText);
                 const specW = pdf.getTextWidth(specText);
@@ -537,31 +602,33 @@ async function buildPDF(stones) {
     addPage();
     drawRunHead();
 
-    drawEyebrow('PRIVATE ENQUIRY', PAD_X, 80);
+    drawEyebrow('PRIVATE ENQUIRY', PAD_X, 55);
 
-    pdf.setFont('times', 'normal');
+    pdf.setFont(SERIF, 'normal');
     pdf.setFontSize(56);
     setText(C.ink);
-    pdf.text('Reserve a', PAD_X, 112);
-    pdf.setFont('times', 'italic');
+    pdf.text('Reserve a', PAD_X, 84);
+    pdf.setFont(SERIF, 'italic');
     setText(C.accent);
-    pdf.text('specimen', PAD_X + pdf.getTextWidth('Reserve a ') + 4, 112);
+    pdf.text('specimen', PAD_X + pdf.getTextWidth('Reserve a ') + 4, 84);
 
     // Contact rows
-    const cy = 148;
+    const cy = 118;
     const drawContact = (x, label, value) => {
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(7);
-        setText(C.faint);
-        pdf.text(label, x, cy);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(11);
+        withTracking(0.5, () => {
+            pdf.setFont(MONO, 'bold');
+            pdf.setFontSize(7);
+            setText(C.faint);
+            pdf.text(label, x, cy);
+        });
+        pdf.setFont(MONO, 'normal');
+        pdf.setFontSize(10);
         setText(C.ink);
-        pdf.text(value, x, cy + 8);
+        pdf.text(value, x, cy + 7);
     };
-    drawContact(PAD_X, 'ATELIER', 'Stonevo — by appointment');
-    drawContact(PAD_X + 90, 'ENQUIRIES', 'advisory@stonevo.in');
-    drawContact(PAD_X + 175, 'DIRECT', 'stonevo.in');
+    drawContact(PAD_X,         'ATELIER',   'Stonevo — by appointment');
+    drawContact(PAD_X + 90,    'ENQUIRIES', 'advisory@stonevo.in');
+    drawContact(PAD_X + 175,   'DIRECT',    'stonevo.in');
 
     drawFoot('STONEVO ATELIER', 'END OF DOSSIER');
 
