@@ -620,7 +620,9 @@ function Home({ role }) {
                         </div>
                     )}
                 </div>
-                <nav className="flex items-center gap-4">
+                <nav className="flex items-center gap-2 md:gap-3">
+                    <Link to="/about" className="hidden md:inline-block text-[10px] uppercase tracking-widest text-stone-400 hover:text-white transition-colors font-bold py-2 px-4 border border-stone-800/50 rounded-full bg-stone-900/50 backdrop-blur-sm">About</Link>
+                    <Link to="/team" className="hidden md:inline-block text-[10px] uppercase tracking-widest text-stone-400 hover:text-white transition-colors font-bold py-2 px-4 border border-stone-800/50 rounded-full bg-stone-900/50 backdrop-blur-sm">Team</Link>
                     <Link to="/advisory" className="text-[10px] uppercase tracking-widest text-stone-400 hover:text-white transition-colors font-bold py-2 px-4 border border-stone-800/50 rounded-full bg-stone-900/50 backdrop-blur-sm">Audit & Advisory</Link>
                     <button
                         onClick={() => setIsConfiguratorOpen(true)}
