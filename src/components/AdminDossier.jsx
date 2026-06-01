@@ -111,38 +111,8 @@ async function buildPDF(stones) {
         pdf.text(text, x, y, { align });
     };
 
-    // Pre-process an image dataURL via canvas: apply grayscale + dim it to ~34% opacity
-    // over the dark bg. Matches the design's `opacity:.34; filter:grayscale(.2)` look
-    // baked into the image (so jsPDF embeds a single flattened image — no overlay needed).
-    const dimImage = (dataUrl, opacity = 0.34, grayscale = 0.2) =>
-        new Promise((resolve) => {
-            if (!dataUrl) return resolve(null);
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-                const c = document.createElement('canvas');
-                c.width = img.naturalWidth;
-                c.height = img.naturalHeight;
-                const ctx = c.getContext('2d');
-                // Fill bg ink color
-                ctx.fillStyle = `rgb(${C.bg[0]}, ${C.bg[1]}, ${C.bg[2]})`;
-                ctx.fillRect(0, 0, c.width, c.height);
-                // Draw image at requested opacity with grayscale filter
-                ctx.globalAlpha = opacity;
-                ctx.filter = `grayscale(${grayscale * 100}%) contrast(1.05)`;
-                ctx.drawImage(img, 0, 0);
-                ctx.filter = 'none';
-                ctx.globalAlpha = 1;
-                try { resolve(c.toDataURL('image/jpeg', 0.9)); } catch { resolve(null); }
-            };
-            img.onerror = () => resolve(null);
-            img.src = dataUrl;
-        });
-
-    // Embed a pre-dimmed background image full-bleed (no gradient overlay).
-    const drawCoverBG = (dimmedDataUrl) => {
-        if (dimmedDataUrl) embedImage(dimmedDataUrl, 0, 0, W, H);
-    };
+    // (v3 design replaced full-bleed dimmed backgrounds with side-by-side
+    // image panels — no dimming needed anymore.)
 
     // Apply character spacing (matches CSS `letter-spacing`) — jsPDF supports
     // this natively via setCharSpace when available. Saves the prior value
@@ -228,59 +198,76 @@ async function buildPDF(stones) {
         groups[upper].items.push({ stone, app });
     });
 
-    // Pre-fetch + dim background images for cover/divider pages.
-    // Dimming is baked into the image (no overlay rects in the PDF).
-    const firstRender = pairs.length ? await urlToDataUrl(pairs[0].app.renderUrl) : null;
-    const firstRenderDataUrl = await dimImage(firstRender, 0.34, 0.2);
-    const dividerBgs = {};
+    // Pre-fetch image-panel sources (used on cover + dividers as side panels).
+    const coverPanelDataUrl = pairs.length ? await urlToDataUrl(pairs[0].app.renderUrl) : null;
+    const dividerPanels = {};
     for (const k of order) {
-        const raw = await urlToDataUrl(groups[k].items[0].app.renderUrl);
-        dividerBgs[k] = await dimImage(raw, 0.42, 0.15);
+        dividerPanels[k] = await urlToDataUrl(groups[k].items[0].app.renderUrl);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // SLIDE 01 — COVER
+    // SLIDE 01 — COVER (split layout: text 1.06fr / image panel .94fr)
     // ─────────────────────────────────────────────────────────────────────────
     addPage(true);
-    drawCoverBG(firstRenderDataUrl);
     drawRunHead();
 
-    // Eyebrow
-    const eyebrowY = 70;
-    drawEyebrow('VOLUME 01 · PRIVATE COLLECTION', PAD_X, eyebrowY);
+    // Image panel — right side, full body height
+    const bodyTop = 30;            // approx where body starts under run-head
+    const bodyBot = H - 20;        // approx where body ends above foot
+    const splitRatio = 1.06 / (1.06 + 0.94);
+    const splitColX = W * splitRatio; // x boundary between text and image
+    if (coverPanelDataUrl) {
+        embedImage(coverPanelDataUrl, splitColX, bodyTop, W - splitColX, bodyBot - bodyTop);
+    }
+    // Vertical hairline between panels
+    setDraw(C.line);
+    pdf.setLineWidth(0.2);
+    pdf.line(splitColX, bodyTop, splitColX, bodyBot);
 
-    // Headline: "Stone Dossier" — huge, with italic accent
+    // LEFT — text column, centered vertically in body
+    const TXT_RIGHT_PAD = 18;
+    const textColW = splitColX - PAD_X - TXT_RIGHT_PAD;
+    const textCenterY = (bodyTop + bodyBot) / 2;
+
+    // Eyebrow
+    drawEyebrow('VOLUME 01 · PRIVATE COLLECTION', PAD_X, textCenterY - 50);
+
+    // Headline: "Stone Dossier" — italic accent on "Dossier"
     pdf.setFont('times', 'normal');
-    pdf.setFontSize(72);
+    pdf.setFontSize(74);
     setText(C.ink);
-    pdf.text('Stone', PAD_X, 105);
+    pdf.text('Stone', PAD_X, textCenterY - 12);
     pdf.setFont('times', 'italic');
     setText(C.accent);
-    pdf.text('Dossier', PAD_X, 138);
+    pdf.text('Dossier', PAD_X, textCenterY + 18);
 
     // Sub copy
-    const subY = 152;
     pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(11);
+    pdf.setFontSize(10);
     setText(C.muted);
     const subText = `${stones.length} specimen${stones.length !== 1 ? 's' : ''}, sourced and matched to application — presented with AI-rendered interiors.`;
-    pdf.text(pdf.splitTextToSize(subText, W * 0.55), PAD_X, subY);
+    pdf.text(pdf.splitTextToSize(subText, textColW), PAD_X, textCenterY + 34);
 
-    // Meta row
-    const metaY = 178;
+    // Meta row (3 columns)
+    const metaY = textCenterY + 56;
     const metaCol = (x, label, value) => {
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(7);
-        setText(C.faint);
-        pdf.text(label, x, metaY);
-        pdf.setFont('times', 'normal');
-        pdf.setFontSize(11);
-        setText(C.ink);
-        pdf.text(value, x, metaY + 6);
+        withTracking(0.4, () => {
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(6.5);
+            setText(C.faint);
+            pdf.text(label, x, metaY);
+        });
+        withTracking(0.6, () => {
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(8);
+            setText(C.ink);
+            pdf.text(value, x, metaY + 5);
+        });
     };
-    metaCol(PAD_X, 'SPECIMENS', `${String(stones.length).padStart(2, '0')} — CURATED`);
-    metaCol(PAD_X + 65, 'APPLICATIONS', order.map(o => groups[o].label).join(' · ') || '—');
-    metaCol(PAD_X + 175, 'ISSUED', new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase());
+    const colGap = textColW / 3;
+    metaCol(PAD_X,                   'SPECIMENS',   `${String(stones.length).padStart(2, '0')} — CURATED`);
+    metaCol(PAD_X + colGap,          'APPLICATIONS', (order.map(o => groups[o].label).join(' · ') || '—').toUpperCase());
+    metaCol(PAD_X + colGap * 2,      'ISSUED',       new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase());
 
     drawFoot('STONEVO ATELIER', 'PREPARED FOR PRIVATE VIEWING');
 
@@ -352,41 +339,54 @@ async function buildPDF(stones) {
 
     const addDividerPage = (appKey, appIndex) => {
         addPage();
-        drawCoverBG(dividerBgs[appKey]);
         drawRunHead();
 
-        // Ghost numeral — outline-only text (matches design's text-stroke)
+        // Same split layout as cover: text left (1.06fr), image panel right (.94fr)
+        const dBodyTop = 30;
+        const dBodyBot = H - 20;
+        const dSplitX = W * (1.06 / (1.06 + 0.94));
+        if (dividerPanels[appKey]) {
+            embedImage(dividerPanels[appKey], dSplitX, dBodyTop, W - dSplitX, dBodyBot - dBodyTop);
+        }
+        setDraw(C.line);
+        pdf.setLineWidth(0.2);
+        pdf.line(dSplitX, dBodyTop, dSplitX, dBodyBot);
+
+        // LEFT text column, centered vertically
+        const centerY = (dBodyTop + dBodyBot) / 2;
+
+        // Ghost numeral — outline-only stroke (matches design's text-stroke)
         pdf.setFont('times', 'normal');
-        pdf.setFontSize(110);
+        pdf.setFontSize(125);
         setDraw(C.lineStrong);
         pdf.setLineWidth(0.4);
         if (typeof pdf.setTextRenderingMode === 'function') {
-            pdf.setTextRenderingMode(1); // 1 = stroke text only
-            pdf.text(String(appIndex + 1).padStart(2, '0'), PAD_X, 100);
-            pdf.setTextRenderingMode(0); // back to fill
+            pdf.setTextRenderingMode(1);
+            pdf.text(String(appIndex + 1).padStart(2, '0'), PAD_X, centerY - 30);
+            pdf.setTextRenderingMode(0);
         } else {
             setText(C.lineStrong);
-            pdf.text(String(appIndex + 1).padStart(2, '0'), PAD_X, 100);
+            pdf.text(String(appIndex + 1).padStart(2, '0'), PAD_X, centerY - 30);
         }
 
-        // App name (huge)
+        // App name (huge serif)
         pdf.setFont('times', 'normal');
-        pdf.setFontSize(72);
+        pdf.setFontSize(85);
         setText(C.ink);
-        pdf.text(groups[appKey].label, PAD_X, 140);
+        pdf.text(groups[appKey].label, PAD_X, centerY + 18);
 
-        // Tick + specimen count (with mono-style tracking)
-        const noteY = 158;
+        // Tick + specimen count
+        const noteY = centerY + 38;
         setDraw(C.accent);
         pdf.setLineWidth(0.6);
-        pdf.line(PAD_X, noteY, PAD_X + 14, noteY);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(8);
-        setText(C.muted);
-        const n = groups[appKey].items.length;
-        if (typeof pdf.setCharSpace === 'function') pdf.setCharSpace(0.6);
-        pdf.text(`${n} SPECIMEN${n !== 1 ? 'S' : ''}`, PAD_X + 18, noteY + 1);
-        if (typeof pdf.setCharSpace === 'function') pdf.setCharSpace(0);
+        pdf.line(PAD_X, noteY, PAD_X + 16, noteY);
+        withTracking(0.6, () => {
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(8);
+            setText(C.muted);
+            const n = groups[appKey].items.length;
+            pdf.text(`${n} SPECIMEN${n !== 1 ? 'S' : ''}`, PAD_X + 20, noteY + 1);
+        });
 
         pageNum++;
         drawFoot(`APPLICATION ${String(appIndex + 1).padStart(2, '0')}`, String(pageNum).padStart(2, '0'));
@@ -468,23 +468,52 @@ async function buildPDF(stones) {
             if (renderDataUrl) {
                 embedImage(renderDataUrl, splitX, 0, W - splitX, H);
             }
-            // Caption band — solid dark strip at bottom of render
-            // (No gradient — kept flat to match the updated design.)
-            const capH = 24;
-            setFill([8, 8, 8]);
-            pdf.rect(splitX, H - capH, W - splitX, capH, 'F');
+            // Floating caption pill at bottom-left of render
+            // (solid dark bg + 1px stroke-strong border, two segments separated by a vertical hairline)
+            const capPadX = 7;
+            const capPadY = 4;
+            const capLeft = splitX + 10;
+            const capBottom = H - 12;
 
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(7.5);
-            setText(C.ink);
-            pdf.text(`AI-RENDERED · ${(app.label || app.application).toUpperCase()}`, splitX + 12, H - 12);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(7.5);
-            setText(C.accent);
-            pdf.text(`SPECIMEN ${String(specIdx).padStart(2, '0')}`, W - PAD_X, H - 12, { align: 'right' });
-            pdf.setFont('helvetica', 'normal');
-            setText(C.ink);
-            pdf.text(` / ${String(totalSpecs).padStart(2, '0')}`, W - PAD_X + pdf.getTextWidth(` / ${String(totalSpecs).padStart(2, '0')}`) * 0 + 0.5, H - 12, { align: 'right' });
+            const labelText = `AI-RENDERED · ${(app.label || app.application).toUpperCase()}`;
+            const specText = `SPECIMEN ${String(specIdx).padStart(2, '0')} / ${String(totalSpecs).padStart(2, '0')}`;
+
+            withTracking(0.5, () => {
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(7);
+                const labelW = pdf.getTextWidth(labelText);
+                const specW = pdf.getTextWidth(specText);
+                const sepGap = 6;
+                const innerW = labelW + sepGap * 2 + 1 + specW;
+                const capW = innerW + capPadX * 2;
+                const capH = 9.5;
+
+                // Pill bg + border
+                setFill(C.bg);
+                pdf.rect(capLeft, capBottom - capH, capW, capH, 'F');
+                setDraw(C.lineStrong);
+                pdf.setLineWidth(0.2);
+                pdf.rect(capLeft, capBottom - capH, capW, capH);
+
+                // Label segment
+                setText(C.ink);
+                pdf.text(labelText, capLeft + capPadX, capBottom - capPadY - 0.4);
+
+                // Vertical separator
+                const sepX = capLeft + capPadX + labelW + sepGap;
+                setDraw(C.lineStrong);
+                pdf.setLineWidth(0.2);
+                pdf.line(sepX, capBottom - capH + 1.8, sepX, capBottom - 1.8);
+
+                // Spec segment ("SPECIMEN 01 / 03") — "SPECIMEN 01" in accent, " / 03" in ink
+                const specStart = sepX + sepGap + 1;
+                const specPrefix = `SPECIMEN ${String(specIdx).padStart(2, '0')}`;
+                const specSuffix = ` / ${String(totalSpecs).padStart(2, '0')}`;
+                setText(C.accent);
+                pdf.text(specPrefix, specStart, capBottom - capPadY - 0.4);
+                setText(C.ink);
+                pdf.text(specSuffix, specStart + pdf.getTextWidth(specPrefix), capBottom - capPadY - 0.4);
+            });
         }
 
         pageNum++;
