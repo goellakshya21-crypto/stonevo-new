@@ -678,11 +678,13 @@ const AdminUpload = ({ onCancel }) => {
                 .from('stones')
                 .select('*')
                 .order('name')
-                .limit(500);
+                .limit(5000); // raise hard limit so we can match late-alphabet names
             if (error) throw error;
 
-            const namesLower = new Set(names.map(n => n.toLowerCase()));
-            const matched = (data || []).filter(s => namesLower.has((s.name || '').toLowerCase()));
+            // Whitespace-tolerant case-insensitive comparison
+            const norm = (s) => (s || '').toLowerCase().trim().replace(/\s+/g, ' ');
+            const namesLower = new Set(names.map(norm));
+            const matched = (data || []).filter(s => namesLower.has(norm(s.name)));
 
             setManageResults(matched);
             setSelectedForDelete(new Set(matched.map(s => s.id)));
