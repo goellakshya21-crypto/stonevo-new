@@ -30,6 +30,36 @@ const LeadGate = ({ children }) => {
         checkLeadStatus();
     }, []);
 
+    /**
+     * Source-of-truth name sync.
+     * If this phone is in architect_whitelist with a different name, the whitelist
+     * wins — update leads.full_name to match. Run BEFORE we cache the name in
+     * localStorage / log to Telegram so notifications always show the canonical name.
+     *
+     * Returns the corrected name (or the original if no drift).
+     */
+    const syncWhitelistName = async (phone, currentName, leadId) => {
+        if (!phone) return currentName;
+        const clean = String(phone).replace(/\D/g, '').slice(-10);
+        try {
+            const { data: wl } = await supabase
+                .from('architect_whitelist')
+                .select('full_name')
+                .eq('phone_number', clean)
+                .maybeSingle();
+            if (!wl?.full_name) return currentName;
+            const canonical = wl.full_name.trim();
+            if (canonical && canonical.toLowerCase() !== (currentName || '').trim().toLowerCase()) {
+                // Persist the canonical name on the lead
+                if (leadId) {
+                    await supabase.from('leads').update({ full_name: canonical }).eq('id', leadId);
+                }
+                return canonical;
+            }
+        } catch { /* silent — never block login */ }
+        return currentName;
+    };
+
     const logLogin = async (phone, name, role, extra = {}) => {
         try {
             await supabase.from('login_events').insert({
@@ -106,6 +136,13 @@ const LeadGate = ({ children }) => {
                 localStorage.removeItem('stonevo_lead_id');
                 setStatus('unregistered');
                 return;
+            }
+
+            // Whitelist is source of truth for the display name — sync if drifted
+            const canonicalName = await syncWhitelistName(data.phone, data.full_name, data.id);
+            if (canonicalName !== data.full_name) {
+                data.full_name = canonicalName;
+                localStorage.setItem('stonevo_user_name', canonicalName);
             }
 
             setFormData(data);
@@ -224,6 +261,8 @@ const LeadGate = ({ children }) => {
                 .maybeSingle();
 
             if (existingLead?.role) {
+                // Whitelist wins for display name — sync if drifted before notifying
+                existingLead.full_name = await syncWhitelistName(cleanPhone, existingLead.full_name, existingLead.id);
                 // Already registered with a role — skip role selection, log straight in
                 setDiagnostics(`RETURNING USER: ${existingLead.full_name} (${existingLead.role})`);
                 await supabase.from('leads').update({ last_active: new Date().toISOString() }).eq('id', existingLead.id);
