@@ -571,6 +571,13 @@ function Home({ role }) {
                                 )}
                             </button>
 
+                            <Link
+                                to="/circle"
+                                className="px-5 py-2 border border-bronze/30 rounded-full text-[10px] uppercase tracking-widest text-bronze hover:bg-bronze hover:text-white transition-all font-bold backdrop-blur-md"
+                            >
+                                ◆ Privilege Circle
+                            </Link>
+
                             {/* Client Switcher Dropdown */}
                             {clients.length > 0 && (
                                 <div className="relative" onClick={e => e.stopPropagation()}>

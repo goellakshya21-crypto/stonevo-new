@@ -8,6 +8,7 @@ import AdminClientLinks from '../components/AdminClientLinks';
 import AdminFormPreview from '../components/AdminFormPreview';
 import AdminDossier from '../components/AdminDossier';
 import AdminVendors from '../components/AdminVendors';
+import AdminPrivilegeCircle from '../components/AdminPrivilegeCircle';
 import { supabase } from '../lib/supabaseClient';
 
 // ── Dev Tools panel ───────────────────────────────────────────────────────────
@@ -143,6 +144,7 @@ function AdminPage() {
                             { id: 'preview',   label: 'Form Preview' },
                             { id: 'dossier',   label: '✦ Stone Dossier' },
                             { id: 'vendors',   label: '🧱 Vendors' },
+                            { id: 'circle',    label: '◆ Privilege Circle' },
                             { id: 'devtools',  label: '🧪 Dev Tools' },
                         ].map(tab => (
                             <button
@@ -176,6 +178,8 @@ function AdminPage() {
                     <AdminDossier />
                 ) : activeTab === 'vendors' ? (
                     <AdminVendors />
+                ) : activeTab === 'circle' ? (
+                    <AdminPrivilegeCircle />
                 ) : (
                     <DevTools />
                 )}
