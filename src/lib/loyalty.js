@@ -12,33 +12,41 @@
  *  - All values in ₹
  */
 
-// ── Collection tiers by material rate (₹/sqft) ────────────────────────────────
+// ── Sale tiers (A–E) — selected directly, NEVER derived from a price ──────────
+// Tier A is the highest collection, Tier E the entry collection. The ₹/sqft
+// "band" is the INTERNAL definition of each tier only — no sale price is ever
+// entered or stored (keeps it GST-safe for a cash business). Points and the
+// reward wallet are computed purely from the tier + quantity.
 export const COLLECTION_TIERS = [
-    { key: 'standard',  label: 'Standard',  min: 0,    max: 500,      points: 1, wallet: 5 },
-    { key: 'core',      label: 'Core',      min: 500,  max: 1000,     points: 2, wallet: 10 },
-    { key: 'premium',   label: 'Premium',   min: 1000, max: 1500,     points: 3, wallet: 15 },
-    { key: 'elite',     label: 'Elite',     min: 1500, max: 2000,     points: 4, wallet: 20 },
-    { key: 'signature', label: 'Signature', min: 2000, max: Infinity, points: 5, wallet: 25 },
+    { letter: 'A', key: 'signature', label: 'Signature', band: 'Above ₹2,000/sqft',   points: 5, wallet: 25 },
+    { letter: 'B', key: 'elite',     label: 'Elite',     band: '₹1,500–2,000/sqft',   points: 4, wallet: 20 },
+    { letter: 'C', key: 'premium',   label: 'Premium',   band: '₹1,000–1,500/sqft',   points: 3, wallet: 15 },
+    { letter: 'D', key: 'core',      label: 'Core',      band: '₹500–1,000/sqft',     points: 2, wallet: 10 },
+    { letter: 'E', key: 'standard',  label: 'Standard',  band: 'Below ₹500/sqft',     points: 1, wallet: 5 },
 ];
 
-/** Find the collection tier for a given ₹/sqft rate. */
-export const tierForRate = (rate) => {
-    const r = Number(rate) || 0;
-    // Bands are [min, max): ₹500 lands in Core, ₹1000 in Premium, etc.
-    return COLLECTION_TIERS.find(t => r >= t.min && r < t.max) || COLLECTION_TIERS[0];
+/** Look up a tier by its letter (A–E) or key (signature…standard). */
+export const tierByLetter = (letterOrKey) => {
+    const v = String(letterOrKey || '').toUpperCase();
+    return COLLECTION_TIERS.find(t => t.letter === v)
+        || COLLECTION_TIERS.find(t => t.key === String(letterOrKey || '').toLowerCase())
+        || null;
 };
 
-/** Compute the full earning breakdown for a single billing record. */
-export const computeBilling = (sqft, ratePerSqft) => {
+/**
+ * Compute the earning breakdown for a single sale.
+ * @param sqft        quantity sold (not money — GST-safe)
+ * @param tierLetter  'A' | 'B' | 'C' | 'D' | 'E'  (or a tier key)
+ */
+export const computeBilling = (sqft, tierLetter) => {
     const s = Number(sqft) || 0;
-    const r = Number(ratePerSqft) || 0;
-    const tier = tierForRate(r);
+    const tier = tierByLetter(tierLetter) || COLLECTION_TIERS[COLLECTION_TIERS.length - 1];
     return {
         sqft: s,
-        ratePerSqft: r,
+        tierLetter: tier.letter,
         collectionTier: tier.key,
         collectionLabel: tier.label,
-        materialValue: s * r,
+        band: tier.band,
         pointsPerSqft: tier.points,
         pointsEarned: s * tier.points,
         walletPerSqft: tier.wallet,
@@ -135,12 +143,15 @@ export const fmtINR = (n) => {
 export const fmtPoints = (n) => (Number(n) || 0).toLocaleString('en-IN');
 
 /**
- * Aggregate a list of billing rows + redemption rows into the dashboard summary.
- * @param billing  array of { material_value, points_earned, wallet_earned }
- * @param redemptions array of { wallet_amount, status }
+ * Aggregate billing + redemption rows into the dashboard summary.
+ * No sale value (price) is computed — only volume (sqft), points, and the
+ * reward wallet, so nothing GST-sensitive is ever surfaced.
+ * @param billing      array of { sqft, points_earned, wallet_earned }
+ * @param redemptions  array of { wallet_amount, status }
  */
 export const summarize = (billing = [], redemptions = []) => {
-    const revenue = billing.reduce((s, b) => s + (Number(b.material_value) || 0), 0);
+    const totalSqft = billing.reduce((s, b) => s + (Number(b.sqft) || 0), 0);
+    const projectCount = billing.length;
     const points = billing.reduce((s, b) => s + (Number(b.points_earned) || 0), 0);
     const walletEarned = billing.reduce((s, b) => s + (Number(b.wallet_earned) || 0), 0);
     const walletSpent = redemptions
@@ -148,5 +159,5 @@ export const summarize = (billing = [], redemptions = []) => {
         .reduce((s, r) => s + (Number(r.wallet_amount) || 0), 0);
     const walletBalance = Math.max(0, walletEarned - walletSpent);
     const circle = circleForBalance(walletBalance);
-    return { revenue, points, walletEarned, walletSpent, walletBalance, circle };
+    return { totalSqft, projectCount, points, walletEarned, walletSpent, walletBalance, circle };
 };

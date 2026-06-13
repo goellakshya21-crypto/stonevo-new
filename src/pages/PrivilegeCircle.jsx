@@ -135,11 +135,11 @@ const PrivilegeCircle = () => {
                 <p style={S.loading}>Loading your circle…</p>
             ) : (
                 <>
-                    {/* STAT CARDS */}
+                    {/* STAT CARDS — no sale revenue shown (GST-safe) */}
                     <section style={S.statsWrap}>
                         <div style={S.statCard}>
-                            <p style={S.statLabel}>Revenue Generated</p>
-                            <p style={S.statValue}>{fmtINR(summary.revenue)}</p>
+                            <p style={S.statLabel}>Stone Sourced</p>
+                            <p style={S.statValue}>{summary.totalSqft.toLocaleString('en-IN')}<span style={{ fontSize: 16, color: MUTED }}> sqft</span></p>
                         </div>
                         <div style={S.statCard}>
                             <p style={S.statLabel}>Stone Points</p>
@@ -279,10 +279,10 @@ const PrivilegeCircle = () => {
                             <div style={S.histTable}>
                                 {billing.map(b => (
                                     <div key={b.id} style={S.histRow}>
-                                        <span style={{ flex: 2 }}>{b.project_name || '—'}</span>
+                                        <span style={{ flex: 2 }}>{b.notes?.replace(/^Stone:\s*/, '').split(' · ')[0] || b.project_name || '—'}</span>
+                                        <span style={{ flex: 1, textAlign: 'right', color: ACCENT, fontFamily: 'Noto Serif, serif' }}>Tier {(b.collection_tier || '—').toUpperCase().slice(0, 1)}</span>
                                         <span style={{ flex: 1, textAlign: 'right', color: '#9A938A' }}>{Number(b.sqft).toLocaleString('en-IN')} sqft</span>
-                                        <span style={{ flex: 1, textAlign: 'right' }}>{fmtINR(b.material_value)}</span>
-                                        <span style={{ flex: 1, textAlign: 'right', color: '#C8A86E' }}>+{fmtINR(b.wallet_earned)}</span>
+                                        <span style={{ flex: 1, textAlign: 'right', color: '#C8A86E' }}>+{fmtPoints(b.points_earned)} pts</span>
                                     </div>
                                 ))}
                             </div>

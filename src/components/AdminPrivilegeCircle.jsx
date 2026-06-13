@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import {
-    computeBilling, summarize, fmtINR, fmtPoints, CIRCLES,
+    computeBilling, summarize, fmtINR, fmtPoints, CIRCLES, COLLECTION_TIERS,
 } from '../lib/loyalty';
 import { Plus, Loader2, FileText, Award, Gift, ChevronDown, Check, X } from 'lucide-react';
 
@@ -68,8 +68,9 @@ const AdminPrivilegeCircle = () => {
 function BillingForm({ architects, onMissing }) {
     const [phone, setPhone] = useState('');
     const [project, setProject] = useState('');
+    const [stoneName, setStoneName] = useState('');
     const [sqft, setSqft] = useState('');
-    const [rate, setRate] = useState('');
+    const [tier, setTier] = useState('');   // 'A'–'E'
     const [billedAt, setBilledAt] = useState(new Date().toISOString().slice(0, 10));
     const [invoiceRef, setInvoiceRef] = useState('');
     const [notes, setNotes] = useState('');
@@ -77,7 +78,7 @@ function BillingForm({ architects, onMissing }) {
     const [result, setResult] = useState(null);
     const [dupWarn, setDupWarn] = useState('');
 
-    const preview = computeBilling(sqft, rate);
+    const preview = computeBilling(sqft, tier);
     const selectedArch = architects.find(a => a.phone === phone);
 
     // Warn if this project name is already billed to a DIFFERENT architect
@@ -99,26 +100,26 @@ function BillingForm({ architects, onMissing }) {
 
     const save = async () => {
         if (!phone) { setResult({ ok: false, msg: 'Select an architect.' }); return; }
-        if (!preview.sqft || !preview.ratePerSqft) { setResult({ ok: false, msg: 'Enter sqft and rate.' }); return; }
+        if (!preview.sqft) { setResult({ ok: false, msg: 'Enter the area (sqft).' }); return; }
+        if (!tier) { setResult({ ok: false, msg: 'Select a tier (A–E).' }); return; }
         setSaving(true);
         setResult(null);
         try {
+            // No price / material value stored — tier + quantity only (GST-safe).
             const payload = {
                 architect_phone: phone,
                 architect_lead_id: selectedArch?.id || null,
                 architect_name: selectedArch?.full_name || null,
                 project_name: project.trim() || null,
                 sqft: preview.sqft,
-                rate_per_sqft: preview.ratePerSqft,
-                material_value: preview.materialValue,
-                collection_tier: preview.collectionTier,
+                collection_tier: preview.tierLetter,   // 'A'–'E'
                 points_per_sqft: preview.pointsPerSqft,
                 points_earned: preview.pointsEarned,
                 wallet_per_sqft: preview.walletPerSqft,
                 wallet_earned: preview.walletEarned,
                 billed_at: billedAt,
                 invoice_ref: invoiceRef.trim() || null,
-                notes: notes.trim() || null,
+                notes: [stoneName.trim() ? `Stone: ${stoneName.trim()}` : '', notes.trim()].filter(Boolean).join(' · ') || null,
                 created_by: 'admin',
             };
             const { error } = await supabase.from('loyalty_billing').insert(payload);
@@ -126,8 +127,8 @@ function BillingForm({ architects, onMissing }) {
                 if (error.code === '42P01') { onMissing(); throw new Error('Loyalty tables not set up yet.'); }
                 throw error;
             }
-            setResult({ ok: true, msg: `✓ Recorded ${fmtINR(preview.materialValue)} for ${selectedArch?.full_name}. +${fmtPoints(preview.pointsEarned)} pts, +${fmtINR(preview.walletEarned)} wallet.` });
-            setProject(''); setSqft(''); setRate(''); setInvoiceRef(''); setNotes('');
+            setResult({ ok: true, msg: `✓ Recorded Tier ${preview.tierLetter} · ${preview.sqft.toLocaleString('en-IN')} sqft for ${selectedArch?.full_name}. +${fmtPoints(preview.pointsEarned)} pts, +${fmtINR(preview.walletEarned)} wallet.` });
+            setProject(''); setStoneName(''); setSqft(''); setTier(''); setInvoiceRef(''); setNotes('');
         } catch (err) {
             setResult({ ok: false, msg: err.message });
         } finally {
@@ -150,26 +151,44 @@ function BillingForm({ architects, onMissing }) {
                     </select>
                 </div>
 
-                <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Project Name</label>
-                    <input type="text" value={project} onChange={e => setProject(e.target.value)}
-                        placeholder="e.g. Mehta Residence, DLF Phase 2"
-                        className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bronze" />
-                    {dupWarn && <p className="text-[11px] text-amber-600 font-medium">{dupWarn}</p>}
-                </div>
-
                 <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Area (sqft)</label>
-                        <input type="number" value={sqft} onChange={e => setSqft(e.target.value)}
-                            placeholder="5000"
+                        <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Stone Name</label>
+                        <input type="text" value={stoneName} onChange={e => setStoneName(e.target.value)}
+                            placeholder="e.g. Statuario, Bianco Lasa"
                             className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bronze" />
                     </div>
                     <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Rate (₹/sqft)</label>
-                        <input type="number" value={rate} onChange={e => setRate(e.target.value)}
-                            placeholder="1200"
+                        <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Project (optional)</label>
+                        <input type="text" value={project} onChange={e => setProject(e.target.value)}
+                            placeholder="e.g. Mehta Residence"
                             className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bronze" />
+                    </div>
+                </div>
+                {dupWarn && <p className="text-[11px] text-amber-600 font-medium">{dupWarn}</p>}
+
+                <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Area (sqft)</label>
+                    <input type="number" value={sqft} onChange={e => setSqft(e.target.value)}
+                        placeholder="5000"
+                        className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bronze" />
+                </div>
+
+                <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Tier</label>
+                    <div className="grid grid-cols-5 gap-2">
+                        {COLLECTION_TIERS.map(t => (
+                            <button
+                                key={t.letter}
+                                type="button"
+                                onClick={() => setTier(t.letter)}
+                                title={`${t.label} · ${t.points} pt/sqft`}
+                                className={`py-2.5 rounded-lg border text-center transition-all ${tier === t.letter ? 'bg-stone-900 border-stone-900 text-white' : 'bg-white border-stone-200 text-stone-600 hover:border-bronze'}`}
+                            >
+                                <span className="block font-serif text-lg leading-none">{t.letter}</span>
+                                <span className="block text-[8px] uppercase tracking-wider mt-1 opacity-70">{t.label}</span>
+                            </button>
+                        ))}
                     </div>
                 </div>
 
@@ -203,19 +222,19 @@ function BillingForm({ architects, onMissing }) {
                 )}
             </div>
 
-            {/* Live preview */}
+            {/* Live preview — no sale price, tier + reward only */}
             <div className="bg-stone-900 rounded-2xl p-6 text-white space-y-4 h-fit">
                 <p className="text-[10px] font-bold text-bronze uppercase tracking-[0.3em]">Earning Preview</p>
                 <div className="grid grid-cols-2 gap-4">
-                    <Stat label="Material Value" value={fmtINR(preview.materialValue)} />
-                    <Stat label="Collection" value={preview.collectionLabel} />
+                    <Stat label="Tier" value={tier ? `${preview.tierLetter} · ${preview.collectionLabel}` : '—'} />
+                    <Stat label="Area" value={preview.sqft ? `${preview.sqft.toLocaleString('en-IN')} sqft` : '—'} />
                     <Stat label="Stone Points" value={`+${fmtPoints(preview.pointsEarned)}`} accent />
                     <Stat label="Wallet Earned" value={`+${fmtINR(preview.walletEarned)}`} accent />
                 </div>
                 <div className="pt-3 border-t border-white/10 text-[11px] text-stone-400 leading-relaxed">
-                    {preview.ratePerSqft > 0 ? (
-                        <>At {fmtINR(preview.ratePerSqft)}/sqft → <span className="text-bronze">{preview.pointsPerSqft} pts</span> & <span className="text-bronze">{fmtINR(preview.walletPerSqft)}</span> per sqft.</>
-                    ) : 'Enter rate to see the collection tier.'}
+                    {tier ? (
+                        <>Tier {preview.tierLetter} ({preview.band}) → <span className="text-bronze">{preview.pointsPerSqft} pts</span> & <span className="text-bronze">{fmtINR(preview.walletPerSqft)}</span> per sqft.</>
+                    ) : 'Select a tier to see the reward.'}
                 </div>
             </div>
         </div>
@@ -269,33 +288,31 @@ function ArchitectLedger({ architects, onMissing }) {
 
             {phone && !loading && (
                 <>
-                    {/* Summary strip */}
+                    {/* Summary strip — no sale revenue (GST-safe) */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <SummaryCard label="Revenue" value={fmtINR(summary.revenue)} />
+                        <SummaryCard label="Stone Sourced" value={`${summary.totalSqft.toLocaleString('en-IN')} sqft`} sub={`${summary.projectCount} entr${summary.projectCount === 1 ? 'y' : 'ies'}`} />
                         <SummaryCard label="Stone Points" value={fmtPoints(summary.points)} />
                         <SummaryCard label="Wallet Balance" value={fmtINR(summary.walletBalance)} sub={`Earned ${fmtINR(summary.walletEarned)} · Spent ${fmtINR(summary.walletSpent)}`} />
                         <SummaryCard label="Circle" value={summary.circle.current.label} circle={summary.circle.current} />
                     </div>
 
-                    {/* Billing rows */}
+                    {/* Billing rows — tier + quantity, no price */}
                     <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
                         <div className="grid grid-cols-12 gap-2 px-4 py-2 bg-stone-50 text-[9px] font-bold uppercase tracking-widest text-stone-400">
-                            <div className="col-span-3">Project</div>
+                            <div className="col-span-5">Stone / Project</div>
+                            <div className="col-span-1 text-center">Tier</div>
                             <div className="col-span-2 text-right">Sqft</div>
-                            <div className="col-span-2 text-right">Rate</div>
-                            <div className="col-span-2 text-right">Value</div>
-                            <div className="col-span-1 text-right">Pts</div>
+                            <div className="col-span-2 text-right">Points</div>
                             <div className="col-span-2 text-right">Wallet</div>
                         </div>
                         {billing.length === 0 ? (
                             <p className="px-4 py-6 text-sm text-stone-400 italic">No billing recorded yet.</p>
                         ) : billing.map(b => (
                             <div key={b.id} className="grid grid-cols-12 gap-2 px-4 py-3 border-t border-stone-100 text-xs text-stone-700">
-                                <div className="col-span-3 font-medium truncate">{b.project_name || '—'}</div>
+                                <div className="col-span-5 font-medium truncate">{b.notes?.replace(/^Stone:\s*/, '').split(' · ')[0] || b.project_name || '—'}</div>
+                                <div className="col-span-1 text-center font-serif text-bronze">{(b.collection_tier || '—').toUpperCase().slice(0, 1)}</div>
                                 <div className="col-span-2 text-right">{Number(b.sqft).toLocaleString('en-IN')}</div>
-                                <div className="col-span-2 text-right">{fmtINR(b.rate_per_sqft)}</div>
-                                <div className="col-span-2 text-right">{fmtINR(b.material_value)}</div>
-                                <div className="col-span-1 text-right text-bronze font-bold">{fmtPoints(b.points_earned)}</div>
+                                <div className="col-span-2 text-right text-bronze font-bold">{fmtPoints(b.points_earned)}</div>
                                 <div className="col-span-2 text-right text-bronze">{fmtINR(b.wallet_earned)}</div>
                             </div>
                         ))}
