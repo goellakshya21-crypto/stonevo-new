@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import {
-    computeBilling, summarize, fmtINR, fmtPoints, CIRCLES, COLLECTION_TIERS,
+    computeBilling, summarize, fmtPoints, CIRCLES, COLLECTION_TIERS,
 } from '../lib/loyalty';
 import { Plus, Loader2, FileText, Award, Gift, ChevronDown, Check, X } from 'lucide-react';
 
@@ -105,7 +105,7 @@ function BillingForm({ architects, onMissing }) {
         setSaving(true);
         setResult(null);
         try {
-            // No price / material value stored — tier + quantity only (GST-safe).
+            // No price stored — tier + quantity only (GST-safe). Single currency: points.
             const payload = {
                 architect_phone: phone,
                 architect_lead_id: selectedArch?.id || null,
@@ -115,8 +115,6 @@ function BillingForm({ architects, onMissing }) {
                 collection_tier: preview.tierLetter,   // 'A'–'E'
                 points_per_sqft: preview.pointsPerSqft,
                 points_earned: preview.pointsEarned,
-                wallet_per_sqft: preview.walletPerSqft,
-                wallet_earned: preview.walletEarned,
                 billed_at: billedAt,
                 invoice_ref: invoiceRef.trim() || null,
                 notes: [stoneName.trim() ? `Stone: ${stoneName.trim()}` : '', notes.trim()].filter(Boolean).join(' · ') || null,
@@ -127,7 +125,7 @@ function BillingForm({ architects, onMissing }) {
                 if (error.code === '42P01') { onMissing(); throw new Error('Loyalty tables not set up yet.'); }
                 throw error;
             }
-            setResult({ ok: true, msg: `✓ Recorded Tier ${preview.tierLetter} · ${preview.sqft.toLocaleString('en-IN')} sqft for ${selectedArch?.full_name}. +${fmtPoints(preview.pointsEarned)} pts, +${fmtINR(preview.walletEarned)} wallet.` });
+            setResult({ ok: true, msg: `✓ Recorded Tier ${preview.tierLetter} · ${preview.sqft.toLocaleString('en-IN')} sqft for ${selectedArch?.full_name}. +${fmtPoints(preview.pointsEarned)} points.` });
             setProject(''); setStoneName(''); setSqft(''); setTier(''); setInvoiceRef(''); setNotes('');
         } catch (err) {
             setResult({ ok: false, msg: err.message });
@@ -229,12 +227,12 @@ function BillingForm({ architects, onMissing }) {
                     <Stat label="Tier" value={tier ? `${preview.tierLetter} · ${preview.collectionLabel}` : '—'} />
                     <Stat label="Area" value={preview.sqft ? `${preview.sqft.toLocaleString('en-IN')} sqft` : '—'} />
                     <Stat label="Stone Points" value={`+${fmtPoints(preview.pointsEarned)}`} accent />
-                    <Stat label="Wallet Earned" value={`+${fmtINR(preview.walletEarned)}`} accent />
+                    <Stat label="Per sqft" value={tier ? `${preview.pointsPerSqft} pts` : '—'} />
                 </div>
                 <div className="pt-3 border-t border-white/10 text-[11px] text-stone-400 leading-relaxed">
                     {tier ? (
-                        <>Tier {preview.tierLetter} ({preview.band}) → <span className="text-bronze">{preview.pointsPerSqft} pts</span> & <span className="text-bronze">{fmtINR(preview.walletPerSqft)}</span> per sqft.</>
-                    ) : 'Select a tier to see the reward.'}
+                        <>Tier {preview.tierLetter} ({preview.band}) → <span className="text-bronze">{preview.pointsPerSqft} points</span> per sqft.</>
+                    ) : 'Select a tier to see the points.'}
                 </div>
             </div>
         </div>
@@ -288,32 +286,30 @@ function ArchitectLedger({ architects, onMissing }) {
 
             {phone && !loading && (
                 <>
-                    {/* Summary strip — no sale revenue (GST-safe) */}
+                    {/* Summary strip — points only, no money (GST-safe) */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         <SummaryCard label="Stone Sourced" value={`${summary.totalSqft.toLocaleString('en-IN')} sqft`} sub={`${summary.projectCount} entr${summary.projectCount === 1 ? 'y' : 'ies'}`} />
-                        <SummaryCard label="Stone Points" value={fmtPoints(summary.points)} />
-                        <SummaryCard label="Wallet Balance" value={fmtINR(summary.walletBalance)} sub={`Earned ${fmtINR(summary.walletEarned)} · Spent ${fmtINR(summary.walletSpent)}`} />
+                        <SummaryCard label="Points Balance" value={fmtPoints(summary.pointsBalance)} sub={`Earned ${fmtPoints(summary.pointsEarned)} · Spent ${fmtPoints(summary.pointsSpent)}`} />
                         <SummaryCard label="Circle" value={summary.circle.current.label} circle={summary.circle.current} />
+                        <SummaryCard label="To Next" value={summary.circle.next ? `${fmtPoints(summary.circle.toNext)} pts` : 'Top tier'} sub={summary.circle.next ? `to ${summary.circle.next.label}` : ''} />
                     </div>
 
-                    {/* Billing rows — tier + quantity, no price */}
+                    {/* Billing rows — tier + quantity + points, no money */}
                     <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
                         <div className="grid grid-cols-12 gap-2 px-4 py-2 bg-stone-50 text-[9px] font-bold uppercase tracking-widest text-stone-400">
-                            <div className="col-span-5">Stone / Project</div>
+                            <div className="col-span-6">Stone / Project</div>
                             <div className="col-span-1 text-center">Tier</div>
                             <div className="col-span-2 text-right">Sqft</div>
-                            <div className="col-span-2 text-right">Points</div>
-                            <div className="col-span-2 text-right">Wallet</div>
+                            <div className="col-span-3 text-right">Points</div>
                         </div>
                         {billing.length === 0 ? (
                             <p className="px-4 py-6 text-sm text-stone-400 italic">No billing recorded yet.</p>
                         ) : billing.map(b => (
                             <div key={b.id} className="grid grid-cols-12 gap-2 px-4 py-3 border-t border-stone-100 text-xs text-stone-700">
-                                <div className="col-span-5 font-medium truncate">{b.notes?.replace(/^Stone:\s*/, '').split(' · ')[0] || b.project_name || '—'}</div>
+                                <div className="col-span-6 font-medium truncate">{b.notes?.replace(/^Stone:\s*/, '').split(' · ')[0] || b.project_name || '—'}</div>
                                 <div className="col-span-1 text-center font-serif text-bronze">{(b.collection_tier || '—').toUpperCase().slice(0, 1)}</div>
                                 <div className="col-span-2 text-right">{Number(b.sqft).toLocaleString('en-IN')}</div>
-                                <div className="col-span-2 text-right text-bronze font-bold">{fmtPoints(b.points_earned)}</div>
-                                <div className="col-span-2 text-right text-bronze">{fmtINR(b.wallet_earned)}</div>
+                                <div className="col-span-3 text-right text-bronze font-bold">+{fmtPoints(b.points_earned)}</div>
                             </div>
                         ))}
                     </div>
@@ -379,7 +375,7 @@ function RedemptionQueue({ onMissing }) {
                     {filtered.map(r => (
                         <div key={r.id} className="bg-white border border-stone-200 rounded-xl p-4 flex items-center justify-between gap-4">
                             <div>
-                                <p className="font-serif text-stone-900">{r.experience_name} <span className="text-bronze">{fmtINR(r.wallet_amount)}</span></p>
+                                <p className="font-serif text-stone-900">{r.experience_name} <span className="text-bronze">{fmtPoints(r.wallet_amount)} pts</span></p>
                                 <p className="text-xs text-stone-500">{r.architect_name || r.architect_phone} · {new Date(r.requested_at).toLocaleDateString('en-IN')} · <span className="uppercase">{r.status}</span></p>
                             </div>
                             {r.status === 'requested' && (

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import {
-    summarize, fmtINR, fmtPoints, CIRCLES,
+    summarize, fmtPoints, CIRCLES,
     EXPERIENCE_TYPES, DESTINATION_TYPES, MONTHS,
     suggestedExperiences,
 } from '../lib/loyalty';
@@ -55,7 +55,7 @@ const PrivilegeCircle = () => {
     };
 
     const summary = summarize(billing, redemptions);
-    const bands = suggestedExperiences(summary.walletBalance);
+    const bands = suggestedExperiences(summary.pointsBalance);
 
     const savePrefs = async () => {
         await supabase.from('loyalty_preferences').upsert({
@@ -86,7 +86,7 @@ const PrivilegeCircle = () => {
                 architect_name: name,
                 experience_name: expName,
                 region: band.band,
-                wallet_amount: band.min, // indicative; admin confirms final value
+                wallet_amount: band.min, // point cost (column reused); admin confirms on approval
                 status: 'requested',
             });
             // Fire Telegram alert (fire-and-forget)
@@ -95,7 +95,7 @@ const PrivilegeCircle = () => {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         event: 'custom',
-                        text: `🎁 <b>EXPERIENCE REQUEST</b>\n\n${name || phone} requested <b>${expName}</b>\n💼 Wallet: ${fmtINR(summary.walletBalance)}\n⭐ ${summary.circle.current.label}`,
+                        text: `🎁 <b>EXPERIENCE REQUEST</b>\n\n${name || phone} requested <b>${expName}</b>\n◆ Points: ${fmtPoints(summary.pointsBalance)}\n⭐ ${summary.circle.current.label}`,
                     }),
                 }).catch(() => {});
             } catch {}
@@ -127,7 +127,7 @@ const PrivilegeCircle = () => {
                 <h1 style={S.h1}>Welcome back, <em style={S.em}>{firstName}.</em></h1>
                 <p style={S.heroSub}>
                     Your recognition for the projects you bring to Stonevo — expressed as Stone Points,
-                    an Experience Wallet, and access to curated experiences.
+                    your Circle, and access to curated experiences.
                 </p>
             </section>
 
@@ -142,12 +142,12 @@ const PrivilegeCircle = () => {
                             <p style={S.statValue}>{summary.totalSqft.toLocaleString('en-IN')}<span style={{ fontSize: 16, color: MUTED }}> sqft</span></p>
                         </div>
                         <div style={S.statCard}>
-                            <p style={S.statLabel}>Stone Points</p>
-                            <p style={S.statValue}>{fmtPoints(summary.points)}</p>
+                            <p style={S.statLabel}>Points Earned</p>
+                            <p style={S.statValue}>{fmtPoints(summary.pointsEarned)}</p>
                         </div>
                         <div style={S.statCard}>
-                            <p style={S.statLabel}>Experience Wallet</p>
-                            <p style={{ ...S.statValue, color: '#C8A86E' }}>{fmtINR(summary.walletBalance)}</p>
+                            <p style={S.statLabel}>Points Balance</p>
+                            <p style={{ ...S.statValue, color: '#C8A86E' }}>{fmtPoints(summary.pointsBalance)}</p>
                         </div>
                         <div style={{ ...S.statCard, ...S.circleCard(circle.current) }}>
                             <p style={S.statLabel}>Your Circle</p>
@@ -161,7 +161,7 @@ const PrivilegeCircle = () => {
                             <>
                                 <div style={S.progressHead}>
                                     <span>{circle.current.label}</span>
-                                    <span style={{ color: '#9A938A' }}>{fmtINR(circle.toNext)} more to {circle.next.label}</span>
+                                    <span style={{ color: '#9A938A' }}>{fmtPoints(circle.toNext)} more points to {circle.next.label}</span>
                                 </div>
                                 <div style={S.progressTrack}>
                                     <div style={{ ...S.progressFill, width: `${circle.progressPct}%` }} />
@@ -175,7 +175,7 @@ const PrivilegeCircle = () => {
                     {/* EXPERIENCE PREFERENCES */}
                     <section style={S.section}>
                         <p style={S.eyebrow}><span style={S.tick} />Experience Preferences</p>
-                        <h2 style={S.h2}>How would you prefer to redeem your wallet?</h2>
+                        <h2 style={S.h2}>How would you prefer to redeem your points?</h2>
 
                         <div style={S.prefGrid}>
                             {EXPERIENCE_TYPES.map(t => (
@@ -219,12 +219,12 @@ const PrivilegeCircle = () => {
                     {/* SUGGESTED EXPERIENCES */}
                     <section style={S.section}>
                         <p style={S.eyebrow}><span style={S.tick} />Suggested Experiences</p>
-                        <h2 style={S.h2}>Curated for your wallet</h2>
+                        <h2 style={S.h2}>Curated for your points</h2>
 
                         {bands.length === 0 ? (
                             <div style={S.emptyExp}>
                                 <p style={{ color: '#9A938A', fontSize: 15, lineHeight: 1.7 }}>
-                                    Your Experience Wallet is building. Once it reaches <strong style={{ color: '#C8A86E' }}>{fmtINR(25000)}</strong>,
+                                    Your Stone Points are building. Once you reach <strong style={{ color: '#C8A86E' }}>{fmtPoints(5000)} points</strong>,
                                     curated experiences will unlock here — from luxury domestic retreats to international journeys.
                                 </p>
                             </div>
@@ -233,12 +233,13 @@ const PrivilegeCircle = () => {
                                 <div key={band.band} style={S.bandBlock}>
                                     <div style={S.bandHead}>
                                         <span style={S.bandName}>{band.band}</span>
-                                        <span style={S.bandRange}>{fmtINR(band.min)}{band.max !== Infinity ? `–${fmtINR(band.max)}` : '+'}</span>
+                                        <span style={S.bandRange}>{fmtPoints(band.min)}{band.max !== Infinity ? `–${fmtPoints(band.max)}` : '+'} pts</span>
                                     </div>
                                     <div style={S.expGrid}>
                                         {band.experiences.map(exp => (
                                             <div key={exp} style={S.expCard}>
                                                 <span style={S.expName}>{exp}</span>
+                                                <span style={S.expCost}>{fmtPoints(band.min)} pts</span>
                                                 <button
                                                     onClick={() => requestExperience(exp, band)}
                                                     disabled={requesting === exp}
@@ -351,6 +352,7 @@ const S = {
     expGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 },
     expCard: { background: '#161412', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '20px', display: 'flex', flexDirection: 'column', gap: 14 },
     expName: { fontFamily: 'Noto Serif, serif', fontSize: 20 },
+    expCost: { fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: ACCENT },
     expBtn: { padding: '10px', background: 'rgba(200,168,110,0.12)', border: `1px solid ${ACCENT}66`, color: ACCENT, borderRadius: 100, fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer' },
     reqRow: { display: 'flex', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: 14 },
     reqStatus: (s) => ({ fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: s === 'fulfilled' || s === 'approved' ? '#7BC47F' : s === 'rejected' ? '#C47B7B' : ACCENT }),

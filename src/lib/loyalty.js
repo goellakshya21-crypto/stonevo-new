@@ -18,11 +18,11 @@
 // entered or stored (keeps it GST-safe for a cash business). Points and the
 // reward wallet are computed purely from the tier + quantity.
 export const COLLECTION_TIERS = [
-    { letter: 'A', key: 'signature', label: 'Signature', band: 'Above ₹2,000/sqft',   points: 5, wallet: 25 },
-    { letter: 'B', key: 'elite',     label: 'Elite',     band: '₹1,500–2,000/sqft',   points: 4, wallet: 20 },
-    { letter: 'C', key: 'premium',   label: 'Premium',   band: '₹1,000–1,500/sqft',   points: 3, wallet: 15 },
-    { letter: 'D', key: 'core',      label: 'Core',      band: '₹500–1,000/sqft',     points: 2, wallet: 10 },
-    { letter: 'E', key: 'standard',  label: 'Standard',  band: 'Below ₹500/sqft',     points: 1, wallet: 5 },
+    { letter: 'A', key: 'signature', label: 'Signature', band: 'Above ₹2,000/sqft',   points: 5 },
+    { letter: 'B', key: 'elite',     label: 'Elite',     band: '₹1,500–2,000/sqft',   points: 4 },
+    { letter: 'C', key: 'premium',   label: 'Premium',   band: '₹1,000–1,500/sqft',   points: 3 },
+    { letter: 'D', key: 'core',      label: 'Core',      band: '₹500–1,000/sqft',     points: 2 },
+    { letter: 'E', key: 'standard',  label: 'Standard',  band: 'Below ₹500/sqft',     points: 1 },
 ];
 
 /** Look up a tier by its letter (A–E) or key (signature…standard). */
@@ -49,22 +49,20 @@ export const computeBilling = (sqft, tierLetter) => {
         band: tier.band,
         pointsPerSqft: tier.points,
         pointsEarned: s * tier.points,
-        walletPerSqft: tier.wallet,
-        walletEarned: s * tier.wallet,
     };
 };
 
-// ── Circle tiers by CURRENT wallet balance ────────────────────────────────────
+// ── Circle tiers by CURRENT points balance ────────────────────────────────────
 export const CIRCLES = [
-    { key: 'member',   label: 'Member',          short: 'Member',   min: 0,       color: '#9A938A', accent: '#6A645B' },
-    { key: 'silver',   label: 'Silver Circle',   short: 'Silver',   min: 25000,   color: '#C0C0C0', accent: '#8A8A8A' },
-    { key: 'gold',     label: 'Gold Circle',     short: 'Gold',     min: 75000,   color: '#D4AF37', accent: '#A37D4B' },
-    { key: 'platinum', label: 'Platinum Circle', short: 'Platinum', min: 150000,  color: '#E5E4E2', accent: '#B0B0B0' },
-    { key: 'black',    label: 'Black Circle',    short: 'Black',    min: 300000,  color: '#1a1a1a', accent: '#C8A86E' },
+    { key: 'member',   label: 'Member',          short: 'Member',   min: 0,      color: '#9A938A', accent: '#6A645B' },
+    { key: 'silver',   label: 'Silver Circle',   short: 'Silver',   min: 5000,   color: '#C0C0C0', accent: '#8A8A8A' },
+    { key: 'gold',     label: 'Gold Circle',     short: 'Gold',     min: 15000,  color: '#D4AF37', accent: '#A37D4B' },
+    { key: 'platinum', label: 'Platinum Circle', short: 'Platinum', min: 30000,  color: '#E5E4E2', accent: '#B0B0B0' },
+    { key: 'black',    label: 'Black Circle',    short: 'Black',    min: 60000,  color: '#1a1a1a', accent: '#C8A86E' },
 ];
 
-/** Resolve the circle for a wallet balance. Returns { current, next, progressPct, toNext }. */
-export const circleForBalance = (balance) => {
+/** Resolve the circle for a points balance. Returns { current, next, progressPct, toNext }. */
+export const circleForPoints = (balance) => {
     const b = Number(balance) || 0;
     let current = CIRCLES[0];
     for (const c of CIRCLES) {
@@ -99,33 +97,33 @@ export const DESTINATION_TYPES = [
 
 export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-// ── Redemption catalog, banded by wallet value ────────────────────────────────
+// ── Redemption catalog, banded by POINTS ──────────────────────────────────────
 export const EXPERIENCE_CATALOG = [
     {
         band: 'Domestic',
-        min: 25000, max: 50000,
+        min: 5000, max: 10000,
         experiences: ['Jaipur', 'Udaipur', 'Goa', 'Kerala', 'Rishikesh Luxury Retreat'],
     },
     {
         band: 'Domestic Premium / International',
-        min: 50000, max: 100000,
+        min: 10000, max: 20000,
         experiences: ['Kashmir', 'Andaman', 'Coorg', 'North East', 'Luxury Goa', 'Dubai', 'Thailand', 'Vietnam'],
     },
     {
         band: 'International',
-        min: 100000, max: 200000,
+        min: 20000, max: 40000,
         experiences: ['Bali', 'Singapore', 'Europe Short Trip', 'Japan', 'Turkey'],
     },
     {
         band: 'Luxury Experiences',
-        min: 200000, max: Infinity,
+        min: 40000, max: Infinity,
         experiences: ['Switzerland', 'Italy', 'Greece', 'Australia', 'Custom Family Vacation'],
     },
 ];
 
 /**
- * Return experiences the architect can afford with their current balance,
- * grouped by band. Includes any band whose `min` <= balance.
+ * Return experiences the architect can afford with their current points,
+ * grouped by band. Includes any band whose `min` <= points balance.
  */
 export const suggestedExperiences = (balance) => {
     const b = Number(balance) || 0;
@@ -144,20 +142,19 @@ export const fmtPoints = (n) => (Number(n) || 0).toLocaleString('en-IN');
 
 /**
  * Aggregate billing + redemption rows into the dashboard summary.
- * No sale value (price) is computed — only volume (sqft), points, and the
- * reward wallet, so nothing GST-sensitive is ever surfaced.
- * @param billing      array of { sqft, points_earned, wallet_earned }
- * @param redemptions  array of { wallet_amount, status }
+ * Single currency: Stone Points. No money anywhere.
+ * Circle is driven by CURRENT balance (earned − spent), so redeeming can lower it.
+ * @param billing      array of { sqft, points_earned }
+ * @param redemptions  array of { points_cost (stored in wallet_amount column), status }
  */
 export const summarize = (billing = [], redemptions = []) => {
     const totalSqft = billing.reduce((s, b) => s + (Number(b.sqft) || 0), 0);
     const projectCount = billing.length;
-    const points = billing.reduce((s, b) => s + (Number(b.points_earned) || 0), 0);
-    const walletEarned = billing.reduce((s, b) => s + (Number(b.wallet_earned) || 0), 0);
-    const walletSpent = redemptions
+    const pointsEarned = billing.reduce((s, b) => s + (Number(b.points_earned) || 0), 0);
+    const pointsSpent = redemptions
         .filter(r => r.status === 'approved' || r.status === 'fulfilled')
-        .reduce((s, r) => s + (Number(r.wallet_amount) || 0), 0);
-    const walletBalance = Math.max(0, walletEarned - walletSpent);
-    const circle = circleForBalance(walletBalance);
-    return { totalSqft, projectCount, points, walletEarned, walletSpent, walletBalance, circle };
+        .reduce((s, r) => s + (Number(r.wallet_amount) || 0), 0); // wallet_amount column now holds point cost
+    const pointsBalance = Math.max(0, pointsEarned - pointsSpent);
+    const circle = circleForPoints(pointsBalance);
+    return { totalSqft, projectCount, pointsEarned, pointsSpent, pointsBalance, circle };
 };
