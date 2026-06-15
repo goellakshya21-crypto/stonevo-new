@@ -53,13 +53,54 @@ export const computeBilling = (sqft, tierLetter) => {
 };
 
 // ── Circle tiers by CURRENT points balance ────────────────────────────────────
+// Each circle raises BOTH the group size (how many people the architect can
+// bring) AND the destination scope. Experiences are cumulative — a higher circle
+// can still redeem lower-tier trips, just with a larger group.
 export const CIRCLES = [
-    { key: 'member',   label: 'Member',          short: 'Member',   min: 0,      color: '#9A938A', accent: '#6A645B' },
-    { key: 'silver',   label: 'Silver Circle',   short: 'Silver',   min: 5000,   color: '#C0C0C0', accent: '#8A8A8A' },
-    { key: 'gold',     label: 'Gold Circle',     short: 'Gold',     min: 15000,  color: '#D4AF37', accent: '#A37D4B' },
-    { key: 'platinum', label: 'Platinum Circle', short: 'Platinum', min: 30000,  color: '#E5E4E2', accent: '#B0B0B0' },
-    { key: 'black',    label: 'Black Circle',    short: 'Black',    min: 60000,  color: '#1a1a1a', accent: '#C8A86E' },
+    {
+        key: 'member', label: 'Member', short: 'Member', min: 0,
+        maxTravellers: 0, travelStyle: 'Building toward Silver',
+        unlocks: [],
+        experiences: [],
+        color: '#9A938A', accent: '#6A645B',
+    },
+    {
+        key: 'silver', label: 'Silver Circle', short: 'Silver', min: 5000,
+        maxTravellers: 1, travelStyle: 'Solo Experience',
+        unlocks: ['solo', 'learning'],
+        experiences: ['Jaipur', 'Udaipur', 'Goa', 'Kerala', 'Rishikesh Luxury Retreat'],
+        color: '#C0C0C0', accent: '#8A8A8A',
+    },
+    {
+        key: 'gold', label: 'Gold Circle', short: 'Gold', min: 15000,
+        maxTravellers: 2, travelStyle: 'Couple / Duo',
+        unlocks: ['solo', 'couple', 'learning'],
+        experiences: ['Kashmir', 'Andaman', 'Coorg', 'North East', 'Luxury Goa', 'Dubai', 'Thailand', 'Vietnam'],
+        color: '#D4AF37', accent: '#A37D4B',
+    },
+    {
+        key: 'platinum', label: 'Platinum Circle', short: 'Platinum', min: 30000,
+        maxTravellers: 4, travelStyle: 'Family (up to 4)',
+        unlocks: ['solo', 'couple', 'family', 'friends', 'learning'],
+        experiences: ['Bali', 'Singapore', 'Europe Short Trip', 'Japan', 'Turkey'],
+        color: '#E5E4E2', accent: '#B0B0B0',
+    },
+    {
+        key: 'black', label: 'Black Circle', short: 'Black', min: 60000,
+        maxTravellers: 8, travelStyle: 'Team / Friends (up to 8)',
+        unlocks: ['solo', 'couple', 'family', 'friends', 'team', 'learning'],
+        experiences: ['Switzerland', 'Italy', 'Greece', 'Australia', 'Custom Family Vacation'],
+        color: '#1a1a1a', accent: '#C8A86E',
+    },
 ];
+
+/** Minimum circle (object) that unlocks a given experience-type key. */
+export const minCircleForExperienceType = (typeKey) => {
+    for (const c of CIRCLES) {
+        if (c.unlocks.includes(typeKey)) return c;
+    }
+    return null; // e.g. 'open' is always available — handled by caller
+};
 
 /** Resolve the circle for a points balance. Returns { current, next, progressPct, toNext }. */
 export const circleForPoints = (balance) => {
@@ -97,39 +138,32 @@ export const DESTINATION_TYPES = [
 
 export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-// ── Redemption catalog, banded by POINTS ──────────────────────────────────────
-export const EXPERIENCE_CATALOG = [
-    {
-        band: 'Domestic',
-        min: 5000, max: 10000,
-        experiences: ['Jaipur', 'Udaipur', 'Goa', 'Kerala', 'Rishikesh Luxury Retreat'],
-    },
-    {
-        band: 'Domestic Premium / International',
-        min: 10000, max: 20000,
-        experiences: ['Kashmir', 'Andaman', 'Coorg', 'North East', 'Luxury Goa', 'Dubai', 'Thailand', 'Vietnam'],
-    },
-    {
-        band: 'International',
-        min: 20000, max: 40000,
-        experiences: ['Bali', 'Singapore', 'Europe Short Trip', 'Japan', 'Turkey'],
-    },
-    {
-        band: 'Luxury Experiences',
-        min: 40000, max: Infinity,
-        experiences: ['Switzerland', 'Italy', 'Greece', 'Australia', 'Custom Family Vacation'],
-    },
-];
-
 /**
- * Return experiences the architect can afford with their current points,
- * grouped by band. Includes any band whose `min` <= points balance.
+ * Experiences grouped by circle, split into unlocked vs upcoming based on the
+ * architect's current points balance. Each group carries its circle's
+ * traveller entitlement so the UI can show "Family · up to 4".
+ *
+ * Returns { unlocked: [...groups], locked: [...groups] } where each group is
+ * { circleKey, circleLabel, maxTravellers, travelStyle, cost, experiences }.
+ * `cost` is the circle's points threshold (indicative redemption cost).
  */
 export const suggestedExperiences = (balance) => {
     const b = Number(balance) || 0;
-    return EXPERIENCE_CATALOG
-        .filter(band => b >= band.min)
-        .map(band => ({ ...band, affordable: true }));
+    const unlocked = [];
+    const locked = [];
+    for (const c of CIRCLES) {
+        if (!c.experiences.length) continue; // skip Member
+        const group = {
+            circleKey: c.key,
+            circleLabel: c.label,
+            maxTravellers: c.maxTravellers,
+            travelStyle: c.travelStyle,
+            cost: c.min,
+            experiences: c.experiences,
+        };
+        if (b >= c.min) unlocked.push(group); else locked.push(group);
+    }
+    return { unlocked, locked };
 };
 
 // ── Formatting helpers ────────────────────────────────────────────────────────

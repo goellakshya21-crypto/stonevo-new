@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import {
     summarize, fmtPoints, CIRCLES,
     EXPERIENCE_TYPES, DESTINATION_TYPES, MONTHS,
-    suggestedExperiences,
+    suggestedExperiences, minCircleForExperienceType,
 } from '../lib/loyalty';
 
 /**
@@ -55,7 +55,7 @@ const PrivilegeCircle = () => {
     };
 
     const summary = summarize(billing, redemptions);
-    const bands = suggestedExperiences(summary.pointsBalance);
+    const { unlocked, locked } = suggestedExperiences(summary.pointsBalance);
 
     const savePrefs = async () => {
         await supabase.from('loyalty_preferences').upsert({
@@ -78,15 +78,15 @@ const PrivilegeCircle = () => {
         }));
     };
 
-    const requestExperience = async (expName, band) => {
+    const requestExperience = async (expName, group) => {
         setRequesting(expName);
         try {
             await supabase.from('loyalty_redemptions').insert({
                 architect_phone: phone,
                 architect_name: name,
                 experience_name: expName,
-                region: band.band,
-                wallet_amount: band.min, // point cost (column reused); admin confirms on approval
+                region: `${group.circleLabel} · ${group.travelStyle}`,
+                wallet_amount: group.cost, // point cost (column reused); admin confirms on approval
                 status: 'requested',
             });
             // Fire Telegram alert (fire-and-forget)
@@ -95,7 +95,7 @@ const PrivilegeCircle = () => {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         event: 'custom',
-                        text: `🎁 <b>EXPERIENCE REQUEST</b>\n\n${name || phone} requested <b>${expName}</b>\n◆ Points: ${fmtPoints(summary.pointsBalance)}\n⭐ ${summary.circle.current.label}`,
+                        text: `🎁 <b>EXPERIENCE REQUEST</b>\n\n${name || phone} requested <b>${expName}</b>\n👥 ${group.travelStyle} (up to ${group.maxTravellers})\n◆ Points: ${fmtPoints(summary.pointsBalance)}\n⭐ ${summary.circle.current.label}`,
                     }),
                 }).catch(() => {});
             } catch {}
@@ -172,20 +172,54 @@ const PrivilegeCircle = () => {
                         )}
                     </section>
 
+                    {/* TRAVEL ENTITLEMENT BANNER */}
+                    <section style={S.section}>
+                        <div style={S.entitleCard(circle.current)}>
+                            <div>
+                                <p style={S.entitleLabel}>Your travel entitlement</p>
+                                <p style={S.entitleValue}>
+                                    {circle.current.maxTravellers > 0
+                                        ? `${circle.current.travelStyle}`
+                                        : 'Reach Silver Circle to unlock your first experience'}
+                                </p>
+                            </div>
+                            {circle.current.maxTravellers > 0 && (
+                                <div style={S.entitleCount}>
+                                    <span style={S.entitleNum}>{circle.current.maxTravellers}</span>
+                                    <span style={S.entitleNumLabel}>{circle.current.maxTravellers === 1 ? 'traveller' : 'travellers'}</span>
+                                </div>
+                            )}
+                        </div>
+                        {circle.next && (
+                            <p style={S.entitleNext}>
+                                Reach <strong>{circle.next.label}</strong> → bring up to <strong>{circle.next.maxTravellers}</strong> ({circle.next.travelStyle}).
+                            </p>
+                        )}
+                    </section>
+
                     {/* EXPERIENCE PREFERENCES */}
                     <section style={S.section}>
                         <p style={S.eyebrow}><span style={S.tick} />Experience Preferences</p>
                         <h2 style={S.h2}>How would you prefer to redeem your points?</h2>
 
                         <div style={S.prefGrid}>
-                            {EXPERIENCE_TYPES.map(t => (
-                                <button key={t.key}
-                                    onClick={() => setPrefs(p => ({ ...p, experience_type: t.key }))}
-                                    style={S.prefCard(prefs.experience_type === t.key)}>
-                                    <p style={S.prefTitle}>{t.label}{t.star && <span style={{ color: '#C8A86E' }}> ★</span>}</p>
-                                    <p style={S.prefDesc}>{t.desc}</p>
-                                </button>
-                            ))}
+                            {EXPERIENCE_TYPES.map(t => {
+                                // 'open' is always available; others gate on the circle that unlocks them
+                                const reqCircle = t.key === 'open' ? null : minCircleForExperienceType(t.key);
+                                const locked = reqCircle ? summary.pointsBalance < reqCircle.min : false;
+                                return (
+                                    <button key={t.key}
+                                        onClick={() => !locked && setPrefs(p => ({ ...p, experience_type: t.key }))}
+                                        disabled={locked}
+                                        style={S.prefCard(prefs.experience_type === t.key, locked)}>
+                                        <p style={S.prefTitle}>
+                                            {t.label}{t.star && <span style={{ color: '#C8A86E' }}> ★</span>}
+                                            {locked && <span style={S.lockTag}> · 🔒 {reqCircle.short}</span>}
+                                        </p>
+                                        <p style={S.prefDesc}>{t.desc}</p>
+                                    </button>
+                                );
+                            })}
                         </div>
 
                         <div style={S.prefRow}>
@@ -219,39 +253,58 @@ const PrivilegeCircle = () => {
                     {/* SUGGESTED EXPERIENCES */}
                     <section style={S.section}>
                         <p style={S.eyebrow}><span style={S.tick} />Suggested Experiences</p>
-                        <h2 style={S.h2}>Curated for your points</h2>
+                        <h2 style={S.h2}>Curated for your circle</h2>
 
-                        {bands.length === 0 ? (
+                        {unlocked.length === 0 && (
                             <div style={S.emptyExp}>
                                 <p style={{ color: '#9A938A', fontSize: 15, lineHeight: 1.7 }}>
-                                    Your Stone Points are building. Once you reach <strong style={{ color: '#C8A86E' }}>{fmtPoints(5000)} points</strong>,
-                                    curated experiences will unlock here — from luxury domestic retreats to international journeys.
+                                    Your Stone Points are building. Once you reach <strong style={{ color: '#C8A86E' }}>{fmtPoints(5000)} points</strong> (Silver Circle),
+                                    your first <strong>Solo experiences</strong> unlock here.
                                 </p>
                             </div>
-                        ) : (
-                            bands.map(band => (
-                                <div key={band.band} style={S.bandBlock}>
-                                    <div style={S.bandHead}>
-                                        <span style={S.bandName}>{band.band}</span>
-                                        <span style={S.bandRange}>{fmtPoints(band.min)}{band.max !== Infinity ? `–${fmtPoints(band.max)}` : '+'} pts</span>
-                                    </div>
-                                    <div style={S.expGrid}>
-                                        {band.experiences.map(exp => (
-                                            <div key={exp} style={S.expCard}>
-                                                <span style={S.expName}>{exp}</span>
-                                                <span style={S.expCost}>{fmtPoints(band.min)} pts</span>
-                                                <button
-                                                    onClick={() => requestExperience(exp, band)}
-                                                    disabled={requesting === exp}
-                                                    style={S.expBtn}>
-                                                    {requesting === exp ? 'Requesting…' : 'Request'}
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))
                         )}
+
+                        {/* Unlocked — requestable */}
+                        {unlocked.map(group => (
+                            <div key={group.circleKey} style={S.bandBlock}>
+                                <div style={S.bandHead}>
+                                    <span style={S.bandName}>{group.circleLabel}</span>
+                                    <span style={S.bandRange}>{group.travelStyle} · up to {group.maxTravellers} · {fmtPoints(group.cost)} pts</span>
+                                </div>
+                                <div style={S.expGrid}>
+                                    {group.experiences.map(exp => (
+                                        <div key={exp} style={S.expCard}>
+                                            <span style={S.expName}>{exp}</span>
+                                            <span style={S.expCost}>{group.maxTravellers === 1 ? 'Solo' : `Up to ${group.maxTravellers}`} · {fmtPoints(group.cost)} pts</span>
+                                            <button
+                                                onClick={() => requestExperience(exp, group)}
+                                                disabled={requesting === exp}
+                                                style={S.expBtn}>
+                                                {requesting === exp ? 'Requesting…' : 'Request'}
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+
+                        {/* Locked — preview, not requestable */}
+                        {locked.map(group => (
+                            <div key={group.circleKey} style={{ ...S.bandBlock, opacity: 0.5 }}>
+                                <div style={S.bandHead}>
+                                    <span style={S.bandName}>{group.circleLabel} 🔒</span>
+                                    <span style={S.bandRange}>{group.travelStyle} · up to {group.maxTravellers} · unlocks at {fmtPoints(group.cost)} pts</span>
+                                </div>
+                                <div style={S.expGrid}>
+                                    {group.experiences.map(exp => (
+                                        <div key={exp} style={{ ...S.expCard, cursor: 'default' }}>
+                                            <span style={S.expName}>{exp}</span>
+                                            <span style={S.expCost}>Locked</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
                     </section>
 
                     {/* MY REQUESTS */}
@@ -334,8 +387,16 @@ const S = {
     section: { maxWidth: 1200, margin: '60px auto 0', padding: '0 40px' },
     h2: { fontFamily: 'Noto Serif, serif', fontSize: 'clamp(26px, 3vw, 40px)', fontWeight: 300, letterSpacing: '-0.02em', margin: '0 0 28px' },
     prefGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 },
-    prefCard: (active) => ({ textAlign: 'left', background: active ? 'rgba(200,168,110,0.1)' : 'rgba(255,255,255,0.02)', border: `1px solid ${active ? ACCENT : 'rgba(255,255,255,0.08)'}`, borderRadius: 14, padding: '18px 20px', cursor: 'pointer', transition: 'all 0.2s', color: INK }),
+    prefCard: (active, locked) => ({ textAlign: 'left', background: active ? 'rgba(200,168,110,0.1)' : 'rgba(255,255,255,0.02)', border: `1px solid ${active ? ACCENT : 'rgba(255,255,255,0.08)'}`, borderRadius: 14, padding: '18px 20px', cursor: locked ? 'not-allowed' : 'pointer', transition: 'all 0.2s', color: INK, opacity: locked ? 0.45 : 1 }),
     prefTitle: { fontFamily: 'Noto Serif, serif', fontSize: 18, margin: 0 },
+    lockTag: { fontFamily: 'Manrope, sans-serif', fontSize: 9, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: MUTED },
+    entitleCard: (c) => ({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: `linear-gradient(135deg, rgba(200,168,110,0.1), rgba(22,20,18,1))`, border: `1px solid ${c.accent}55`, borderRadius: 18, padding: '24px 28px' }),
+    entitleLabel: { fontSize: 9, fontWeight: 800, letterSpacing: '0.25em', textTransform: 'uppercase', color: MUTED, margin: 0 },
+    entitleValue: { fontFamily: 'Noto Serif, serif', fontSize: 26, margin: '8px 0 0', color: INK },
+    entitleCount: { textAlign: 'center' },
+    entitleNum: { display: 'block', fontFamily: 'Noto Serif, serif', fontSize: 44, color: ACCENT, lineHeight: 1 },
+    entitleNumLabel: { display: 'block', fontSize: 9, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: MUTED, marginTop: 4 },
+    entitleNext: { fontSize: 12, color: MUTED, marginTop: 14, lineHeight: 1.6 },
     prefDesc: { fontSize: 12, color: MUTED, lineHeight: 1.5, margin: '6px 0 0' },
     prefRow: { display: 'flex', gap: 24, marginTop: 28 },
     miniLabel: { fontSize: 10, fontWeight: 800, letterSpacing: '0.25em', textTransform: 'uppercase', color: MUTED, marginBottom: 12 },
