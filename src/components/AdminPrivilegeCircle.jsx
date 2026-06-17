@@ -173,21 +173,26 @@ function BillingForm({ architects, onMissing }) {
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Tier</label>
-                    <div className="grid grid-cols-5 gap-2">
+                    <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Tier <span className="text-stone-400 normal-case font-normal">(A = entry, ascending)</span></label>
+                    <div className="flex flex-wrap gap-2">
                         {COLLECTION_TIERS.map(t => (
                             <button
                                 key={t.letter}
                                 type="button"
                                 onClick={() => setTier(t.letter)}
-                                title={`${t.label} · ${t.points} pt/sqft`}
-                                className={`py-2.5 rounded-lg border text-center transition-all ${tier === t.letter ? 'bg-stone-900 border-stone-900 text-white' : 'bg-white border-stone-200 text-stone-600 hover:border-bronze'}`}
+                                title={`${t.label} · ${t.band} · ${t.points} pt/sqft`}
+                                className={`flex-1 min-w-[64px] py-2.5 rounded-lg border text-center transition-all ${tier === t.letter ? 'bg-stone-900 border-stone-900 text-white' : 'bg-white border-stone-200 text-stone-600 hover:border-bronze'}`}
                             >
                                 <span className="block font-serif text-lg leading-none">{t.letter}</span>
                                 <span className="block text-[8px] uppercase tracking-wider mt-1 opacity-70">{t.label}</span>
                             </button>
                         ))}
                     </div>
+                    {tier && (
+                        <p className="text-[10px] text-stone-400 mt-1">
+                            {COLLECTION_TIERS.find(t => t.letter === tier)?.band} · {COLLECTION_TIERS.find(t => t.letter === tier)?.points} pts/sqft
+                        </p>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">

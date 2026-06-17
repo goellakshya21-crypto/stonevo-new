@@ -17,12 +17,18 @@
 // "band" is the INTERNAL definition of each tier only — no sale price is ever
 // entered or stored (keeps it GST-safe for a cash business). Points and the
 // reward wallet are computed purely from the tier + quantity.
+// Tiers ASCEND: A is the entry tier (lowest rate/points), rising through B, C, D, E…
+// The list is open-ended by design — append F, G, H… for higher price bands later
+// and the admin selector, points preview, and ledger all adapt automatically.
+// NOTE: point values below (1–5) are placeholders until the final calculation is set.
 export const COLLECTION_TIERS = [
-    { letter: 'A', key: 'signature', label: 'Signature', band: 'Above ₹2,000/sqft',   points: 5 },
-    { letter: 'B', key: 'elite',     label: 'Elite',     band: '₹1,500–2,000/sqft',   points: 4 },
+    { letter: 'A', key: 'standard',  label: 'Standard',  band: 'Below ₹500/sqft',     points: 1 },
+    { letter: 'B', key: 'core',      label: 'Core',      band: '₹500–1,000/sqft',     points: 2 },
     { letter: 'C', key: 'premium',   label: 'Premium',   band: '₹1,000–1,500/sqft',   points: 3 },
-    { letter: 'D', key: 'core',      label: 'Core',      band: '₹500–1,000/sqft',     points: 2 },
-    { letter: 'E', key: 'standard',  label: 'Standard',  band: 'Below ₹500/sqft',     points: 1 },
+    { letter: 'D', key: 'elite',     label: 'Elite',     band: '₹1,500–2,000/sqft',   points: 4 },
+    { letter: 'E', key: 'signature', label: 'Signature', band: 'Above ₹2,000/sqft',   points: 5 },
+    // { letter: 'F', key: 'reserve',  label: 'Reserve',   band: '₹2,500–3,000/sqft', points: 6 },
+    // { letter: 'G', key: 'rare',     label: 'Rare',      band: 'Above ₹3,000/sqft', points: 7 },
 ];
 
 /** Look up a tier by its letter (A–E) or key (signature…standard). */
