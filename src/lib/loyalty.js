@@ -17,44 +17,57 @@
 // "band" is the INTERNAL definition of each tier only — no sale price is ever
 // entered or stored (keeps it GST-safe for a cash business). Points and the
 // reward wallet are computed purely from the tier + quantity.
-// Tiers ASCEND: A is the entry tier (lowest rate/points), rising through B, C, D, E…
-// The list is open-ended by design — append F, G, H… for higher price bands later
-// and the admin selector, points preview, and ledger all adapt automatically.
-// NOTE: point values below (1–5) are placeholders until the final calculation is set.
-export const COLLECTION_TIERS = [
-    { letter: 'A', key: 'standard',  label: 'Standard',  band: 'Below ₹500/sqft',     points: 1 },
-    { letter: 'B', key: 'core',      label: 'Core',      band: '₹500–1,000/sqft',     points: 2 },
-    { letter: 'C', key: 'premium',   label: 'Premium',   band: '₹1,000–1,500/sqft',   points: 3 },
-    { letter: 'D', key: 'elite',     label: 'Elite',     band: '₹1,500–2,000/sqft',   points: 4 },
-    { letter: 'E', key: 'signature', label: 'Signature', band: 'Above ₹2,000/sqft',   points: 5 },
-    // { letter: 'F', key: 'reserve',  label: 'Reserve',   band: '₹2,500–3,000/sqft', points: 6 },
-    // { letter: 'G', key: 'rare',     label: 'Rare',      band: 'Above ₹3,000/sqft', points: 7 },
-];
+// Tiers = PROFIT per sqft. A = ₹100/sqft, rising in ₹100 steps to J = ₹1,000/sqft.
+// Open-ended by design: bump the count to add K, L… (₹1,100, ₹1,200…) — the admin
+// selector, preview, and ledger all adapt automatically.
+const TIER_COUNT = 10;          // A..J
+const TIER_STEP = 100;          // ₹100 increments
+export const COLLECTION_TIERS = Array.from({ length: TIER_COUNT }, (_, i) => ({
+    letter: String.fromCharCode(65 + i),          // 'A', 'B', …
+    profitPerSqft: (i + 1) * TIER_STEP,           // 100, 200, … 1000
+    label: `₹${((i + 1) * TIER_STEP).toLocaleString('en-IN')}/sqft`,
+}));
 
-/** Look up a tier by its letter (A–E) or key (signature…standard). */
-export const tierByLetter = (letterOrKey) => {
-    const v = String(letterOrKey || '').toUpperCase();
-    return COLLECTION_TIERS.find(t => t.letter === v)
-        || COLLECTION_TIERS.find(t => t.key === String(letterOrKey || '').toLowerCase())
-        || null;
+// How many Stone Points each ₹1 of profit yields. PLACEHOLDER — confirm the real
+// ratio + circle thresholds and I'll lock them in.
+export const POINTS_PER_RUPEE_PROFIT = 1;
+
+/** Look up a tier by its letter (A, B, C…). */
+export const tierByLetter = (letter) => {
+    const v = String(letter || '').toUpperCase();
+    return COLLECTION_TIERS.find(t => t.letter === v) || null;
 };
 
 /**
- * Compute the earning breakdown for a single sale.
- * @param sqft        quantity sold (not money — GST-safe)
- * @param tierLetter  'A' | 'B' | 'C' | 'D' | 'E'  (or a tier key)
+ * Compute the earning breakdown for a single deal. Admin supplies the tier
+ * (profit/sqft) plus EITHER sqft OR total profit; the other is derived.
+ *   - mode 'sqft':   totalProfit = profitPerSqft × sqft
+ *   - mode 'profit': sqft        = totalProfit ÷ profitPerSqft
+ * Points are computed from total profit. No sale price is involved.
+ * @param tierLetter 'A'…'J'
+ * @param opts { sqft, profit, mode: 'sqft' | 'profit' }
  */
-export const computeBilling = (sqft, tierLetter) => {
-    const s = Number(sqft) || 0;
-    const tier = tierByLetter(tierLetter) || COLLECTION_TIERS[COLLECTION_TIERS.length - 1];
+export const computeBilling = (tierLetter, opts = {}) => {
+    const { sqft = 0, profit = 0, mode = 'sqft' } = opts;
+    const tier = tierByLetter(tierLetter);
+    const ppsf = tier ? tier.profitPerSqft : 0;
+
+    let s = Number(sqft) || 0;
+    let totalProfit;
+    if (mode === 'profit') {
+        totalProfit = Number(profit) || 0;
+        s = ppsf > 0 ? totalProfit / ppsf : 0;
+    } else {
+        totalProfit = ppsf * s;
+    }
+    const pointsEarned = Math.round(totalProfit * POINTS_PER_RUPEE_PROFIT);
     return {
+        tierLetter: tier?.letter || null,
+        profitPerSqft: ppsf,
+        tierLabel: tier?.label || '—',
         sqft: s,
-        tierLetter: tier.letter,
-        collectionTier: tier.key,
-        collectionLabel: tier.label,
-        band: tier.band,
-        pointsPerSqft: tier.points,
-        pointsEarned: s * tier.points,
+        totalProfit,
+        pointsEarned,
     };
 };
 

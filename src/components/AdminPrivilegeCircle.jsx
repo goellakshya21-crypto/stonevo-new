@@ -69,8 +69,10 @@ function BillingForm({ architects, onMissing }) {
     const [phone, setPhone] = useState('');
     const [project, setProject] = useState('');
     const [stoneName, setStoneName] = useState('');
+    const [tier, setTier] = useState('');         // 'A'–'J'
+    const [mode, setMode] = useState('sqft');     // 'sqft' | 'profit'
     const [sqft, setSqft] = useState('');
-    const [tier, setTier] = useState('');   // 'A'–'E'
+    const [profit, setProfit] = useState('');
     const [billedAt, setBilledAt] = useState(new Date().toISOString().slice(0, 10));
     const [invoiceRef, setInvoiceRef] = useState('');
     const [notes, setNotes] = useState('');
@@ -78,7 +80,7 @@ function BillingForm({ architects, onMissing }) {
     const [result, setResult] = useState(null);
     const [dupWarn, setDupWarn] = useState('');
 
-    const preview = computeBilling(sqft, tier);
+    const preview = computeBilling(tier, { sqft, profit, mode });
     const selectedArch = architects.find(a => a.phone === phone);
 
     // Warn if this project name is already billed to a DIFFERENT architect
@@ -100,20 +102,22 @@ function BillingForm({ architects, onMissing }) {
 
     const save = async () => {
         if (!phone) { setResult({ ok: false, msg: 'Select an architect.' }); return; }
-        if (!preview.sqft) { setResult({ ok: false, msg: 'Enter the area (sqft).' }); return; }
-        if (!tier) { setResult({ ok: false, msg: 'Select a tier (A–E).' }); return; }
+        if (!tier) { setResult({ ok: false, msg: 'Select a tier (profit/sqft).' }); return; }
+        if (mode === 'sqft' && !Number(sqft)) { setResult({ ok: false, msg: 'Enter the area (sqft).' }); return; }
+        if (mode === 'profit' && !Number(profit)) { setResult({ ok: false, msg: 'Enter the total profit.' }); return; }
         setSaving(true);
         setResult(null);
         try {
-            // No price stored — tier + quantity only (GST-safe). Single currency: points.
+            // Store tier + derived sqft + points. Profit is used to compute points
+            // but not persisted as a rupee figure (kept lean / GST-safe).
             const payload = {
                 architect_phone: phone,
                 architect_lead_id: selectedArch?.id || null,
                 architect_name: selectedArch?.full_name || null,
                 project_name: project.trim() || null,
-                sqft: preview.sqft,
-                collection_tier: preview.tierLetter,   // 'A'–'E'
-                points_per_sqft: preview.pointsPerSqft,
+                sqft: Math.round(preview.sqft * 100) / 100,
+                collection_tier: preview.tierLetter,   // 'A'–'J'
+                points_per_sqft: preview.profitPerSqft, // profit/sqft for this tier
                 points_earned: preview.pointsEarned,
                 billed_at: billedAt,
                 invoice_ref: invoiceRef.trim() || null,
@@ -125,8 +129,8 @@ function BillingForm({ architects, onMissing }) {
                 if (error.code === '42P01') { onMissing(); throw new Error('Loyalty tables not set up yet.'); }
                 throw error;
             }
-            setResult({ ok: true, msg: `✓ Recorded Tier ${preview.tierLetter} · ${preview.sqft.toLocaleString('en-IN')} sqft for ${selectedArch?.full_name}. +${fmtPoints(preview.pointsEarned)} points.` });
-            setProject(''); setStoneName(''); setSqft(''); setTier(''); setInvoiceRef(''); setNotes('');
+            setResult({ ok: true, msg: `✓ Recorded Tier ${preview.tierLetter} for ${selectedArch?.full_name}. +${fmtPoints(preview.pointsEarned)} points.` });
+            setProject(''); setStoneName(''); setSqft(''); setProfit(''); setTier(''); setInvoiceRef(''); setNotes('');
         } catch (err) {
             setResult({ ok: false, msg: err.message });
         } finally {
@@ -165,35 +169,55 @@ function BillingForm({ architects, onMissing }) {
                 </div>
                 {dupWarn && <p className="text-[11px] text-amber-600 font-medium">{dupWarn}</p>}
 
+                {/* Tier = profit per sqft (A=₹100 … J=₹1,000) */}
                 <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Area (sqft)</label>
-                    <input type="number" value={sqft} onChange={e => setSqft(e.target.value)}
-                        placeholder="5000"
-                        className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bronze" />
-                </div>
-
-                <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Tier <span className="text-stone-400 normal-case font-normal">(A = entry, ascending)</span></label>
+                    <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Tier <span className="text-stone-400 normal-case font-normal">(profit per sqft)</span></label>
                     <div className="flex flex-wrap gap-2">
                         {COLLECTION_TIERS.map(t => (
                             <button
                                 key={t.letter}
                                 type="button"
                                 onClick={() => setTier(t.letter)}
-                                title={`${t.label} · ${t.band} · ${t.points} pt/sqft`}
-                                className={`flex-1 min-w-[64px] py-2.5 rounded-lg border text-center transition-all ${tier === t.letter ? 'bg-stone-900 border-stone-900 text-white' : 'bg-white border-stone-200 text-stone-600 hover:border-bronze'}`}
+                                title={`${t.label} profit/sqft`}
+                                className={`flex-1 min-w-[58px] py-2 rounded-lg border text-center transition-all ${tier === t.letter ? 'bg-stone-900 border-stone-900 text-white' : 'bg-white border-stone-200 text-stone-600 hover:border-bronze'}`}
                             >
-                                <span className="block font-serif text-lg leading-none">{t.letter}</span>
-                                <span className="block text-[8px] uppercase tracking-wider mt-1 opacity-70">{t.label}</span>
+                                <span className="block font-serif text-base leading-none">{t.letter}</span>
+                                <span className="block text-[8px] tracking-wider mt-1 opacity-70">{t.label}</span>
                             </button>
                         ))}
                     </div>
-                    {tier && (
-                        <p className="text-[10px] text-stone-400 mt-1">
-                            {COLLECTION_TIERS.find(t => t.letter === tier)?.band} · {COLLECTION_TIERS.find(t => t.letter === tier)?.points} pts/sqft
-                        </p>
-                    )}
                 </div>
+
+                {/* Input mode: by area OR by total profit */}
+                <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Calculate by</label>
+                    <div className="flex gap-2">
+                        <button type="button" onClick={() => setMode('sqft')}
+                            className={`flex-1 py-2 rounded-lg border text-xs font-bold uppercase tracking-widest transition-all ${mode === 'sqft' ? 'bg-bronze border-bronze text-white' : 'bg-white border-stone-200 text-stone-500'}`}>
+                            Area (sqft)
+                        </button>
+                        <button type="button" onClick={() => setMode('profit')}
+                            className={`flex-1 py-2 rounded-lg border text-xs font-bold uppercase tracking-widest transition-all ${mode === 'profit' ? 'bg-bronze border-bronze text-white' : 'bg-white border-stone-200 text-stone-500'}`}>
+                            Total Profit (₹)
+                        </button>
+                    </div>
+                </div>
+
+                {mode === 'sqft' ? (
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Area Sold (sqft)</label>
+                        <input type="number" value={sqft} onChange={e => setSqft(e.target.value)}
+                            placeholder="5000"
+                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bronze" />
+                    </div>
+                ) : (
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Total Profit (₹)</label>
+                        <input type="number" value={profit} onChange={e => setProfit(e.target.value)}
+                            placeholder="75000"
+                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bronze" />
+                    </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
@@ -225,19 +249,19 @@ function BillingForm({ architects, onMissing }) {
                 )}
             </div>
 
-            {/* Live preview — no sale price, tier + reward only */}
+            {/* Live preview */}
             <div className="bg-stone-900 rounded-2xl p-6 text-white space-y-4 h-fit">
                 <p className="text-[10px] font-bold text-bronze uppercase tracking-[0.3em]">Earning Preview</p>
                 <div className="grid grid-cols-2 gap-4">
-                    <Stat label="Tier" value={tier ? `${preview.tierLetter} · ${preview.collectionLabel}` : '—'} />
-                    <Stat label="Area" value={preview.sqft ? `${preview.sqft.toLocaleString('en-IN')} sqft` : '—'} />
+                    <Stat label="Tier" value={tier ? `${preview.tierLetter} · ${preview.tierLabel}` : '—'} />
+                    <Stat label="Area" value={preview.sqft ? `${(Math.round(preview.sqft * 100) / 100).toLocaleString('en-IN')} sqft` : '—'} />
+                    <Stat label="Total Profit" value={preview.totalProfit ? `₹${preview.totalProfit.toLocaleString('en-IN')}` : '—'} />
                     <Stat label="Stone Points" value={`+${fmtPoints(preview.pointsEarned)}`} accent />
-                    <Stat label="Per sqft" value={tier ? `${preview.pointsPerSqft} pts` : '—'} />
                 </div>
                 <div className="pt-3 border-t border-white/10 text-[11px] text-stone-400 leading-relaxed">
                     {tier ? (
-                        <>Tier {preview.tierLetter} ({preview.band}) → <span className="text-bronze">{preview.pointsPerSqft} points</span> per sqft.</>
-                    ) : 'Select a tier to see the points.'}
+                        <>Tier {preview.tierLetter} = <span className="text-bronze">₹{preview.profitPerSqft}/sqft</span> profit. {mode === 'sqft' ? 'Profit = rate × area.' : 'Area = profit ÷ rate.'}</>
+                    ) : 'Select a tier and enter a value to preview points.'}
                 </div>
             </div>
         </div>
