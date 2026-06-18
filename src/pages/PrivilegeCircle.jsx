@@ -287,6 +287,28 @@ const PrivilegeCircle = () => {
                         </button>
                     </section>
 
+                    {/* MY REQUESTS — live status, shown above the booking options */}
+                    {redemptions.length > 0 && (
+                        <section style={S.section}>
+                            <p style={S.eyebrow}><span style={S.tick} />Your Requests</p>
+                            <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                {redemptions.map(r => {
+                                    const st = STATUS_UI[r.status] || STATUS_UI.requested;
+                                    return (
+                                        <div key={r.id} style={S.reqCard(st)}>
+                                            <div style={{ flex: 1 }}>
+                                                <p style={S.reqName}>{r.experience_name}</p>
+                                                <p style={S.reqMeta}>{r.region || ''} · {fmtPoints(r.wallet_amount)} pts</p>
+                                                <p style={{ ...S.reqDesc, color: st.color }}>{st.icon} {st.message}</p>
+                                            </div>
+                                            <span style={S.reqPill(st)}>{st.label}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </section>
+                    )}
+
                     {/* SUGGESTED EXPERIENCES */}
                     <section style={S.section}>
                         <p style={S.eyebrow}><span style={S.tick} />Plan Your Experience</p>
@@ -362,28 +384,6 @@ const PrivilegeCircle = () => {
                             </>
                         )}
                     </section>
-
-                    {/* MY REQUESTS — live status the architect can follow */}
-                    {redemptions.length > 0 && (
-                        <section style={S.section}>
-                            <p style={S.eyebrow}><span style={S.tick} />Your Requests</p>
-                            <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                {redemptions.map(r => {
-                                    const st = STATUS_UI[r.status] || STATUS_UI.requested;
-                                    return (
-                                        <div key={r.id} style={S.reqCard(st)}>
-                                            <div style={{ flex: 1 }}>
-                                                <p style={S.reqName}>{r.experience_name}</p>
-                                                <p style={S.reqMeta}>{r.region || ''} · {fmtPoints(r.wallet_amount)} pts</p>
-                                                <p style={{ ...S.reqDesc, color: st.color }}>{st.icon} {st.message}</p>
-                                            </div>
-                                            <span style={S.reqPill(st)}>{st.label}</span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </section>
-                    )}
 
                 </>
             )}
