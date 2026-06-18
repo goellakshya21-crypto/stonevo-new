@@ -363,17 +363,24 @@ const PrivilegeCircle = () => {
                         )}
                     </section>
 
-                    {/* MY REQUESTS */}
+                    {/* MY REQUESTS — live status the architect can follow */}
                     {redemptions.length > 0 && (
                         <section style={S.section}>
                             <p style={S.eyebrow}><span style={S.tick} />Your Requests</p>
-                            <div style={{ marginTop: 16 }}>
-                                {redemptions.map(r => (
-                                    <div key={r.id} style={S.reqRow}>
-                                        <span>{r.experience_name}</span>
-                                        <span style={S.reqStatus(r.status)}>{r.status}</span>
-                                    </div>
-                                ))}
+                            <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                {redemptions.map(r => {
+                                    const st = STATUS_UI[r.status] || STATUS_UI.requested;
+                                    return (
+                                        <div key={r.id} style={S.reqCard(st)}>
+                                            <div style={{ flex: 1 }}>
+                                                <p style={S.reqName}>{r.experience_name}</p>
+                                                <p style={S.reqMeta}>{r.region || ''} · {fmtPoints(r.wallet_amount)} pts</p>
+                                                <p style={{ ...S.reqDesc, color: st.color }}>{st.icon} {st.message}</p>
+                                            </div>
+                                            <span style={S.reqPill(st)}>{st.label}</span>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </section>
                     )}
@@ -395,6 +402,14 @@ const ACCENT = '#C8A86E';
 const BG = '#0d0c0a';
 const INK = '#FDFCF8';
 const MUTED = '#9A938A';
+
+// Friendly status messaging for the architect's request cards.
+const STATUS_UI = {
+    requested: { label: 'Pending',   icon: '⏳', color: '#D4AF37', message: 'Waiting for approval — Stonevo is reviewing your request.' },
+    approved:  { label: 'Approved',  icon: '✈️', color: '#7BC47F', message: 'Approved! We are currently booking your trip — sit tight.' },
+    fulfilled: { label: 'Booked',    icon: '✦',  color: '#7BC47F', message: 'Booked & confirmed. Details will reach you shortly.' },
+    rejected:  { label: 'Declined',  icon: '—',  color: '#C47B7B', message: 'Not approved this time. Reach out to us for details.' },
+};
 
 const S = {
     root: { minHeight: '100vh', background: BG, color: INK, fontFamily: 'Manrope, sans-serif', paddingBottom: 60 },
@@ -475,8 +490,11 @@ const S = {
     expName: { fontFamily: 'Noto Serif, serif', fontSize: 20 },
     expCost: { fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', color: ACCENT },
     expBtn: { padding: '10px', background: 'rgba(200,168,110,0.12)', border: `1px solid ${ACCENT}66`, color: ACCENT, borderRadius: 100, fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer' },
-    reqRow: { display: 'flex', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: 14 },
-    reqStatus: (s) => ({ fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: s === 'fulfilled' || s === 'approved' ? '#7BC47F' : s === 'rejected' ? '#C47B7B' : ACCENT }),
+    reqCard: (st) => ({ display: 'flex', alignItems: 'center', gap: 16, padding: '18px 22px', background: 'rgba(255,255,255,0.02)', border: `1px solid ${st.color}44`, borderLeft: `3px solid ${st.color}`, borderRadius: 14 }),
+    reqName: { fontFamily: 'Noto Serif, serif', fontSize: 19, margin: 0, color: INK },
+    reqMeta: { fontSize: 11, color: MUTED, margin: '4px 0 0', letterSpacing: '0.04em' },
+    reqDesc: { fontSize: 13, margin: '10px 0 0', lineHeight: 1.5, fontWeight: 500 },
+    reqPill: (st) => ({ fontSize: 9, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: BG, background: st.color, padding: '6px 14px', borderRadius: 100, whiteSpace: 'nowrap' }),
     histTable: { marginTop: 16 },
     histRow: { display: 'flex', gap: 12, padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: 13 },
     footer: { maxWidth: 1200, margin: '80px auto 0', padding: '32px 40px 0', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', fontSize: 9, fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#6A645B' },
