@@ -145,7 +145,7 @@ function BillingForm({ architects, onMissing }) {
                 <div className="space-y-1">
                     <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Architect</label>
                     <select value={phone} onChange={e => setPhone(e.target.value)}
-                        className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bronze">
+                        className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-bronze">
                         <option value="">— Select architect —</option>
                         {architects.map(a => (
                             <option key={a.id} value={a.phone}>{a.full_name || '(no name)'} · {a.phone}</option>
@@ -158,13 +158,13 @@ function BillingForm({ architects, onMissing }) {
                         <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Stone Name</label>
                         <input type="text" value={stoneName} onChange={e => setStoneName(e.target.value)}
                             placeholder="e.g. Statuario, Bianco Lasa"
-                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bronze" />
+                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-bronze" />
                     </div>
                     <div className="space-y-1">
                         <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Project (optional)</label>
                         <input type="text" value={project} onChange={e => setProject(e.target.value)}
                             placeholder="e.g. Mehta Residence"
-                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bronze" />
+                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-bronze" />
                     </div>
                 </div>
                 {dupWarn && <p className="text-[11px] text-amber-600 font-medium">{dupWarn}</p>}
@@ -209,14 +209,14 @@ function BillingForm({ architects, onMissing }) {
                         <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Area Sold (sqft)</label>
                         <input type="number" value={sqft} onChange={e => setSqft(e.target.value)}
                             placeholder="5000"
-                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bronze" />
+                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-bronze" />
                     </div>
                 ) : (
                     <div className="space-y-1">
                         <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Total Profit (₹)</label>
                         <input type="number" value={profit} onChange={e => setProfit(e.target.value)}
                             placeholder="75000"
-                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bronze" />
+                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-bronze" />
                     </div>
                 )}
 
@@ -224,20 +224,20 @@ function BillingForm({ architects, onMissing }) {
                     <div className="space-y-1">
                         <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Billed Date</label>
                         <input type="date" value={billedAt} onChange={e => setBilledAt(e.target.value)}
-                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bronze" />
+                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-bronze" />
                     </div>
                     <div className="space-y-1">
                         <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Invoice Ref (optional)</label>
                         <input type="text" value={invoiceRef} onChange={e => setInvoiceRef(e.target.value)}
                             placeholder="INV-0042"
-                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bronze" />
+                            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-bronze" />
                     </div>
                 </div>
 
                 <div className="space-y-1">
                     <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Notes (optional)</label>
                     <input type="text" value={notes} onChange={e => setNotes(e.target.value)}
-                        className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bronze" />
+                        className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-bronze" />
                 </div>
 
                 <button onClick={save} disabled={saving}
@@ -307,7 +307,7 @@ function ArchitectLedger({ architects, onMissing }) {
     return (
         <div className="space-y-5 max-w-4xl">
             <select value={phone} onChange={e => { setPhone(e.target.value); load(e.target.value); }}
-                className="border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-bronze">
+                className="border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-bronze">
                 <option value="">— Select architect —</option>
                 {architects.map(a => <option key={a.id} value={a.phone}>{a.full_name} · {a.phone}</option>)}
             </select>
