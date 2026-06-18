@@ -178,11 +178,12 @@ function BillingForm({ architects, onMissing }) {
                                 key={t.letter}
                                 type="button"
                                 onClick={() => setTier(t.letter)}
-                                title={`${t.label} profit/sqft`}
+                                title={`${t.label} profit · ${t.percent}% to architect`}
                                 className={`flex-1 min-w-[58px] py-2 rounded-lg border text-center transition-all ${tier === t.letter ? 'bg-stone-900 border-stone-900 text-white' : 'bg-white border-stone-200 text-stone-600 hover:border-bronze'}`}
                             >
                                 <span className="block font-serif text-base leading-none">{t.letter}</span>
                                 <span className="block text-[8px] tracking-wider mt-1 opacity-70">{t.label}</span>
+                                <span className="block text-[8px] tracking-wider opacity-50">{t.percent}%</span>
                             </button>
                         ))}
                     </div>
@@ -253,14 +254,14 @@ function BillingForm({ architects, onMissing }) {
             <div className="bg-stone-900 rounded-2xl p-6 text-white space-y-4 h-fit">
                 <p className="text-[10px] font-bold text-bronze uppercase tracking-[0.3em]">Earning Preview</p>
                 <div className="grid grid-cols-2 gap-4">
-                    <Stat label="Tier" value={tier ? `${preview.tierLetter} · ${preview.tierLabel}` : '—'} />
+                    <Stat label="Tier" value={tier ? `${preview.tierLetter} · ${preview.percent}%` : '—'} />
                     <Stat label="Area" value={preview.sqft ? `${(Math.round(preview.sqft * 100) / 100).toLocaleString('en-IN')} sqft` : '—'} />
                     <Stat label="Total Profit" value={preview.totalProfit ? `₹${preview.totalProfit.toLocaleString('en-IN')}` : '—'} />
                     <Stat label="Stone Points" value={`+${fmtPoints(preview.pointsEarned)}`} accent />
                 </div>
                 <div className="pt-3 border-t border-white/10 text-[11px] text-stone-400 leading-relaxed">
                     {tier ? (
-                        <>Tier {preview.tierLetter} = <span className="text-bronze">₹{preview.profitPerSqft}/sqft</span> profit. {mode === 'sqft' ? 'Profit = rate × area.' : 'Area = profit ÷ rate.'}</>
+                        <>Tier {preview.tierLetter} = <span className="text-bronze">₹{preview.profitPerSqft}/sqft</span> profit · architect earns <span className="text-bronze">{preview.percent}%</span> = {fmtPoints(preview.pointsEarned)} pts.</>
                     ) : 'Select a tier and enter a value to preview points.'}
                 </div>
             </div>

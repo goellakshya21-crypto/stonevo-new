@@ -20,17 +20,18 @@
 // Tiers = PROFIT per sqft. A = ₹100/sqft, rising in ₹100 steps to J = ₹1,000/sqft.
 // Open-ended by design: bump the count to add K, L… (₹1,100, ₹1,200…) — the admin
 // selector, preview, and ledger all adapt automatically.
+// Each tier = a profit-per-sqft band AND a reward percentage that rises with it.
+// Tier A: ₹100/sqft profit → architect earns 1% as points. Tier J: ₹1,000/sqft → 10%.
+// Points earned on a deal = tier.percent% × total profit. So the program's giveback
+// is capped at 1–10% of profit (more generous on higher-margin deals).
 const TIER_COUNT = 10;          // A..J
 const TIER_STEP = 100;          // ₹100 increments
 export const COLLECTION_TIERS = Array.from({ length: TIER_COUNT }, (_, i) => ({
     letter: String.fromCharCode(65 + i),          // 'A', 'B', …
     profitPerSqft: (i + 1) * TIER_STEP,           // 100, 200, … 1000
+    percent: i + 1,                               // 1%, 2%, … 10%
     label: `₹${((i + 1) * TIER_STEP).toLocaleString('en-IN')}/sqft`,
 }));
-
-// How many Stone Points each ₹1 of profit yields. PLACEHOLDER — confirm the real
-// ratio + circle thresholds and I'll lock them in.
-export const POINTS_PER_RUPEE_PROFIT = 1;
 
 /** Look up a tier by its letter (A, B, C…). */
 export const tierByLetter = (letter) => {
@@ -60,10 +61,12 @@ export const computeBilling = (tierLetter, opts = {}) => {
     } else {
         totalProfit = ppsf * s;
     }
-    const pointsEarned = Math.round(totalProfit * POINTS_PER_RUPEE_PROFIT);
+    const percent = tier ? tier.percent : 0;
+    const pointsEarned = Math.round(totalProfit * percent / 100); // points = tier% of profit
     return {
         tierLetter: tier?.letter || null,
         profitPerSqft: ppsf,
+        percent,
         tierLabel: tier?.label || '—',
         sqft: s,
         totalProfit,
