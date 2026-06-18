@@ -203,6 +203,37 @@ const PrivilegeCircle = () => {
                         )}
                     </section>
 
+                    {/* THE CIRCLES — full ladder so architects see what's ahead */}
+                    <section style={S.section}>
+                        <p style={S.eyebrow}><span style={S.tick} />The Circles</p>
+                        <h2 style={S.h2}>Every tier, and what it unlocks</h2>
+                        <div style={S.ladder}>
+                            {CIRCLES.filter(c => c.key !== 'member').map(c => {
+                                const isCurrent = c.key === circle.current.key;
+                                const achieved = summary.pointsBalance >= c.min;
+                                const toGo = Math.max(0, c.min - summary.pointsBalance);
+                                return (
+                                    <div key={c.key} style={S.ladderCard(isCurrent, achieved, c)}>
+                                        {isCurrent && <span style={S.ladderBadge(c)}>You're here</span>}
+                                        <span style={S.ladderDot(c)} />
+                                        <p style={S.ladderName}>{c.label}</p>
+                                        <p style={S.ladderThreshold}>{fmtPoints(c.min)} pts</p>
+                                        <div style={S.ladderDivider} />
+                                        <p style={S.ladderGroupNum}>{c.maxTravellers}</p>
+                                        <p style={S.ladderGroupLabel}>{c.travelStyle}</p>
+                                        <p style={S.ladderStatus(achieved)}>
+                                            {achieved ? '✓ Unlocked' : `${fmtPoints(toGo)} pts to go`}
+                                        </p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <p style={S.ladderFoot}>
+                            Each circle lets you bring more people — from a solo escape to a full team offsite.
+                            Your circle is set by your current points balance and rises as you generate more business through Stonevo.
+                        </p>
+                    </section>
+
                     {/* EXPERIENCE PREFERENCES */}
                     <section style={S.section}>
                         <p style={S.eyebrow}><span style={S.tick} />Experience Preferences</p>
@@ -421,6 +452,23 @@ const S = {
     entitleNum: { display: 'block', fontFamily: 'Noto Serif, serif', fontSize: 44, color: ACCENT, lineHeight: 1 },
     entitleNumLabel: { display: 'block', fontSize: 9, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: MUTED, marginTop: 4 },
     entitleNext: { fontSize: 12, color: MUTED, marginTop: 14, lineHeight: 1.6 },
+    ladder: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 },
+    ladderCard: (current, achieved, c) => ({
+        position: 'relative', textAlign: 'center',
+        background: current ? `linear-gradient(160deg, rgba(200,168,110,0.14), rgba(22,20,18,1))` : 'rgba(255,255,255,0.02)',
+        border: `1px solid ${current ? c.accent : achieved ? 'rgba(200,168,110,0.3)' : 'rgba(255,255,255,0.08)'}`,
+        borderRadius: 18, padding: '28px 20px 22px',
+        opacity: achieved || current ? 1 : 0.7,
+    }),
+    ladderBadge: (c) => ({ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap', fontSize: 8, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: BG, background: c.accent, padding: '4px 12px', borderRadius: 100 }),
+    ladderDot: (c) => ({ display: 'block', width: 12, height: 12, borderRadius: '50%', background: c.accent, margin: '0 auto 14px' }),
+    ladderName: { fontFamily: 'Noto Serif, serif', fontSize: 19, margin: 0, color: INK },
+    ladderThreshold: { fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', color: ACCENT, margin: '6px 0 0' },
+    ladderDivider: { height: 1, background: 'rgba(255,255,255,0.08)', margin: '16px 0' },
+    ladderGroupNum: { fontFamily: 'Noto Serif, serif', fontSize: 36, color: INK, margin: 0, lineHeight: 1 },
+    ladderGroupLabel: { fontSize: 11, color: MUTED, margin: '6px 0 0', lineHeight: 1.4 },
+    ladderStatus: (achieved) => ({ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: achieved ? '#7BC47F' : MUTED, margin: '16px 0 0' }),
+    ladderFoot: { fontSize: 13, color: MUTED, lineHeight: 1.7, marginTop: 24, maxWidth: '70ch' },
     prefDesc: { fontSize: 12, color: MUTED, lineHeight: 1.5, margin: '6px 0 0' },
     prefRow: { display: 'flex', gap: 24, marginTop: 28 },
     miniLabel: { fontSize: 10, fontWeight: 800, letterSpacing: '0.25em', textTransform: 'uppercase', color: MUTED, marginBottom: 12 },
