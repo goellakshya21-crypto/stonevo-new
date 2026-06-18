@@ -55,7 +55,7 @@ const PrivilegeCircle = () => {
     };
 
     const summary = summarize(billing, redemptions);
-    const { unlocked, locked } = suggestedExperiences(summary.pointsBalance);
+    const { unlocked, locked, group } = suggestedExperiences(summary.pointsBalance, summary.circle.current);
 
     const savePrefs = async () => {
         await supabase.from('loyalty_preferences').upsert({
@@ -78,15 +78,15 @@ const PrivilegeCircle = () => {
         }));
     };
 
-    const requestExperience = async (expName, group) => {
+    const requestExperience = async (expName, dest) => {
         setRequesting(expName);
         try {
             await supabase.from('loyalty_redemptions').insert({
                 architect_phone: phone,
                 architect_name: name,
                 experience_name: expName,
-                region: `${group.circleLabel} · ${group.travelStyle}`,
-                wallet_amount: group.cost, // point cost (column reused); admin confirms on approval
+                region: `${dest.band} · ${dest.group} pax`,
+                wallet_amount: dest.cost, // point cost (column reused); admin confirms on approval
                 status: 'requested',
             });
             // Fire Telegram alert (fire-and-forget)
@@ -95,7 +95,7 @@ const PrivilegeCircle = () => {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         event: 'custom',
-                        text: `🎁 <b>EXPERIENCE REQUEST</b>\n\n${name || phone} requested <b>${expName}</b>\n👥 ${group.travelStyle} (up to ${group.maxTravellers})\n◆ Points: ${fmtPoints(summary.pointsBalance)}\n⭐ ${summary.circle.current.label}`,
+                        text: `🎁 <b>EXPERIENCE REQUEST</b>\n\n${name || phone} requested <b>${expName}</b>\n📍 ${dest.band} · ${dest.group} traveller(s)\n◆ Cost: ${fmtPoints(dest.cost)} pts · Balance: ${fmtPoints(summary.pointsBalance)}\n⭐ ${summary.circle.current.label}`,
                     }),
                 }).catch(() => {});
             } catch {}
@@ -264,20 +264,20 @@ const PrivilegeCircle = () => {
                             </div>
                         )}
 
-                        {/* Unlocked — requestable */}
-                        {unlocked.map(group => (
-                            <div key={group.circleKey} style={S.bandBlock}>
+                        {/* Unlocked — affordable now (cost = per-person × your group size) */}
+                        {unlocked.map(d => (
+                            <div key={d.band} style={S.bandBlock}>
                                 <div style={S.bandHead}>
-                                    <span style={S.bandName}>{group.circleLabel}</span>
-                                    <span style={S.bandRange}>{group.travelStyle} · up to {group.maxTravellers} · {fmtPoints(group.cost)} pts</span>
+                                    <span style={S.bandName}>{d.band}</span>
+                                    <span style={S.bandRange}>{group === 1 ? 'Solo' : `Up to ${group}`} · {fmtPoints(d.cost)} pts</span>
                                 </div>
                                 <div style={S.expGrid}>
-                                    {group.experiences.map(exp => (
+                                    {d.experiences.map(exp => (
                                         <div key={exp} style={S.expCard}>
                                             <span style={S.expName}>{exp}</span>
-                                            <span style={S.expCost}>{group.maxTravellers === 1 ? 'Solo' : `Up to ${group.maxTravellers}`} · {fmtPoints(group.cost)} pts</span>
+                                            <span style={S.expCost}>{fmtPoints(d.cost)} pts · {group === 1 ? 'solo' : `${group} pax`}</span>
                                             <button
-                                                onClick={() => requestExperience(exp, group)}
+                                                onClick={() => requestExperience(exp, d)}
                                                 disabled={requesting === exp}
                                                 style={S.expBtn}>
                                                 {requesting === exp ? 'Requesting…' : 'Request'}
@@ -288,18 +288,18 @@ const PrivilegeCircle = () => {
                             </div>
                         ))}
 
-                        {/* Locked — preview, not requestable */}
-                        {locked.map(group => (
-                            <div key={group.circleKey} style={{ ...S.bandBlock, opacity: 0.5 }}>
+                        {/* Locked — not affordable yet */}
+                        {locked.map(d => (
+                            <div key={d.band} style={{ ...S.bandBlock, opacity: 0.5 }}>
                                 <div style={S.bandHead}>
-                                    <span style={S.bandName}>{group.circleLabel} 🔒</span>
-                                    <span style={S.bandRange}>{group.travelStyle} · up to {group.maxTravellers} · unlocks at {fmtPoints(group.cost)} pts</span>
+                                    <span style={S.bandName}>{d.band} 🔒</span>
+                                    <span style={S.bandRange}>{group === 1 ? 'Solo' : `Up to ${group}`} · needs {fmtPoints(d.cost)} pts</span>
                                 </div>
                                 <div style={S.expGrid}>
-                                    {group.experiences.map(exp => (
+                                    {d.experiences.map(exp => (
                                         <div key={exp} style={{ ...S.expCard, cursor: 'default' }}>
                                             <span style={S.expName}>{exp}</span>
-                                            <span style={S.expCost}>Locked</span>
+                                            <span style={S.expCost}>Keep earning</span>
                                         </div>
                                     ))}
                                 </div>
