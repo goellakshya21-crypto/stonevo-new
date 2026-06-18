@@ -283,23 +283,32 @@ function ArchitectLedger({ architects, onMissing }) {
     const [phone, setPhone] = useState('');
     const [billing, setBilling] = useState([]);
     const [redemptions, setRedemptions] = useState([]);
+    const [prefs, setPrefs] = useState(null);
     const [loading, setLoading] = useState(false);
 
     const load = async (ph) => {
         if (!ph) return;
         setLoading(true);
         try {
-            const [{ data: b, error: be }, { data: r }] = await Promise.all([
+            const [{ data: b, error: be }, { data: r }, { data: p }] = await Promise.all([
                 supabase.from('loyalty_billing').select('*').eq('architect_phone', ph).order('billed_at', { ascending: false }),
                 supabase.from('loyalty_redemptions').select('*').eq('architect_phone', ph),
+                supabase.from('loyalty_preferences').select('*').eq('architect_phone', ph).maybeSingle(),
             ]);
             if (be?.code === '42P01') { onMissing(); return; }
             setBilling(b || []);
             setRedemptions(r || []);
+            setPrefs(p || null);
         } finally {
             setLoading(false);
         }
     };
+
+    // Pretty label for the saved experience-type key
+    const expTypeLabel = (key) => ({
+        solo: 'Solo', couple: 'Couple', family: 'Family', friends: 'Friends',
+        team: 'Team', learning: 'Learning & Discovery', open: 'Open to Suggestions',
+    }[key] || key || '—');
 
     const summary = summarize(billing, redemptions);
     const selectedArch = architects.find(a => a.phone === phone);
@@ -322,6 +331,31 @@ function ArchitectLedger({ architects, onMissing }) {
                         <SummaryCard label="Points Balance" value={fmtPoints(summary.pointsBalance)} sub={`Earned ${fmtPoints(summary.pointsEarned)} · Spent ${fmtPoints(summary.pointsSpent)}`} />
                         <SummaryCard label="Circle" value={summary.circle.current.label} circle={summary.circle.current} />
                         <SummaryCard label="To Next" value={summary.circle.next ? `${fmtPoints(summary.circle.toNext)} pts` : 'Top tier'} sub={summary.circle.next ? `to ${summary.circle.next.label}` : ''} />
+                    </div>
+
+                    {/* Experience preferences (what the architect chose on /circle) */}
+                    <div className="bg-bronze/5 border border-bronze/20 rounded-xl p-5">
+                        <p className="text-[10px] font-bold text-bronze uppercase tracking-widest mb-3">Experience Preferences</p>
+                        {prefs ? (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <p className="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Travel Style</p>
+                                    <p className="text-sm font-medium text-stone-800">{expTypeLabel(prefs.experience_type)}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Preferred Month</p>
+                                    <p className="text-sm font-medium text-stone-800">{prefs.preferred_month || '—'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Destination Types</p>
+                                    <p className="text-sm font-medium text-stone-800">
+                                        {prefs.destination_types?.length ? prefs.destination_types.join(', ') : '—'}
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-sm text-stone-400 italic">This architect hasn't set their experience preferences yet.</p>
+                        )}
                     </div>
 
                     {/* Billing rows — tier + quantity + points, no money */}
