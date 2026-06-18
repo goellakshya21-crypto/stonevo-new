@@ -155,34 +155,36 @@ export const DESTINATION_TYPES = [
 
 export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-// ── Destinations, priced PER PERSON ───────────────────────────────────────────
-// Redemption cost = perPerson × the architect's group size (their circle's
-// maxTravellers). Bigger group → same destination costs more. Higher destination
-// → costs more. Both scale with real money (1 point = ₹1).
+// ── Destinations, priced from real components: flight + hotel/night ───────────
+// Rates calibrated from 2026 India market research (round-trip flights + typical
+// 4-star / luxury hotel per night). 1 point = ₹1.
+// Redemption cost = travellers × (flight/person + hotel/person/night × nights).
 export const DESTINATIONS = [
-    { band: 'Domestic',                         perPerson: 25000,  experiences: ['Jaipur', 'Udaipur', 'Goa', 'Kerala', 'Rishikesh Luxury Retreat'] },
-    { band: 'Premium / Short-Haul International', perPerson: 50000,  experiences: ['Kashmir', 'Andaman', 'Coorg', 'North East', 'Luxury Goa', 'Dubai', 'Thailand', 'Vietnam'] },
-    { band: 'International',                     perPerson: 100000, experiences: ['Bali', 'Singapore', 'Europe Short Trip', 'Japan', 'Turkey'] },
-    { band: 'Luxury',                           perPerson: 200000, experiences: ['Switzerland', 'Italy', 'Greece', 'Australia', 'Custom Family Vacation'] },
+    { band: 'Domestic',                          flightPerPerson: 10000, hotelPerNight: 5000,  experiences: ['Jaipur', 'Udaipur', 'Goa', 'Kerala', 'Rishikesh Luxury Retreat'] },
+    { band: 'Premium / Short-Haul International', flightPerPerson: 28000, hotelPerNight: 7500,  experiences: ['Kashmir', 'Andaman', 'Coorg', 'North East', 'Luxury Goa', 'Dubai', 'Thailand', 'Vietnam'] },
+    { band: 'International',                      flightPerPerson: 40000, hotelPerNight: 10000, experiences: ['Bali', 'Singapore', 'Europe Short Trip', 'Japan', 'Turkey'] },
+    { band: 'Luxury',                            flightPerPerson: 70000, hotelPerNight: 22000, experiences: ['Switzerland', 'Italy', 'Greece', 'Australia', 'Custom Family Vacation'] },
 ];
 
-/**
- * Destinations split into affordable (unlocked) vs not-yet (locked) for the
- * architect's current balance + circle group size.
- * Each entry: { band, perPerson, group, cost, experiences }.
- */
-export const suggestedExperiences = (balance, circle) => {
-    const b = Number(balance) || 0;
-    const group = circle?.maxTravellers || 0;
-    const unlocked = [];
-    const locked = [];
-    if (group === 0) return { unlocked, locked, group };
-    for (const d of DESTINATIONS) {
-        const cost = d.perPerson * group;
-        const entry = { band: d.band, perPerson: d.perPerson, group, cost, experiences: d.experiences };
-        if (b >= cost) unlocked.push(entry); else locked.push(entry);
-    }
-    return { unlocked, locked, group };
+// Stay-duration bounds the architect can choose.
+export const NIGHTS_MIN = 2;
+export const NIGHTS_MAX = 7;
+export const NIGHTS_DEFAULT = 3;
+
+/** Points cost of a destination for a given group size + nights. */
+export const computeExperienceCost = (dest, travellers, nights) => {
+    const t = Math.max(1, Number(travellers) || 1);
+    const n = Math.max(1, Number(nights) || 1);
+    return t * (dest.flightPerPerson + dest.hotelPerNight * n);
+};
+
+/** Flight / hotel breakdown (for display + admin record). */
+export const costBreakdown = (dest, travellers, nights) => {
+    const t = Math.max(1, Number(travellers) || 1);
+    const n = Math.max(1, Number(nights) || 1);
+    const flights = t * dest.flightPerPerson;
+    const hotels = t * dest.hotelPerNight * n;
+    return { flights, hotels, total: flights + hotels, travellers: t, nights: n };
 };
 
 // ── Formatting helpers ────────────────────────────────────────────────────────

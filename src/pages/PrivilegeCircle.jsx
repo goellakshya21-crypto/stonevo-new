@@ -4,7 +4,8 @@ import { supabase } from '../lib/supabaseClient';
 import {
     summarize, fmtPoints, CIRCLES,
     EXPERIENCE_TYPES, DESTINATION_TYPES, MONTHS,
-    suggestedExperiences, minCircleForExperienceType,
+    DESTINATIONS, NIGHTS_MIN, NIGHTS_MAX, NIGHTS_DEFAULT,
+    computeExperienceCost, costBreakdown, minCircleForExperienceType,
 } from '../lib/loyalty';
 
 /**
@@ -22,6 +23,8 @@ const PrivilegeCircle = () => {
     const [prefs, setPrefs] = useState({ experience_type: '', preferred_month: '', destination_types: [] });
     const [prefsSaved, setPrefsSaved] = useState(false);
     const [requesting, setRequesting] = useState(null);
+    const [travellers, setTravellers] = useState(1);   // up to circle max
+    const [nights, setNights] = useState(NIGHTS_DEFAULT);
 
     useEffect(() => {
         const ph = (localStorage.getItem('stonevo_user_phone') || '').replace(/\D/g, '').slice(-10);
@@ -55,7 +58,9 @@ const PrivilegeCircle = () => {
     };
 
     const summary = summarize(billing, redemptions);
-    const { unlocked, locked, group } = suggestedExperiences(summary.pointsBalance, summary.circle.current);
+    const maxTravellers = summary.circle.current.maxTravellers || 0;
+    // Clamp travellers to the architect's current circle ceiling
+    const effTravellers = Math.min(Math.max(1, travellers), Math.max(1, maxTravellers));
 
     const savePrefs = async () => {
         await supabase.from('loyalty_preferences').upsert({
@@ -81,12 +86,13 @@ const PrivilegeCircle = () => {
     const requestExperience = async (expName, dest) => {
         setRequesting(expName);
         try {
+            const bd = costBreakdown(dest, effTravellers, nights);
             await supabase.from('loyalty_redemptions').insert({
                 architect_phone: phone,
                 architect_name: name,
                 experience_name: expName,
-                region: `${dest.band} · ${dest.group} pax`,
-                wallet_amount: dest.cost, // point cost (column reused); admin confirms on approval
+                region: `${dest.band} · ${bd.travellers} pax · ${bd.nights} nights`,
+                wallet_amount: bd.total, // point cost (column reused); admin confirms on approval
                 status: 'requested',
             });
             // Fire Telegram alert (fire-and-forget)
@@ -95,7 +101,7 @@ const PrivilegeCircle = () => {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         event: 'custom',
-                        text: `🎁 <b>EXPERIENCE REQUEST</b>\n\n${name || phone} requested <b>${expName}</b>\n📍 ${dest.band} · ${dest.group} traveller(s)\n◆ Cost: ${fmtPoints(dest.cost)} pts · Balance: ${fmtPoints(summary.pointsBalance)}\n⭐ ${summary.circle.current.label}`,
+                        text: `🎁 <b>EXPERIENCE REQUEST</b>\n\n${name || phone} requested <b>${expName}</b>\n📍 ${dest.band} · ${bd.travellers} pax · ${bd.nights} nights\n✈️ Flights ${fmtPoints(bd.flights)} + 🏨 Hotel ${fmtPoints(bd.hotels)}\n◆ Total: ${fmtPoints(bd.total)} pts · Balance: ${fmtPoints(summary.pointsBalance)}\n⭐ ${summary.circle.current.label}`,
                     }),
                 }).catch(() => {});
             } catch {}
@@ -252,59 +258,74 @@ const PrivilegeCircle = () => {
 
                     {/* SUGGESTED EXPERIENCES */}
                     <section style={S.section}>
-                        <p style={S.eyebrow}><span style={S.tick} />Suggested Experiences</p>
-                        <h2 style={S.h2}>Curated for your circle</h2>
+                        <p style={S.eyebrow}><span style={S.tick} />Plan Your Experience</p>
+                        <h2 style={S.h2}>Flights + hotel, priced live</h2>
 
-                        {unlocked.length === 0 && (
+                        {maxTravellers === 0 ? (
                             <div style={S.emptyExp}>
                                 <p style={{ color: '#9A938A', fontSize: 15, lineHeight: 1.7 }}>
-                                    Your Stone Points are building. Once you reach <strong style={{ color: '#C8A86E' }}>{fmtPoints(5000)} points</strong> (Silver Circle),
-                                    your first <strong>Solo experiences</strong> unlock here.
+                                    Your Stone Points are building. Once you reach <strong style={{ color: '#C8A86E' }}>{fmtPoints(25000)} points</strong> (Silver Circle),
+                                    you can plan your first <strong>solo experience</strong> here.
                                 </p>
                             </div>
+                        ) : (
+                            <>
+                                {/* Configurator: travellers + nights */}
+                                <div style={S.configBar}>
+                                    <div style={S.configGroup}>
+                                        <span style={S.configLabel}>Travellers <span style={{ color: '#6A645B' }}>(max {maxTravellers})</span></span>
+                                        <div style={S.stepper}>
+                                            <button style={S.stepBtn} onClick={() => setTravellers(t => Math.max(1, Math.min(maxTravellers, t) - 1))}>−</button>
+                                            <span style={S.stepVal}>{effTravellers}</span>
+                                            <button style={S.stepBtn} onClick={() => setTravellers(t => Math.min(maxTravellers, Math.max(1, t) + 1))}>+</button>
+                                        </div>
+                                    </div>
+                                    <div style={S.configGroup}>
+                                        <span style={S.configLabel}>Nights <span style={{ color: '#6A645B' }}>({NIGHTS_MIN}–{NIGHTS_MAX})</span></span>
+                                        <div style={S.stepper}>
+                                            <button style={S.stepBtn} onClick={() => setNights(n => Math.max(NIGHTS_MIN, n - 1))}>−</button>
+                                            <span style={S.stepVal}>{nights}</span>
+                                            <button style={S.stepBtn} onClick={() => setNights(n => Math.min(NIGHTS_MAX, n + 1))}>+</button>
+                                        </div>
+                                    </div>
+                                    <p style={S.configHint}>Cost updates with group size & stay length. Your balance: <strong style={{ color: '#C8A86E' }}>{fmtPoints(summary.pointsBalance)} pts</strong></p>
+                                </div>
+
+                                {/* Destination cards, costed for the chosen config */}
+                                {DESTINATIONS.map(d => {
+                                    const bd = costBreakdown(d, effTravellers, nights);
+                                    const affordable = summary.pointsBalance >= bd.total;
+                                    return (
+                                        <div key={d.band} style={{ ...S.bandBlock, opacity: affordable ? 1 : 0.55 }}>
+                                            <div style={S.bandHead}>
+                                                <span style={S.bandName}>{d.band}{!affordable && ' 🔒'}</span>
+                                                <span style={S.bandRange}>
+                                                    ✈️ {fmtPoints(bd.flights)} + 🏨 {fmtPoints(bd.hotels)} = <strong style={{ color: affordable ? '#C8A86E' : '#9A938A' }}>{fmtPoints(bd.total)} pts</strong>
+                                                </span>
+                                            </div>
+                                            <div style={S.expGrid}>
+                                                {d.experiences.map(exp => (
+                                                    <div key={exp} style={{ ...S.expCard, cursor: affordable ? 'pointer' : 'default' }}>
+                                                        <span style={S.expName}>{exp}</span>
+                                                        <span style={S.expCost}>{effTravellers} pax · {nights}n · {fmtPoints(bd.total)} pts</span>
+                                                        {affordable ? (
+                                                            <button
+                                                                onClick={() => requestExperience(exp, d)}
+                                                                disabled={requesting === exp}
+                                                                style={S.expBtn}>
+                                                                {requesting === exp ? 'Requesting…' : 'Request'}
+                                                            </button>
+                                                        ) : (
+                                                            <span style={{ ...S.expCost, color: '#6A645B' }}>Need {fmtPoints(bd.total - summary.pointsBalance)} more</span>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </>
                         )}
-
-                        {/* Unlocked — affordable now (cost = per-person × your group size) */}
-                        {unlocked.map(d => (
-                            <div key={d.band} style={S.bandBlock}>
-                                <div style={S.bandHead}>
-                                    <span style={S.bandName}>{d.band}</span>
-                                    <span style={S.bandRange}>{group === 1 ? 'Solo' : `Up to ${group}`} · {fmtPoints(d.cost)} pts</span>
-                                </div>
-                                <div style={S.expGrid}>
-                                    {d.experiences.map(exp => (
-                                        <div key={exp} style={S.expCard}>
-                                            <span style={S.expName}>{exp}</span>
-                                            <span style={S.expCost}>{fmtPoints(d.cost)} pts · {group === 1 ? 'solo' : `${group} pax`}</span>
-                                            <button
-                                                onClick={() => requestExperience(exp, d)}
-                                                disabled={requesting === exp}
-                                                style={S.expBtn}>
-                                                {requesting === exp ? 'Requesting…' : 'Request'}
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-
-                        {/* Locked — not affordable yet */}
-                        {locked.map(d => (
-                            <div key={d.band} style={{ ...S.bandBlock, opacity: 0.5 }}>
-                                <div style={S.bandHead}>
-                                    <span style={S.bandName}>{d.band} 🔒</span>
-                                    <span style={S.bandRange}>{group === 1 ? 'Solo' : `Up to ${group}`} · needs {fmtPoints(d.cost)} pts</span>
-                                </div>
-                                <div style={S.expGrid}>
-                                    {d.experiences.map(exp => (
-                                        <div key={exp} style={{ ...S.expCard, cursor: 'default' }}>
-                                            <span style={S.expName}>{exp}</span>
-                                            <span style={S.expCost}>Keep earning</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
                     </section>
 
                     {/* MY REQUESTS */}
@@ -406,6 +427,13 @@ const S = {
     destChip: (active) => ({ padding: '10px 18px', borderRadius: 100, fontSize: 12, fontWeight: 700, cursor: 'pointer', background: active ? 'rgba(200,168,110,0.15)' : 'rgba(255,255,255,0.04)', color: active ? ACCENT : MUTED, border: `1px solid ${active ? ACCENT : 'rgba(255,255,255,0.08)'}` }),
     saveBtn: { marginTop: 28, padding: '14px 36px', background: BRONZE, color: BG, border: 'none', borderRadius: 100, fontSize: 11, fontWeight: 800, letterSpacing: '0.25em', textTransform: 'uppercase', cursor: 'pointer' },
     emptyExp: { background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16, padding: 32 },
+    configBar: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 28, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '20px 24px', marginBottom: 32 },
+    configGroup: { display: 'flex', flexDirection: 'column', gap: 8 },
+    configLabel: { fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: MUTED },
+    stepper: { display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.04)', borderRadius: 100, padding: 4 },
+    stepBtn: { width: 30, height: 30, borderRadius: '50%', border: 'none', background: 'rgba(200,168,110,0.15)', color: ACCENT, fontSize: 18, cursor: 'pointer', lineHeight: 1 },
+    stepVal: { minWidth: 40, textAlign: 'center', fontFamily: 'Noto Serif, serif', fontSize: 22, color: INK },
+    configHint: { flex: '1 1 200px', fontSize: 12, color: MUTED, lineHeight: 1.5, textAlign: 'right' },
     bandBlock: { marginBottom: 36 },
     bandHead: { display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 16, paddingBottom: 10, borderBottom: '1px solid rgba(255,255,255,0.08)' },
     bandName: { fontFamily: 'Noto Serif, serif', fontSize: 22, fontStyle: 'italic', color: ACCENT },
