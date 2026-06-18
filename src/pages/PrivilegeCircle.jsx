@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import {
     summarize, fmtPoints, CIRCLES,
     EXPERIENCE_TYPES, DESTINATION_TYPES, MONTHS,
-    DESTINATIONS, NIGHTS_MIN, NIGHTS_MAX, NIGHTS_DEFAULT,
+    DESTINATIONS, NIGHTS_MIN, NIGHTS_MAX, NIGHTS_DEFAULT, PEAK_BUFFER,
     computeExperienceCost, costBreakdown, minCircleForExperienceType,
 } from '../lib/loyalty';
 
@@ -288,7 +288,10 @@ const PrivilegeCircle = () => {
                                             <button style={S.stepBtn} onClick={() => setNights(n => Math.min(NIGHTS_MAX, n + 1))}>+</button>
                                         </div>
                                     </div>
-                                    <p style={S.configHint}>Cost updates with group size & stay length. Your balance: <strong style={{ color: '#C8A86E' }}>{fmtPoints(summary.pointsBalance)} pts</strong></p>
+                                    <p style={S.configHint}>
+                                        {Math.ceil(effTravellers / 2)} room(s) · costs include a {Math.round((PEAK_BUFFER - 1) * 100)}% seasonal buffer so your points always cover peak fares.<br />
+                                        Your balance: <strong style={{ color: '#C8A86E' }}>{fmtPoints(summary.pointsBalance)} pts</strong>
+                                    </p>
                                 </div>
 
                                 {/* Destination cards, costed for the chosen config */}
@@ -300,7 +303,7 @@ const PrivilegeCircle = () => {
                                             <div style={S.bandHead}>
                                                 <span style={S.bandName}>{d.band}{!affordable && ' 🔒'}</span>
                                                 <span style={S.bandRange}>
-                                                    ✈️ {fmtPoints(bd.flights)} + 🏨 {fmtPoints(bd.hotels)} = <strong style={{ color: affordable ? '#C8A86E' : '#9A938A' }}>{fmtPoints(bd.total)} pts</strong>
+                                                    ✈️ {fmtPoints(bd.flights)} + 🏨 {fmtPoints(bd.hotels)} ({bd.rooms} rm) + season {fmtPoints(bd.buffer)} = <strong style={{ color: affordable ? '#C8A86E' : '#9A938A' }}>{fmtPoints(bd.total)} pts</strong>
                                                 </span>
                                             </div>
                                             <div style={S.expGrid}>

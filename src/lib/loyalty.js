@@ -155,37 +155,52 @@ export const DESTINATION_TYPES = [
 
 export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-// ── Destinations, priced from real components: flight + hotel/night ───────────
-// Rates calibrated from 2026 India market research (round-trip flights + typical
-// 4-star / luxury hotel per night). 1 point = ₹1.
-// Redemption cost = travellers × (flight/person + hotel/person/night × nights).
+// ── Destinations, priced from real components: flights + hotel ROOMS/night ────
+// Rates calibrated from 2026 India market research. Flights are per person
+// (round trip); hotel is per ROOM/night (2 guests share a room). 1 point = ₹1.
 export const DESTINATIONS = [
-    { band: 'Domestic',                          flightPerPerson: 10000, hotelPerNight: 5000,  experiences: ['Jaipur', 'Udaipur', 'Goa', 'Kerala', 'Rishikesh Luxury Retreat'] },
-    { band: 'Premium / Short-Haul International', flightPerPerson: 28000, hotelPerNight: 7500,  experiences: ['Kashmir', 'Andaman', 'Coorg', 'North East', 'Luxury Goa', 'Dubai', 'Thailand', 'Vietnam'] },
-    { band: 'International',                      flightPerPerson: 40000, hotelPerNight: 10000, experiences: ['Bali', 'Singapore', 'Europe Short Trip', 'Japan', 'Turkey'] },
-    { band: 'Luxury',                            flightPerPerson: 70000, hotelPerNight: 22000, experiences: ['Switzerland', 'Italy', 'Greece', 'Australia', 'Custom Family Vacation'] },
+    { band: 'Domestic',                          flightPerPerson: 10000, hotelPerRoomNight: 5000,  experiences: ['Jaipur', 'Udaipur', 'Goa', 'Kerala', 'Rishikesh Luxury Retreat'] },
+    { band: 'Premium / Short-Haul International', flightPerPerson: 28000, hotelPerRoomNight: 8000,  experiences: ['Kashmir', 'Andaman', 'Coorg', 'North East', 'Luxury Goa', 'Dubai', 'Thailand', 'Vietnam'] },
+    { band: 'International',                      flightPerPerson: 40000, hotelPerRoomNight: 12000, experiences: ['Bali', 'Singapore', 'Europe Short Trip', 'Japan', 'Turkey'] },
+    { band: 'Luxury',                            flightPerPerson: 70000, hotelPerRoomNight: 25000, experiences: ['Switzerland', 'Italy', 'Greece', 'Australia', 'Custom Family Vacation'] },
 ];
+
+export const OCCUPANCY_PER_ROOM = 2;     // 2 guests share one room
+
+// Seasonal / lead-time buffer. Researched fares swing ±40% by season and booking
+// window (Delhi–Goa ₹5.4k May → ₹16k Dec; Bali +50% in peak). We price every
+// redemption at +40% over the average so the architect's points always cover a
+// peak-season booking — and off-peak trips cost Stonevo LESS than points spent.
+export const PEAK_BUFFER = 1.4;
 
 // Stay-duration bounds the architect can choose.
 export const NIGHTS_MIN = 2;
-export const NIGHTS_MAX = 7;
+export const NIGHTS_MAX = 10;
 export const NIGHTS_DEFAULT = 3;
 
-/** Points cost of a destination for a given group size + nights. */
-export const computeExperienceCost = (dest, travellers, nights) => {
-    const t = Math.max(1, Number(travellers) || 1);
-    const n = Math.max(1, Number(nights) || 1);
-    return t * (dest.flightPerPerson + dest.hotelPerNight * n);
-};
-
-/** Flight / hotel breakdown (for display + admin record). */
+/**
+ * Full cost breakdown for a redemption.
+ *   rooms   = ceil(travellers / 2)
+ *   flights = travellers × flight/person
+ *   hotels  = rooms × hotel/room/night × nights
+ *   base    = flights + hotels (average-season estimate)
+ *   total   = base × PEAK_BUFFER  (rounded) — the points actually charged
+ */
 export const costBreakdown = (dest, travellers, nights) => {
     const t = Math.max(1, Number(travellers) || 1);
     const n = Math.max(1, Number(nights) || 1);
+    const rooms = Math.ceil(t / OCCUPANCY_PER_ROOM);
     const flights = t * dest.flightPerPerson;
-    const hotels = t * dest.hotelPerNight * n;
-    return { flights, hotels, total: flights + hotels, travellers: t, nights: n };
+    const hotels = rooms * dest.hotelPerRoomNight * n;
+    const base = flights + hotels;
+    const total = Math.round(base * PEAK_BUFFER);
+    const buffer = total - base;
+    return { travellers: t, nights: n, rooms, flights, hotels, base, buffer, total };
 };
+
+/** Points cost (buffered total) of a destination for a group size + nights. */
+export const computeExperienceCost = (dest, travellers, nights) =>
+    costBreakdown(dest, travellers, nights).total;
 
 // ── Formatting helpers ────────────────────────────────────────────────────────
 export const fmtINR = (n) => {
