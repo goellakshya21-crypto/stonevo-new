@@ -377,26 +377,6 @@ const PrivilegeCircle = () => {
                         </section>
                     )}
 
-                    {/* BILLING HISTORY */}
-                    <section style={S.section}>
-                        <p style={S.eyebrow}><span style={S.tick} />Your Projects</p>
-                        {billing.length === 0 ? (
-                            <p style={{ color: '#9A938A', fontSize: 14, marginTop: 12 }}>
-                                No projects recorded yet. As you source stone through Stonevo, your verified projects appear here.
-                            </p>
-                        ) : (
-                            <div style={S.histTable}>
-                                {billing.map(b => (
-                                    <div key={b.id} style={S.histRow}>
-                                        <span style={{ flex: 2 }}>{b.notes?.replace(/^Stone:\s*/, '').split(' · ')[0] || b.project_name || '—'}</span>
-                                        <span style={{ flex: 1, textAlign: 'right', color: ACCENT, fontFamily: 'Noto Serif, serif' }}>Tier {(b.collection_tier || '—').toUpperCase().slice(0, 1)}</span>
-                                        <span style={{ flex: 1, textAlign: 'right', color: '#9A938A' }}>{Number(b.sqft).toLocaleString('en-IN')} sqft</span>
-                                        <span style={{ flex: 1, textAlign: 'right', color: '#C8A86E' }}>+{fmtPoints(b.points_earned)} pts</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </section>
                 </>
             )}
 
