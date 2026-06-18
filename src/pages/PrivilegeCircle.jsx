@@ -321,14 +321,15 @@ const PrivilegeCircle = () => {
                                     </div>
                                     <p style={S.configHint}>
                                         {Math.ceil(effTravellers / 2)} room(s) · costs include a {Math.round((PEAK_BUFFER - 1) * 100)}% seasonal buffer so your points always cover peak fares.<br />
-                                        Your balance: <strong style={{ color: '#C8A86E' }}>{fmtPoints(summary.pointsBalance)} pts</strong>
+                                        Available: <strong style={{ color: '#C8A86E' }}>{fmtPoints(summary.pointsAvailable)} pts</strong>
+                                        {summary.pointsReserved > 0 && <span style={{ color: '#9A938A' }}> · {fmtPoints(summary.pointsReserved)} pts reserved by pending requests</span>}
                                     </p>
                                 </div>
 
                                 {/* Destination cards, costed for the chosen config */}
                                 {DESTINATIONS.map(d => {
                                     const bd = costBreakdown(d, effTravellers, nights);
-                                    const affordable = summary.pointsBalance >= bd.total;
+                                    const affordable = summary.pointsAvailable >= bd.total;
                                     return (
                                         <div key={d.band} style={{ ...S.bandBlock, opacity: affordable ? 1 : 0.55 }}>
                                             <div style={S.bandHead}>
@@ -350,7 +351,7 @@ const PrivilegeCircle = () => {
                                                                 {requesting === exp ? 'Requesting…' : 'Request'}
                                                             </button>
                                                         ) : (
-                                                            <span style={{ ...S.expCost, color: '#6A645B' }}>Need {fmtPoints(bd.total - summary.pointsBalance)} more</span>
+                                                            <span style={{ ...S.expCost, color: '#6A645B' }}>Need {fmtPoints(bd.total - summary.pointsAvailable)} more</span>
                                                         )}
                                                     </div>
                                                 ))}

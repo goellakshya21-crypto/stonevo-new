@@ -221,10 +221,17 @@ export const summarize = (billing = [], redemptions = []) => {
     const totalSqft = billing.reduce((s, b) => s + (Number(b.sqft) || 0), 0);
     const projectCount = billing.length;
     const pointsEarned = billing.reduce((s, b) => s + (Number(b.points_earned) || 0), 0);
+    // Spent = admin-approved/fulfilled redemptions → deducted from the visible balance.
     const pointsSpent = redemptions
         .filter(r => r.status === 'approved' || r.status === 'fulfilled')
-        .reduce((s, r) => s + (Number(r.wallet_amount) || 0), 0); // wallet_amount column now holds point cost
-    const pointsBalance = Math.max(0, pointsEarned - pointsSpent);
+        .reduce((s, r) => s + (Number(r.wallet_amount) || 0), 0); // wallet_amount holds the point cost
+    // Reserved = pending requests not yet approved → not deducted, but they hold
+    // points so an architect can't stack requests beyond their balance.
+    const pointsReserved = redemptions
+        .filter(r => r.status === 'requested')
+        .reduce((s, r) => s + (Number(r.wallet_amount) || 0), 0);
+    const pointsBalance = Math.max(0, pointsEarned - pointsSpent);          // shown to architect
+    const pointsAvailable = Math.max(0, pointsBalance - pointsReserved);    // usable for new requests
     const circle = circleForPoints(pointsBalance);
-    return { totalSqft, projectCount, pointsEarned, pointsSpent, pointsBalance, circle };
+    return { totalSqft, projectCount, pointsEarned, pointsSpent, pointsReserved, pointsBalance, pointsAvailable, circle };
 };

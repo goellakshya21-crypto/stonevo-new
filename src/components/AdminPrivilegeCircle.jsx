@@ -419,6 +419,27 @@ function RedemptionQueue({ onMissing }) {
         load();
     };
 
+    // Approve with a balance check — warns if the architect can't cover the cost.
+    const approve = async (row) => {
+        const [{ data: billing }, { data: reds }] = await Promise.all([
+            supabase.from('loyalty_billing').select('points_earned').eq('architect_phone', row.architect_phone),
+            supabase.from('loyalty_redemptions').select('id, wallet_amount, status').eq('architect_phone', row.architect_phone),
+        ]);
+        const earned = (billing || []).reduce((s, b) => s + (Number(b.points_earned) || 0), 0);
+        const spent = (reds || [])
+            .filter(r => r.id !== row.id && (r.status === 'approved' || r.status === 'fulfilled'))
+            .reduce((s, r) => s + (Number(r.wallet_amount) || 0), 0);
+        const available = earned - spent;
+        const cost = Number(row.wallet_amount) || 0;
+        if (available < cost) {
+            const ok = window.confirm(
+                `${row.architect_name || row.architect_phone} has ${available.toLocaleString('en-IN')} pts available, but ${row.experience_name} costs ${cost.toLocaleString('en-IN')} pts.\n\nApprove anyway? (their balance will go to 0)`
+            );
+            if (!ok) return;
+        }
+        await resolve(row.id, 'approved');
+    };
+
     const filtered = filter === 'all' ? rows : rows.filter(r => r.status === filter);
 
     return (
@@ -440,11 +461,11 @@ function RedemptionQueue({ onMissing }) {
                         <div key={r.id} className="bg-white border border-stone-200 rounded-xl p-4 flex items-center justify-between gap-4">
                             <div>
                                 <p className="font-serif text-stone-900">{r.experience_name} <span className="text-bronze">{fmtPoints(r.wallet_amount)} pts</span></p>
-                                <p className="text-xs text-stone-500">{r.architect_name || r.architect_phone} · {new Date(r.requested_at).toLocaleDateString('en-IN')} · <span className="uppercase">{r.status}</span></p>
+                                <p className="text-xs text-stone-500">{r.architect_name || r.architect_phone} · {r.region || ''} · {new Date(r.requested_at).toLocaleDateString('en-IN')} · <span className="uppercase">{r.status}</span></p>
                             </div>
                             {r.status === 'requested' && (
                                 <div className="flex gap-2">
-                                    <button onClick={() => resolve(r.id, 'approved')} className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-bold flex items-center gap-1"><Check size={12} /> Approve</button>
+                                    <button onClick={() => approve(r)} className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-bold flex items-center gap-1"><Check size={12} /> Approve &amp; Deduct</button>
                                     <button onClick={() => resolve(r.id, 'rejected')} className="px-3 py-1.5 bg-stone-200 text-stone-700 rounded-lg text-xs font-bold flex items-center gap-1"><X size={12} /> Reject</button>
                                 </div>
                             )}
