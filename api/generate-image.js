@@ -1,10 +1,18 @@
 import { VertexAI } from '@google-cloud/vertexai';
 import fs from 'fs';
 import path from 'path';
+import { rateLimit, clientIp } from './_rateLimit.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
+    }
+
+    // Rate limit — this endpoint costs real money per call (Vertex AI image gen).
+    // 50 renders/hour per IP: generous for real use, blocks scripted abuse.
+    const ip = clientIp(req);
+    if (!(await rateLimit(`genimg:${ip}`, 50, 3600))) {
+        return res.status(429).json({ error: 'Too many image requests from this network. Please slow down and try again shortly.' });
     }
 
     try {

@@ -17,12 +17,27 @@ serve(async (req) => {
         const { phone } = await req.json();
         if (!phone || phone.length < 10) throw new Error('Valid 10-digit phone number required');
 
+        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE);
+
+        // ── Rate limiting (anti-abuse — protects SMS credits) ──────────────────
+        // Per phone: max 3 OTPs / 10 min. Per IP: max 15 OTPs / hour.
+        const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
+        const [{ data: phoneOk }, { data: ipOk }] = await Promise.all([
+            supabase.rpc('check_rate_limit', { p_key: `otp:phone:${phone}`, p_limit: 3, p_window: 600 }),
+            supabase.rpc('check_rate_limit', { p_key: `otp:ip:${ip}`, p_limit: 15, p_window: 3600 }),
+        ]);
+        if (phoneOk === false || ipOk === false) {
+            return new Response(JSON.stringify({ error: 'Too many requests. Please wait a few minutes before requesting another code.' }), {
+                status: 429,
+                headers: { ...cors, 'Content-Type': 'application/json' },
+            });
+        }
+
         // Generate 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 min
 
         // Store OTP in DB (clear any old ones for this phone first)
-        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE);
         await supabase.from('otp_codes').delete().eq('phone', phone);
         const { error: insertErr } = await supabase.from('otp_codes').insert({
             phone,
@@ -32,7 +47,7 @@ serve(async (req) => {
         if (insertErr) throw new Error('Failed to store OTP. Make sure otp_codes table exists.');
 
         // Send via Fast2SMS Quick route (no website verification or DLT needed)
-        const message = encodeURIComponent(`Your Stonevo verification code is ${otp}. Valid for 10 minutes.`);
+        const message = encodeURIComponent(`Your Ston verification code is ${otp}. Valid for 10 minutes.`);
         const url = `https://www.fast2sms.com/dev/bulkV2?authorization=${FAST2SMS_KEY}&message=${message}&language=english&route=q&numbers=${phone}`;
         const res  = await fetch(url);
         const data = await res.json();

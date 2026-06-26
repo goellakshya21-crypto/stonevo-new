@@ -1,10 +1,18 @@
 import { VertexAI } from '@google-cloud/vertexai';
 import fs from 'fs';
 import path from 'path';
+import { rateLimit, clientIp } from './_rateLimit.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
+    }
+
+    // Rate limit — Vertex AI text/vision calls. 200/hour per IP covers heavy
+    // admin bulk uploads while blocking scripted abuse.
+    const ip = clientIp(req);
+    if (!(await rateLimit(`gemini:${ip}`, 200, 3600))) {
+        return res.status(429).json({ error: 'Too many AI requests from this network. Please slow down and try again shortly.' });
     }
 
     try {
