@@ -61,7 +61,7 @@ export const RequirementsProvider = ({ children }) => {
                 .maybeSingle();
             if (cancelled) return;
             if (!data) {
-                console.warn('[Stonevo] activeRoomId', activeRoomId, 'is not a valid leads.id — clearing (stale localStorage from old architecture).');
+                console.warn('[Ston] activeRoomId', activeRoomId, 'is not a valid leads.id — clearing (stale localStorage from old architecture).');
                 try {
                     localStorage.removeItem('stonevo_active_room_id');
                     localStorage.removeItem('stonevo_active_project_name');
@@ -125,7 +125,7 @@ export const RequirementsProvider = ({ children }) => {
 
             if (error) throw error;
             const row = rows?.[0];
-            console.log('[Stonevo][fetch]', { lead_id: id, found: !!row, data: row?.data });
+            console.log('[Ston][fetch]', { lead_id: id, found: !!row, data: row?.data });
             setLastFetchStatus({ status: 'ok', at: new Date().toISOString(), error: null, fetchedFor: id, rowFound: !!row });
             if (row) {
                 const reqData = row.data || row;
@@ -140,7 +140,7 @@ export const RequirementsProvider = ({ children }) => {
                 }
             }
         } catch (err) {
-            console.error('[Stonevo][fetch] ERROR:', err);
+            console.error('[Ston][fetch] ERROR:', err);
             setLastFetchStatus({ status: 'error', at: new Date().toISOString(), error: err.message || String(err), fetchedFor: id, rowFound: false });
         }
     }, []);
@@ -162,16 +162,16 @@ export const RequirementsProvider = ({ children }) => {
             updated_at: new Date().toISOString(),
             ...extra
         };
-        console.log('[Stonevo][save] attempting upsert', { lead_id: saveId, stoneCount: (data?.floors || []).reduce((c, f) => c + (f?.rooms || []).reduce((rc, r) => rc + (r?.stones || []).filter(s => s?.name?.trim()).length, 0), 0) });
+        console.log('[Ston][save] attempting upsert', { lead_id: saveId, stoneCount: (data?.floors || []).reduce((c, f) => c + (f?.rooms || []).reduce((rc, r) => rc + (r?.stones || []).filter(s => s?.name?.trim()).length, 0), 0) });
         const { error } = await supabase
             .from('project_requirements')
             .upsert(payload, { onConflict: 'lead_id' });
         if (error) {
-            console.error('[Stonevo][save] ERROR:', error);
+            console.error('[Ston][save] ERROR:', error);
             setLastSaveStatus({ status: 'error', at: new Date().toISOString(), error: error.message || JSON.stringify(error), savedAs: saveId });
             throw error;
         }
-        console.log('[Stonevo][save] OK lead_id=', saveId);
+        console.log('[Ston][save] OK lead_id=', saveId);
         setLastSaveStatus({ status: 'ok', at: new Date().toISOString(), error: null, savedAs: saveId });
     }, []);
 

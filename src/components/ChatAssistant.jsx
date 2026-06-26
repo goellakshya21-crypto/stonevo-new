@@ -68,7 +68,7 @@ const ChatAssistant = ({ marbles, onStoneClick, onVisualizeRequest }) => {
             // Prepare conversation history
             const history = messages.slice(-10).map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
 
-            const prompt = `You are the Stonevo Archivist & Curator. Your goal is to showcase the beauty and architectural significance of natural stones. 
+            const prompt = `You are the Ston Archivist & Curator. Your goal is to showcase the beauty and architectural significance of natural stones. 
             This is NOT a sales site. You are an educator and curator.
             
             Inventory Context: ${JSON.stringify(stoneContext)}
@@ -230,7 +230,7 @@ const ChatAssistant = ({ marbles, onStoneClick, onVisualizeRequest }) => {
                                     <div className="w-12 h-12 bg-bronze/10 rounded-full flex items-center justify-center mx-auto mb-6">
                                         <Sparkles className="text-bronze" size={24} strokeWidth={1.5} />
                                     </div>
-                                    <p className="text-bronze text-[10px] font-bold tracking-[0.3em] uppercase mb-3 font-display">Stonevo Concierge</p>
+                                    <p className="text-bronze text-[10px] font-bold tracking-[0.3em] uppercase mb-3 font-display">Ston Concierge</p>
                                     <h3 className="text-luxury-cream text-2xl font-serif italic leading-tight">Discuss your architectural vision</h3>
                                     <p className="text-sand/70 mt-4 text-sm max-w-sm mx-auto font-sans leading-relaxed">Describe a mood, a geological preference, or a project aesthetic to curate our collection.</p>
                                 </div>

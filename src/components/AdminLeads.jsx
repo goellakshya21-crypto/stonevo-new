@@ -66,7 +66,7 @@ const AdminLeads = () => {
                 return `[${act.action_type}] ${details}`;
             }).join('\n');
 
-            const prompt = `You are a Senior Project Consultant at Stonevo. 
+            const prompt = `You are a Senior Project Consultant at Ston. 
             Analyze the following activity logs for a prospective professional lead:
             ${activityStrings}
 
@@ -189,7 +189,7 @@ const AdminLeads = () => {
 
     const ACTION_LABELS = {
         search: 'Refined Collection Filters',
-        ai_query: 'Inquired Stonevo Archivist',
+        ai_query: 'Inquired Ston Archivist',
         view_stone: 'Viewed Stone Specimen',
         visualize: 'Generated AI Visualization'
     };

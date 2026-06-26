@@ -777,7 +777,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                         </div>
 
                                         <p className="text-[8px] text-white/20 text-center uppercase tracking-widest leading-relaxed">
-                                            Rendered with Google Gemini & Stonevo Neural Engine
+                                            Rendered with Google Gemini & Ston Neural Engine
                                         </p>
                                     </div>
                                 )}

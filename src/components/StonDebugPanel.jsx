@@ -5,7 +5,7 @@ import { Bug, X, RefreshCw, Copy } from 'lucide-react';
 
 // Floating diagnostic panel. Toggle with the bug button in the bottom-right corner.
 // Shows the actual state of the requirements system so we can see WHY a save/fetch fails.
-const StonevoDebugPanel = ({ chatRole }) => {
+const StonDebugPanel = ({ chatRole }) => {
     const [open, setOpen] = useState(false);
     const [dbRowCount, setDbRowCount] = useState(null);
     const [dbStoneCount, setDbStoneCount] = useState(null);
@@ -87,7 +87,7 @@ const StonevoDebugPanel = ({ chatRole }) => {
             <button
                 onClick={() => setOpen(true)}
                 className="fixed bottom-4 left-4 z-[9999] p-2.5 bg-stone-900 border border-bronze/40 rounded-full text-bronze hover:bg-bronze hover:text-stone-950 transition-all shadow-xl"
-                title="Stonevo diagnostics"
+                title="Ston diagnostics"
             >
                 <Bug size={16} />
             </button>
@@ -106,7 +106,7 @@ const StonevoDebugPanel = ({ chatRole }) => {
             <div className="flex items-center justify-between p-3 border-b border-white/10 bg-bronze/10 sticky top-0">
                 <div className="flex items-center gap-2 text-bronze">
                     <Bug size={14} />
-                    <span className="text-xs font-bold uppercase tracking-widest">Stonevo Diagnostics</span>
+                    <span className="text-xs font-bold uppercase tracking-widest">Ston Diagnostics</span>
                 </div>
                 <div className="flex items-center gap-1">
                     <button onClick={probeDb} title="Re-probe DB" className="p-1.5 hover:bg-white/10 rounded text-stone-300"><RefreshCw size={12} /></button>
@@ -160,4 +160,4 @@ const StonevoDebugPanel = ({ chatRole }) => {
     );
 };
 
-export default StonevoDebugPanel;
+export default StonDebugPanel;

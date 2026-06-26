@@ -270,7 +270,7 @@ const ClientManager = ({ isOpen, onClose }) => {
                     </div>
                     <div>
                         <h2 className="text-2xl font-serif text-white italic">Client Authorization Manager</h2>
-                        <p className="text-stone-400 text-xs uppercase tracking-widest">Verify clients for Stonevo Access</p>
+                        <p className="text-stone-400 text-xs uppercase tracking-widest">Verify clients for Ston Access</p>
                     </div>
                 </div>
 

@@ -76,7 +76,7 @@ async function registerDossierFonts(pdf) {
 }
 
 // ─── PDF builder ─────────────────────────────────────────────────────────────
-// Implements the "Stonevo Stone Dossier" Claude Design (1920×1080 deck) as a
+// Implements the "Ston Stone Dossier" Claude Design (1920×1080 deck) as a
 // landscape 16:9 PDF. Each design slide = one PDF page.
 //
 // Palette (from design CSS variables):
@@ -171,16 +171,16 @@ async function buildPDF(stones) {
     const drawRunHead = () => {
         const y = 12;
         withTracking(0.6, () => {
-            // "STONEVO" in accent
+            // "STON" in accent
             pdf.setFont(MONO, 'bold');
             pdf.setFontSize(7);
             setText(C.accent);
-            pdf.text('STONEVO', PAD_X, y);
+            pdf.text('STON', PAD_X, y);
             // " — STONE DOSSIER" in ink
             pdf.setFont(MONO, 'normal');
             pdf.setFontSize(7);
             setText(C.faint);
-            const stonevoW = pdf.getTextWidth('STONEVO');
+            const stonevoW = pdf.getTextWidth('STON');
             pdf.text('  —  STONE DOSSIER', PAD_X + stonevoW + 1.5, y);
             // Right side
             pdf.text('CONFIDENTIAL · ARCHITECTURAL INTELLIGENCE', W - PAD_X, y, { align: 'right' });
@@ -188,7 +188,7 @@ async function buildPDF(stones) {
     };
 
     // Footer bar (bottom of every page except cover variations)
-    const drawFoot = (left = 'STONEVO ATELIER', right = '') => {
+    const drawFoot = (left = 'STON ATELIER', right = '') => {
         const y = H - 10;
         withTracking(0.5, () => {
             pdf.setFont(MONO, 'normal');
@@ -312,7 +312,7 @@ async function buildPDF(stones) {
     metaCol(PAD_X + colGap,          'APPLICATIONS', (order.map(o => groups[o].label).join(' · ') || '—').toUpperCase());
     metaCol(PAD_X + colGap * 2,      'ISSUED',       new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase());
 
-    drawFoot('STONEVO ATELIER', 'PREPARED FOR PRIVATE VIEWING');
+    drawFoot('STON ATELIER', 'PREPARED FOR PRIVATE VIEWING');
 
     // ─────────────────────────────────────────────────────────────────────────
     // SLIDE 02 — CONTENTS
@@ -373,7 +373,7 @@ async function buildPDF(stones) {
     });
     pdf.line(tocX, tocY, W - PAD_X, tocY);
 
-    drawFoot('STONEVO ATELIER', '02');
+    drawFoot('STON ATELIER', '02');
 
     // ─────────────────────────────────────────────────────────────────────────
     // SLIDES 03+ — DIVIDERS + STONE DETAILS (grouped by application)
@@ -582,7 +582,7 @@ async function buildPDF(stones) {
         }
 
         pageNum++;
-        drawFoot('STONEVO ATELIER', String(pageNum).padStart(2, '0'));
+        drawFoot('STON ATELIER', String(pageNum).padStart(2, '0'));
     };
 
     let specCounter = 0;
@@ -626,11 +626,11 @@ async function buildPDF(stones) {
         setText(C.ink);
         pdf.text(value, x, cy + 7);
     };
-    drawContact(PAD_X,         'ATELIER',   'Stonevo — by appointment');
-    drawContact(PAD_X + 90,    'ENQUIRIES', 'advisory@stonevo.in');
-    drawContact(PAD_X + 175,   'DIRECT',    'stonevo.in');
+    drawContact(PAD_X,         'ATELIER',   'Ston — by appointment');
+    drawContact(PAD_X + 90,    'ENQUIRIES', 'advisory@ston.co.in');
+    drawContact(PAD_X + 175,   'DIRECT',    'ston.co.in');
 
-    drawFoot('STONEVO ATELIER', 'END OF DOSSIER');
+    drawFoot('STON ATELIER', 'END OF DOSSIER');
 
     return pdf;
 }
@@ -762,7 +762,7 @@ const AdminDossier = () => {
     const downloadPDF = async () => {
         try {
             const pdf = await buildPDF(stones);
-            pdf.save('Stonevo_Stone_Dossier.pdf');
+            pdf.save('Ston_Stone_Dossier.pdf');
         } catch (err) {
             setGlobalError('PDF generation failed: ' + err.message);
         }

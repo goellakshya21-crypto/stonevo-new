@@ -40,7 +40,7 @@ const FileMessage = ({ msg, isMine }) => {
 };
 
 const InlineChat = ({ projectId, roomLabel }) => {
-    const { messages, isLoading, sendMessage, sendFile } = useProjectChat(projectId, 'admin', 'Stonevo Team');
+    const { messages, isLoading, sendMessage, sendFile } = useProjectChat(projectId, 'admin', 'Ston Team');
     const [text, setText] = useState('');
     const scrollRef = useRef(null);
     const fileInputRef = useRef(null);
@@ -92,10 +92,10 @@ const InlineChat = ({ projectId, roomLabel }) => {
         if (file) { sendFile(file); e.target.value = ''; }
     };
 
-    const isMine = (msg) => msg.sender_name === 'Stonevo Team';
+    const isMine = (msg) => msg.sender_name === 'Ston Team';
     const isFileMsg = (msg) => !!(msg.file_type);
     const roleColor = (r) => r === 'architect' ? '#c49a3c' : (r === 'client' || r === 'builder') ? '#38bdf8' : '#34d399';
-    const roleLabel = (r) => r === 'architect' ? 'Architect' : (r === 'client' || r === 'builder') ? 'Client' : 'Stonevo';
+    const roleLabel = (r) => r === 'architect' ? 'Architect' : (r === 'client' || r === 'builder') ? 'Client' : 'Ston';
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

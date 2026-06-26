@@ -402,7 +402,7 @@ const StoneIntelligencePage = () => {
                 {/* NAV */}
                 <nav className="si-nav" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '28px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(13,12,10,0.85) 0%, transparent 100%)', pointerEvents: 'none' }} />
-                    <Link to="/" style={{ position: 'relative', zIndex: 1, fontFamily: 'Noto Serif, serif', fontSize: 18, letterSpacing: '0.2em', color: '#FDFCF8', textDecoration: 'none' }}>STONEVO</Link>
+                    <Link to="/" style={{ position: 'relative', zIndex: 1, fontFamily: 'Noto Serif, serif', fontSize: 18, letterSpacing: '0.2em', color: '#FDFCF8', textDecoration: 'none' }}>STON</Link>
                     <div className="si-nav-tabs" style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(28,24,20,0.55)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 100, padding: 5 }}>
                         <NavTab to="/about">About</NavTab>
                         <NavTab to="/stone-intelligence" active>Stone Intelligence</NavTab>
@@ -469,7 +469,7 @@ const StoneIntelligencePage = () => {
                         </div>
 
                         <div className="si si-advisory">
-                            <p className="si-advisory-label">Stonevo Advisory Note</p>
+                            <p className="si-advisory-label">Ston Advisory Note</p>
                             <p className="si-advisory-body">
                                 Many premium projects fail to achieve the desired outcome not because the stone was poor — but because the <em>wrong slab was selected, coordinated or applied incorrectly.</em>
                             </p>
@@ -561,7 +561,7 @@ const StoneIntelligencePage = () => {
                                         </ul>
                                     </div>
                                     <div className="si-advisory" style={{ margin: 0, padding: '32px 36px' }}>
-                                        <p className="si-advisory-label">Stonevo Advisory Note</p>
+                                        <p className="si-advisory-label">Ston Advisory Note</p>
                                         <p className="si-advisory-body" style={{ fontSize: 18 }}>
                                             A beautiful washroom is rarely created by expensive stone alone. It is created through <em>coordinated material selection, detailing and execution.</em>
                                         </p>
@@ -761,7 +761,7 @@ const StoneIntelligencePage = () => {
                         </div>
 
                         <div className="si si-advisory" style={{ marginTop: 80 }}>
-                            <p className="si-advisory-label">Stonevo Advisory Note</p>
+                            <p className="si-advisory-label">Ston Advisory Note</p>
                             <p className="si-advisory-body">
                                 Stone selection becomes significantly easier when viewed within the context of <em>architecture, application, lighting, continuity, and execution realities.</em>
                             </p>
@@ -787,7 +787,7 @@ const StoneIntelligencePage = () => {
                 <section className="si-closing" style={{ padding: '140px 48px', textAlign: 'center', background: '#0d0c0a' }}>
                     <div style={{ maxWidth: 820, margin: '0 auto' }}>
                         <div className="si si-closing-rule" />
-                        <p className="si si-d1 si-eyebrow" style={{ marginBottom: 24, opacity: 0.8 }}>The Stonevo Perspective</p>
+                        <p className="si si-d1 si-eyebrow" style={{ marginBottom: 24, opacity: 0.8 }}>The Ston Perspective</p>
                         <h2 className="si si-d2 si-closing-headline">
                             Spaces that feel<br /><em>timeless, balanced, beautifully resolved.</em>
                         </h2>
@@ -803,8 +803,8 @@ const StoneIntelligencePage = () => {
 
                 {/* FOOTER */}
                 <footer className="si-footer" style={{ background: '#0d0c0a', borderTop: '1px solid rgba(255,255,255,0.05)', padding: '32px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontFamily: 'Manrope, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#6b6357' }}>Stonevo</span>
-                    <span style={{ fontFamily: 'Manrope, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#6b6357' }}>© 2026 Stonevo Architectural. Artifact of Nature.</span>
+                    <span style={{ fontFamily: 'Manrope, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#6b6357' }}>Ston</span>
+                    <span style={{ fontFamily: 'Manrope, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#6b6357' }}>© 2026 Ston Architectural. Artifact of Nature.</span>
                 </footer>
             </div>
         </>

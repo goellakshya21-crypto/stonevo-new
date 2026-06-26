@@ -1,5 +1,5 @@
 /**
- * Stonevo Privilege Circle — shared computation logic.
+ * Ston Privilege Circle — shared computation logic.
  *
  * Single source of truth for: collection tiers, points/wallet rates,
  * circle thresholds, and the redemption catalog. Used by both the admin
@@ -146,7 +146,7 @@ export const EXPERIENCE_TYPES = [
     { key: 'friends',  label: 'Friends Experience',             desc: 'Travel with friends or peer group' },
     { key: 'team',     label: 'Team Experience',                desc: 'Team outing, offsite, celebration or reward for your office team', star: true },
     { key: 'learning', label: 'Learning & Discovery Experience', desc: 'Architecture tours, design tours, exhibitions, material exploration trips' },
-    { key: 'open',     label: 'Open to Suggestions',            desc: 'Let Stonevo curate an experience based on your interests' },
+    { key: 'open',     label: 'Open to Suggestions',            desc: 'Let Ston curate an experience based on your interests' },
 ];
 
 export const DESTINATION_TYPES = [
@@ -170,7 +170,7 @@ export const OCCUPANCY_PER_ROOM = 2;     // 2 guests share one room
 // Seasonal / lead-time buffer. Researched fares swing ±40% by season and booking
 // window (Delhi–Goa ₹5.4k May → ₹16k Dec; Bali +50% in peak). We price every
 // redemption at +40% over the average so the architect's points always cover a
-// peak-season booking — and off-peak trips cost Stonevo LESS than points spent.
+// peak-season booking — and off-peak trips cost Ston LESS than points spent.
 export const PEAK_BUFFER = 1.4;
 
 // Stay-duration bounds the architect can choose.

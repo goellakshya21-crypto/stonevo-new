@@ -163,7 +163,7 @@ const StoneForm = ({ vendorId, existing, onClose, onSaved }) => {
                             value={form.notes}
                             onChange={e => setForm({ ...form, notes: e.target.value })}
                             rows={3}
-                            placeholder="Anything Stonevo should know about this stone…"
+                            placeholder="Anything Ston should know about this stone…"
                             className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-bronze focus:outline-none resize-none"
                         />
                     </div>
@@ -260,7 +260,7 @@ const VendorDashboard = ({ vendor, onLogout }) => {
             <header className="border-b border-white/5 bg-stone-950/95 backdrop-blur-md sticky top-0 z-30">
                 <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
                     <div className="flex items-center gap-6">
-                        <Link to="/" className="font-serif tracking-[0.2em] text-white">STONEVO</Link>
+                        <Link to="/" className="font-serif tracking-[0.2em] text-white">STON</Link>
                         <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-bronze border border-bronze/30 px-3 py-1 rounded-full">Vendor Portal</span>
                     </div>
                     <div className="flex items-center gap-4">
@@ -279,7 +279,7 @@ const VendorDashboard = ({ vendor, onLogout }) => {
                     <div>
                         <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-bronze mb-2">Your Stones</p>
                         <h1 className="font-serif text-4xl text-white italic">Photos & details.</h1>
-                        <p className="text-stone-500 text-sm mt-3 max-w-xl">Add your stones with photos and details. Stonevo will reach out about anything they're interested in.</p>
+                        <p className="text-stone-500 text-sm mt-3 max-w-xl">Add your stones with photos and details. Ston will reach out about anything they're interested in.</p>
                     </div>
                     <button onClick={() => { setEditing(null); setShowForm(true); }} className="inline-flex items-center gap-2 px-6 py-3 bg-bronze text-stone-950 text-xs font-bold uppercase tracking-widest rounded-full hover:bg-white transition-colors shadow-lg shadow-bronze/20">
                         <Plus size={14} /> Add stone
@@ -371,7 +371,7 @@ const VendorGate = ({ onAuthorized }) => {
                     const roles = anyRows.map(r => r.role || '(no role)').join(', ');
                     setUnauthorizedDetail(`We found an account for +91 ${clean} but its role is "${roles}" — the admin needs to set it to "vendor".`);
                 } else {
-                    setUnauthorizedDetail(`No account exists for +91 ${clean}. Ask Stonevo to invite this number first.`);
+                    setUnauthorizedDetail(`No account exists for +91 ${clean}. Ask Ston to invite this number first.`);
                 }
                 setUnauthorizedPhone(clean);
                 setStep('unauthorized');
@@ -421,7 +421,7 @@ const VendorGate = ({ onAuthorized }) => {
                         <button type="submit" disabled={submitting} className="w-full py-4 bg-bronze text-stone-950 font-bold text-xs uppercase tracking-[0.2em] rounded-full hover:bg-white transition-colors disabled:opacity-50">
                             {submitting ? 'Sending…' : 'Send verification code'}
                         </button>
-                        <p className="text-[10px] text-stone-600 text-center">Vendor accounts are invite-only. Contact Stonevo if you need access.</p>
+                        <p className="text-[10px] text-stone-600 text-center">Vendor accounts are invite-only. Contact Ston if you need access.</p>
                     </form>
                 )}
 

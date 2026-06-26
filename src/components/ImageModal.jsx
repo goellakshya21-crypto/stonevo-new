@@ -56,7 +56,7 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            const fileName = `${stone.name.replace(/\s+/g, '_')}_Stonevo.jpg`;
+            const fileName = `${stone.name.replace(/\s+/g, '_')}_Ston.jpg`;
             link.setAttribute('download', fileName);
             document.body.appendChild(link);
             link.click();
@@ -167,7 +167,7 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
                     {/* Sidebar Info - Compact Layout */}
                     <div className="w-full md:w-80 p-5 md:p-6 flex flex-col bg-white border-l border-stone-100 z-10 overflow-y-auto h-full">
                         <div className="mb-4 md:mb-5">
-                            <span className="text-[8px] font-bold tracking-[0.2em] text-stone-400 uppercase mb-1 block">Stonevo Archive</span>
+                            <span className="text-[8px] font-bold tracking-[0.2em] text-stone-400 uppercase mb-1 block">Ston Archive</span>
                             <h2 className="text-xl md:text-2xl font-serif font-bold text-stone-900 mb-1">{stone.name}</h2>
                             <div className="flex items-center gap-2 mb-2">
                                 <span className="px-1.5 py-0.5 bg-stone-100 text-[8px] font-bold text-stone-500 uppercase rounded">{stone.physical_properties?.type || 'Natural Stone'}</span>

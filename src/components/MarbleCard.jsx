@@ -10,7 +10,7 @@ const MarbleCard = ({ marble, onEnlarge }) => {
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            const fileName = `${marble.name.replace(/\s+/g, '_')}_Stonevo.jpg`;
+            const fileName = `${marble.name.replace(/\s+/g, '_')}_Ston.jpg`;
             link.setAttribute('download', fileName);
             document.body.appendChild(link);
             link.click();

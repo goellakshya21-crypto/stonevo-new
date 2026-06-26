@@ -14,7 +14,7 @@ import StoneSelectionForm from '../components/StoneSelectionForm';
 import { useRequirements } from '../context/RequirementsContext';
 import ProjectChat from '../components/ProjectChat';
 import ClientManager from '../components/ClientManager';
-import StonevoDebugPanel from '../components/StonevoDebugPanel';
+import StonDebugPanel from '../components/StonDebugPanel';
 import { PowerOff, ChevronDown, Link as LinkIcon, Upload, Sparkles, Trash2, Pencil, Check, X as XIcon, Phone } from 'lucide-react';
 
 // Floating prompt for clients who haven't linked an architect yet
@@ -252,7 +252,7 @@ function Home({ role }) {
         console.warn("[Chat] Storage access restricted");
     }
     const chatRole = isAdmin ? 'admin' : role;
-    const chatName = isAdmin ? 'Stonevo Team' : (activeProjectName || userPhone || 'User');
+    const chatName = isAdmin ? 'Ston Team' : (activeProjectName || userPhone || 'User');
     
     const [filters, setFilters] = useState({
         name: '',
@@ -553,7 +553,7 @@ function Home({ role }) {
         <div className="min-h-screen bg-stone-950 text-stone-200 font-sans selection:bg-luxury-bronze/30">
             <header className="absolute top-0 w-full z-50 py-6 px-8 flex justify-between items-center">
                 <div className="flex items-center gap-12">
-                    <h1 className="text-xl font-serif tracking-[0.2em] text-white">STONEVO</h1>
+                    <h1 className="text-xl font-serif tracking-[0.2em] text-white">STON</h1>
                     {(chatRole === 'architect' || chatRole === 'admin') && (
                         <div className="flex items-center gap-3">
                             <button
@@ -673,7 +673,7 @@ function Home({ role }) {
                 </div>
                 <div className="max-w-7xl mx-auto px-6 text-center space-y-6 md:space-y-8 relative z-40 w-full">
                     <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2 }}>
-                        <h1 className="font-serif text-5xl md:text-8xl text-luxury-cream tracking-tighter leading-tight">Stonevo</h1>
+                        <h1 className="font-serif text-5xl md:text-8xl text-luxury-cream tracking-tighter leading-tight">Ston</h1>
                         <p className="font-serif italic text-lg md:text-2xl text-bronze mt-4 tracking-normal opacity-90">Your stone procurement and consulting partner</p>
                     </motion.div>
                     <div className="max-w-4xl mx-auto w-full">
@@ -853,8 +853,8 @@ function Home({ role }) {
 
             <footer className="bg-stone-950 py-24 mt-20 text-stone-400">
                 <div className="max-w-7xl mx-auto px-6 text-center border-t border-white/5 pt-16">
-                    <h1 className="text-xl font-serif tracking-[0.1em] text-white">STONEVO</h1>
-                    <p className="text-[10px] uppercase tracking-widest font-bold mt-4">© 2026 Stonevo Architectural. Artifact of Nature.</p>
+                    <h1 className="text-xl font-serif tracking-[0.1em] text-white">STON</h1>
+                    <p className="text-[10px] uppercase tracking-widest font-bold mt-4">© 2026 Ston Architectural. Artifact of Nature.</p>
                 </div>
             </footer>
 
@@ -886,7 +886,7 @@ function Home({ role }) {
             )}
 
             {/* Diagnostic panel — click the bug icon in the bottom-left to open */}
-            <StonevoDebugPanel chatRole={chatRole} />
+            <StonDebugPanel chatRole={chatRole} />
         </div>
     );
 }

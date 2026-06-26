@@ -9,7 +9,7 @@ import {
 } from '../lib/loyalty';
 
 /**
- * Stonevo Privilege Circle — architect dashboard at /circle.
+ * Ston Privilege Circle — architect dashboard at /circle.
  * Reads the logged-in architect's identity from localStorage (set by LeadGate),
  * loads their billing + redemptions, and renders the recognition dashboard.
  */
@@ -120,7 +120,7 @@ const PrivilegeCircle = () => {
 
             {/* NAV */}
             <nav style={S.nav}>
-                <Link to="/" style={S.logo}>STONEVO</Link>
+                <Link to="/" style={S.logo}>STON</Link>
                 <div style={S.navRight}>
                     <span style={S.circleBadge(circle.current)}>{circle.current.label}</span>
                     <Link to="/" style={S.backLink}>← Gallery</Link>
@@ -129,10 +129,10 @@ const PrivilegeCircle = () => {
 
             {/* HERO */}
             <section style={S.hero}>
-                <p style={S.eyebrow}><span style={S.tick} />Stonevo Privilege Circle</p>
+                <p style={S.eyebrow}><span style={S.tick} />Ston Privilege Circle</p>
                 <h1 style={S.h1}>Welcome back, <em style={S.em}>{firstName}.</em></h1>
                 <p style={S.heroSub}>
-                    Your recognition for the projects you bring to Stonevo — expressed as Stone Points,
+                    Your recognition for the projects you bring to Ston — expressed as Stone Points,
                     your Circle, and access to curated experiences.
                 </p>
             </section>
@@ -230,7 +230,7 @@ const PrivilegeCircle = () => {
                         </div>
                         <p style={S.ladderFoot}>
                             Each circle lets you bring more people — from a solo escape to a full team offsite.
-                            Your circle is set by your current points balance and rises as you generate more business through Stonevo.
+                            Your circle is set by your current points balance and rises as you generate more business through Ston.
                         </p>
                     </section>
 
@@ -389,8 +389,8 @@ const PrivilegeCircle = () => {
             )}
 
             <footer style={S.footer}>
-                <span>STONEVO PRIVILEGE CIRCLE</span>
-                <span>© 2026 Stonevo Architectural · Artifact of Nature</span>
+                <span>STON PRIVILEGE CIRCLE</span>
+                <span>© 2026 Ston Architectural · Artifact of Nature</span>
             </footer>
         </div>
     );
@@ -405,7 +405,7 @@ const MUTED = '#9A938A';
 
 // Friendly status messaging for the architect's request cards.
 const STATUS_UI = {
-    requested: { label: 'Pending',   icon: '⏳', color: '#D4AF37', message: 'Waiting for approval — Stonevo is reviewing your request.' },
+    requested: { label: 'Pending',   icon: '⏳', color: '#D4AF37', message: 'Waiting for approval — Ston is reviewing your request.' },
     approved:  { label: 'Approved',  icon: '✈️', color: '#7BC47F', message: 'Approved! We are currently booking your trip — sit tight.' },
     fulfilled: { label: 'Booked',    icon: '✦',  color: '#7BC47F', message: 'Booked & confirmed. Details will reach you shortly.' },
     rejected:  { label: 'Declined',  icon: '—',  color: '#C47B7B', message: 'Not approved this time. Reach out to us for details.' },

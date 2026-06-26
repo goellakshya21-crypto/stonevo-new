@@ -821,7 +821,7 @@ const AdminUpload = ({ onCancel }) => {
                 <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
                         <Shield className="text-stone-900" size={24} />
-                        <h2 className="text-2xl font-serif font-bold text-stone-800">Stonevo Intelligence</h2>
+                        <h2 className="text-2xl font-serif font-bold text-stone-800">Ston Intelligence</h2>
                     </div>
 
                     <div className="flex bg-stone-100 p-1 rounded-lg shadow-inner">

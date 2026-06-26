@@ -604,7 +604,7 @@ const AdvisoryServices = () => {
 
             {/* NAV */}
             <nav className="adv-nav">
-                <Link to="/" className="adv-nav-logo">STONEVO</Link>
+                <Link to="/" className="adv-nav-logo">STON</Link>
                 <div className="adv-nav-tabs">
                     <Link to="/about" className="adv-nav-tab">About</Link>
                     <Link to="/stone-intelligence" className="adv-nav-tab">Stone Intelligence</Link>
@@ -618,7 +618,7 @@ const AdvisoryServices = () => {
                 <div className="adv-hero-watermark">ADVISORY</div>
                 <div className="adv-hero-inner">
                     <div>
-                        <p className="adv-hero-eyebrow reveal">Stonevo Advisory Experiences</p>
+                        <p className="adv-hero-eyebrow reveal">Ston Advisory Experiences</p>
                         <h1 className="adv-hero-headline reveal reveal-delay-1">
                             Every project<br />approaches stone<br /><em>differently.</em>
                         </h1>
@@ -626,7 +626,7 @@ const AdvisoryServices = () => {
                     <aside className="adv-hero-right reveal reveal-delay-2">
                         <div className="adv-hero-lead">
                             <p>Some clients require quick material guidance. Others prefer deeply curated sourcing and <strong>personalized slab experiences.</strong></p>
-                            <p>Stonevo offers <em>structured advisory formats</em> designed around different levels of project involvement and coordination.</p>
+                            <p>Ston offers <em>structured advisory formats</em> designed around different levels of project involvement and coordination.</p>
                         </div>
                     </aside>
                 </div>
@@ -691,7 +691,7 @@ const AdvisoryServices = () => {
                             </div>
 
                             <div className="adv-tier-note">
-                                <p className="adv-tier-note-label">Stonevo Advisory Note</p>
+                                <p className="adv-tier-note-label">Ston Advisory Note</p>
                                 <p className="adv-tier-note-text">A stone may look beautiful in isolation but may not align with the architecture, lighting or application of the project.</p>
                             </div>
                         </article>
@@ -703,7 +703,7 @@ const AdvisoryServices = () => {
                             <h3 className="adv-tier-name">Curated Stone<br /><em>Sourcing</em></h3>
                             <p className="adv-tier-for">A guided sourcing experience for projects requiring deeper material involvement.</p>
 
-                            <p className="adv-tier-section-label">Stonevo works closely with you to</p>
+                            <p className="adv-tier-section-label">Ston works closely with you to</p>
                             <ul className="adv-tier-list">
                                 <li>Understand project intent</li>
                                 <li>Curate suitable material directions</li>
@@ -797,7 +797,7 @@ const AdvisoryServices = () => {
             <section className="adv-perspective">
                 <div className="adv-perspective-inner">
                     <div className="adv-perspective-rule reveal" />
-                    <p className="adv-perspective-eyebrow reveal reveal-delay-1">The Stonevo Perspective</p>
+                    <p className="adv-perspective-eyebrow reveal reveal-delay-1">The Ston Perspective</p>
                     <h2 className="adv-perspective-quote reveal reveal-delay-2">
                         The right stone is rarely selected through <em>random browsing</em> alone.
                     </h2>
@@ -809,7 +809,7 @@ const AdvisoryServices = () => {
                         <span className="adv-perspective-pill">Thoughtful guidance</span>
                     </div>
                     <p className="adv-perspective-foot reveal reveal-delay-3">
-                        Meaningful material selection requires all of the above. <strong>Stonevo exists to simplify that process</strong> through a more structured and refined approach to stone advisory.
+                        Meaningful material selection requires all of the above. <strong>Ston exists to simplify that process</strong> through a more structured and refined approach to stone advisory.
                     </p>
                 </div>
             </section>
@@ -833,8 +833,8 @@ const AdvisoryServices = () => {
 
             {/* FOOTER */}
             <footer className="adv-footer">
-                <span>Stonevo</span>
-                <span>© 2026 Stonevo Architectural. Artifact of Nature.</span>
+                <span>Ston</span>
+                <span>© 2026 Ston Architectural. Artifact of Nature.</span>
             </footer>
         </div>
     );

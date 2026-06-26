@@ -249,7 +249,7 @@ export const useProjectChat = (projectId, userRole, userName) => {
                             const isFromMe = msg.sender_name === userName && msg.sender_role === userRole;
                             if (!isFromMe) {
                                 const body = msg.message || (msg.file_name ? `Sent a file: ${msg.file_name}` : 'New message');
-                                showBrowserNotif(`${msg.sender_name} on Stonevo`, body);
+                                showBrowserNotif(`${msg.sender_name} on Ston`, body);
                             }
 
                             if (!isPanelOpen) {

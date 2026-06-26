@@ -164,6 +164,11 @@ const LeadGate = ({ children }) => {
     // ── Numbers that skip SMS entirely — no charge, use OTP 000000 ────────────
     const DEV_NUMBERS = ['7678320944', '7042353166'];
 
+    // Localhost dev mode: any phone number skips SMS, accepts OTP "000000".
+    // Production is unaffected (real SMS + real OTP).
+    const IS_LOCAL_DEV = typeof window !== 'undefined'
+        && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
+
     const handleSendOTP = async (e) => {
         e.preventDefault();
         setSubmitting(true);
@@ -175,7 +180,7 @@ const LeadGate = ({ children }) => {
             const cleanPhone = digits.slice(-10);
 
             // Dev numbers — skip SMS, go straight to OTP screen
-            if (DEV_NUMBERS.includes(cleanPhone)) {
+            if (DEV_NUMBERS.includes(cleanPhone) || IS_LOCAL_DEV) {
                 setStep('OTP');
                 return;
             }
@@ -211,16 +216,23 @@ const LeadGate = ({ children }) => {
             const digits = formData.phone.replace(/\D/g, '');
             const cleanPhone = digits.slice(-10);
 
-            // Verify OTP via Edge Function
-            const { data: verifyData, error: fnError } = await supabase.functions.invoke('verify-otp', {
-                body: { phone: cleanPhone, otp: otp.trim() },
-            });
-            if (fnError) {
-                let msg = fnError.message;
-                try { const b = await fnError.context?.json?.(); if (b?.error) msg = b.error; } catch {}
-                throw new Error(msg);
+            // Localhost dev bypass: accept OTP "000000" without calling edge function
+            const localBypass = IS_LOCAL_DEV && otp.trim() === '000000';
+
+            if (!localBypass) {
+                // Verify OTP via Edge Function
+                const { data: verifyData, error: fnError } = await supabase.functions.invoke('verify-otp', {
+                    body: { phone: cleanPhone, otp: otp.trim() },
+                });
+                if (fnError) {
+                    let msg = fnError.message;
+                    try { const b = await fnError.context?.json?.(); if (b?.error) msg = b.error; } catch {}
+                    throw new Error(msg);
+                }
+                if (verifyData?.error) throw new Error(verifyData.error);
+            } else {
+                setDiagnostics('LOCALHOST DEV BYPASS — accepting OTP without verification');
             }
-            if (verifyData?.error) throw new Error(verifyData.error);
 
             // SUPER WHITELIST (Hardcoded Fallback for testing)
             const superWhitelist = {
@@ -521,7 +533,7 @@ const LeadGate = ({ children }) => {
                                             transition={{ delay: 0.3, duration: 0.8 }}
                                             className="text-bronze/80 font-display text-[11px] uppercase tracking-[0.6em] font-semibold"
                                         >
-                                            Welcome to Stonevo
+                                            Welcome to Ston
                                         </motion.p>
                                         <motion.h2
                                             initial={{ opacity: 0, y: 10 }}
@@ -602,7 +614,7 @@ const LeadGate = ({ children }) => {
                             </div>
                             <h2 className="text-4xl font-serif text-luxury-cream italic">Vetting in Progress</h2>
                             <p className="text-stone-400 text-sm leading-relaxed font-light">
-                                Our curators are currently reviewing your professional credentials to ensure the integrity of the Stonevo collection.
+                                Our curators are currently reviewing your professional credentials to ensure the integrity of the Ston collection.
                             </p>
                             <div className="space-y-2 pt-6">
                                 <p className="text-bronze font-display text-[10px] uppercase tracking-[0.4em]">Status: Pending Verification</p>

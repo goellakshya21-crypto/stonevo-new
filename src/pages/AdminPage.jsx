@@ -94,7 +94,7 @@ function DevTools() {
                 <p className="font-bold">Testing flow reminder:</p>
                 <ol className="list-decimal list-inside space-y-1 text-amber-700">
                     <li>Click <strong>Quick Reset</strong> on the number you want to test with</li>
-                    <li>Go to <strong>stonevo.in</strong>, enter that number</li>
+                    <li>Go to <strong>ston.co.in</strong>, enter that number</li>
                     <li>Type <strong>000000</strong> as the OTP — no SMS sent</li>
                     <li>You'll see the full new architect / new client onboarding flow</li>
                     <li>When done testing, reset again to start fresh</li>
@@ -116,7 +116,7 @@ function AdminPage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-6 h-6 bg-white rounded-none transform rotate-45"></div>
-                        <h1 className="text-lg font-serif font-bold tracking-widest text-white uppercase italic">Stonevo Intelligence</h1>
+                        <h1 className="text-lg font-serif font-bold tracking-widest text-white uppercase italic">Ston Intelligence</h1>
                         <span className="hidden md:inline px-2 py-0.5 bg-stone-700 text-[10px] rounded text-stone-300 font-medium tracking-widest uppercase ml-2">Internal Portal</span>
                     </div>
                     <div className="flex items-center gap-4">
@@ -186,7 +186,7 @@ function AdminPage() {
             </main>
 
             <footer className="py-8 bg-stone-200 text-stone-500 text-[10px] text-center uppercase tracking-[0.2em]">
-                Stonevo Intelligence Group • Precise • Architectural • Intelligent
+                Ston Intelligence Group • Precise • Architectural • Intelligent
             </footer>
         </div>
     );

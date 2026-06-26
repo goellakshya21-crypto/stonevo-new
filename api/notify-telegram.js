@@ -56,7 +56,7 @@ const roleLabel = (r) => {
     return r || 'User';
 };
 
-const STONEVO_BASE = 'https://stonevo.in';
+const STON_BASE = 'https://ston.co.in';
 const ADMIN_PATH = '/internal-management-stonevo-9921';
 
 /** Cooldown — skip if same phone notified within COOLDOWN_MIN window */
@@ -149,7 +149,7 @@ function buildMessage({ event, phone, name, role, firm, status, isFirstLogin, em
 function buildInlineKeyboard({ event, phone }) {
     const buttons = [];
     // "View Admin Panel" always
-    buttons.push([{ text: '👁 View in Admin', url: `${STONEVO_BASE}${ADMIN_PATH}` }]);
+    buttons.push([{ text: '👁 View in Admin', url: `${STON_BASE}${ADMIN_PATH}` }]);
     // "Message" via WhatsApp (works on phone)
     if (phone && phone.length === 10) {
         buttons.push([{ text: '💬 WhatsApp', url: `https://wa.me/91${phone}` }]);

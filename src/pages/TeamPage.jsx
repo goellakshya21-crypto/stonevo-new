@@ -337,7 +337,7 @@ const TeamPage = () => {
                     <Link to="/" style={{ position: 'relative', zIndex: 1, fontFamily: 'Noto Serif, serif', fontSize: 18, letterSpacing: '0.2em', color: '#FDFCF8', textDecoration: 'none', transition: 'color 0.3s' }}
                         onMouseEnter={e => e.target.style.color = '#A37D4B'}
                         onMouseLeave={e => e.target.style.color = '#FDFCF8'}
-                    >STONEVO</Link>
+                    >STON</Link>
                     <div className="tp-nav-tabs" style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(28,24,20,0.55)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 100, padding: 5 }}>
                         <Link to="/about" className="tp-tab">About</Link>
                         <Link to="/stone-intelligence" className="tp-tab">Stone Intelligence</Link>
@@ -350,14 +350,14 @@ const TeamPage = () => {
                 <section id="tp-hero" className="tp-hero" style={{ position: 'relative', minHeight: '70vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '140px 48px 100px', background: '#0d0c0a', overflow: 'hidden' }}>
                     <div className="tp-hero-watermark">PEOPLE</div>
                     <div style={{ position: 'relative', zIndex: 1, maxWidth: 1400, margin: '0 auto', width: '100%' }}>
-                        <p className="tp tp-eyebrow">The People Behind Stonevo</p>
+                        <p className="tp tp-eyebrow">The People Behind Ston</p>
                         <h1 className="tp tp-d1 tp-hero-headline">
                             Built around<br /><em>relationships,</em><br />not transactions.
                         </h1>
                         <div className="tp tp-d2 tp-hero-lead">
                             <div className="tp-hero-lead-rule"></div>
                             <p className="tp-hero-lead-text">
-                                Built on <em>years of experience</em> across premium natural stone projects, sourcing ecosystems and design-led collaborations — the Stonevo team brings together diverse industry perspectives with a <em>shared vision</em> of creating a more structured approach to stone selection and coordination.
+                                Built on <em>years of experience</em> across premium natural stone projects, sourcing ecosystems and design-led collaborations — the Ston team brings together diverse industry perspectives with a <em>shared vision</em> of creating a more structured approach to stone selection and coordination.
                             </p>
                         </div>
                         <div className="tp tp-d3 tp-hero-chapter-row">
@@ -377,7 +377,7 @@ const TeamPage = () => {
 
                         <div className="tp-team-grid">
                             {[
-                                { mark: 'MG', tag: 'Founder',    tagClass: '',   role: <>Vision &amp; Strategic<br />Coordination</>,         name: 'Munish Goel',    bio: "Creating a more structured ecosystem around stone selection, sourcing and project coordination — through advisory-led thinking and long-term industry relationships. Munish leads Stonevo's vision and shapes how every project is approached.", delay: '' },
+                                { mark: 'MG', tag: 'Founder',    tagClass: '',   role: <>Vision &amp; Strategic<br />Coordination</>,         name: 'Munish Goel',    bio: "Creating a more structured ecosystem around stone selection, sourcing and project coordination — through advisory-led thinking and long-term industry relationships. Munish leads Ston's vision and shapes how every project is approached.", delay: '' },
                                 { mark: 'NC', tag: 'Co-founder', tagClass: 'co', role: <>Design-Led<br />Selections</>,                       name: 'Neeti Chawla',   bio: 'Bringing together material understanding, aesthetics and thoughtful curation to help create more refined and design-aligned stone selections.', delay: 'tp-d1' },
                                 { mark: 'SA', tag: 'Co-founder', tagClass: 'co', role: <>Building Relationships<br />&amp; Trust</>,           name: 'Saurabh Anand',  bio: 'Focused on creating strong relationships and long-term trust among clients, architects and project stakeholders.', delay: 'tp-d2' },
                                 { mark: 'M',  tag: 'Co-founder', tagClass: 'co', role: <>Material Curation<br />&amp; Vendor Alignment</>,    name: 'Mithilesh',      bio: 'Identifying premium-grade selections, maintaining strong vendor relationships and ensuring access to well-curated lots across projects.', delay: 'tp-d3' }
@@ -416,8 +416,8 @@ const TeamPage = () => {
 
                 {/* FOOTER */}
                 <footer className="tp-footer" style={{ background: '#0d0c0a', borderTop: '1px solid rgba(255,255,255,0.05)', padding: '32px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontFamily: 'Manrope, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#6b6357' }}>Stonevo</span>
-                    <span style={{ fontFamily: 'Manrope, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#6b6357' }}>© 2026 Stonevo Architectural. Artifact of Nature.</span>
+                    <span style={{ fontFamily: 'Manrope, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#6b6357' }}>Ston</span>
+                    <span style={{ fontFamily: 'Manrope, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#6b6357' }}>© 2026 Ston Architectural. Artifact of Nature.</span>
                 </footer>
             </div>
         </>

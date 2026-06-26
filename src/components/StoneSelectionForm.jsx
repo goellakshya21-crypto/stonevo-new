@@ -847,7 +847,7 @@ const StoneSelectionForm = ({ isOpen, onClose, onSubmit, onChange, initialData, 
                                         </div>
                                         <div>
                                             <h4 className="font-serif text-lg text-white mb-1">Submit for Curated Sourcing</h4>
-                                            <p className="text-xs text-stone-400 leading-relaxed">Submit these exact requirements to Stonevo for exclusive material shortlisting and robust negotiation.</p>
+                                            <p className="text-xs text-stone-400 leading-relaxed">Submit these exact requirements to Ston for exclusive material shortlisting and robust negotiation.</p>
                                         </div>
                                     </div>
                                 </div>

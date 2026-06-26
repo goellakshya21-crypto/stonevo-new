@@ -184,7 +184,7 @@ const BuilderPortal = () => {
                                 <path clip-rule="evenodd" d="M24 4H42V17.3333V30.6667H24V44H6V30.6667V17.3333H24V4Z" fill-rule="evenodd"></path>
                             </svg>
                         </div>
-                        <h1 className="font-serif text-xl font-semibold tracking-tight">Stonevo</h1>
+                        <h1 className="font-serif text-xl font-semibold tracking-tight">Ston</h1>
                     </div>
                     <nav className="hidden md:flex items-center gap-10">
                         <a className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#181611]/60 hover:text-[#181611] dark:text-slate-400 dark:hover:text-white transition-colors" href="/">Gallery</a>

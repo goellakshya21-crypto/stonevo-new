@@ -98,7 +98,7 @@ const ChatPanel = ({ projectId, role, userName, onClose }) => {
     const isMine = (msg) => msg.sender_name === userName;
     const isFileMsg = (msg) => !!(msg.file_type);
     const roleColor = (r) => r === 'architect' ? '#c49a3c' : (r === 'client' || r === 'builder') ? '#38bdf8' : '#34d399';
-    const roleLabel = (r) => r === 'architect' ? 'Architect' : (r === 'client' || r === 'builder') ? 'Client' : 'Stonevo';
+    const roleLabel = (r) => r === 'architect' ? 'Architect' : (r === 'client' || r === 'builder') ? 'Client' : 'Ston';
 
     return (
         <div style={{ position: 'fixed', bottom: 92, right: 24, zIndex: 2147483646, width: 360, height: 520, background: '#111110', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 60px rgba(0,0,0,0.7)' }}>

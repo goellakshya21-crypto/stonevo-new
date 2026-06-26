@@ -183,7 +183,7 @@ const AboutPage = () => {
                 <Link to="/" style={{ fontFamily:'Noto Serif, serif', fontSize:18, letterSpacing:'0.2em', color:'#FDFCF8', textDecoration:'none', transition:'color 0.3s' }}
                     onMouseEnter={e=>e.target.style.color='#A37D4B'}
                     onMouseLeave={e=>e.target.style.color='#FDFCF8'}
-                >STONEVO</Link>
+                >STON</Link>
                 <div className="sv-nav-tabs" style={{ display:'flex', alignItems:'center', gap:4, background:'rgba(28,24,20,0.55)', border:'1px solid rgba(255,255,255,0.06)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', borderRadius:100, padding:5 }}>
                     <Link to="/about" className="sv-nav-tab" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.28em', textTransform:'uppercase', color:'#0d0c0a', background:'#A37D4B', textDecoration:'none', padding:'10px 22px', borderRadius:100, whiteSpace:'nowrap', transition:'color 0.3s, background 0.3s' }}>About</Link>
                     <Link to="/stone-intelligence" className="sv-nav-tab" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.28em', textTransform:'uppercase', color:'rgba(253,252,248,0.55)', background:'transparent', textDecoration:'none', padding:'10px 22px', borderRadius:100, whiteSpace:'nowrap', transition:'color 0.3s, background 0.3s' }}
@@ -208,9 +208,9 @@ const AboutPage = () => {
 
                 {/* content */}
                 <div style={{ position:'relative', zIndex:2, padding:'88px 48px 32px', display:'flex', flexDirection:'column', justifyContent:'center' }}>
-                    <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.85, marginBottom:16 }}>About Stonevo</p>
+                    <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.85, marginBottom:16 }}>About Ston</p>
                     <h1 className="sv sv-headline sv-d1">
-                        Why<br />Stonevo <em style={{ fontStyle:'italic', color:'#A37D4B' }}>exists.</em>
+                        Why<br />Ston <em style={{ fontStyle:'italic', color:'#A37D4B' }}>exists.</em>
                     </h1>
                     <p className="sv sv-d2" style={{ fontFamily:'Manrope, sans-serif', fontSize:15, fontWeight:300, color:'#a89e8d', maxWidth:'40ch', lineHeight:1.7, marginBottom:28 }}>
                         The natural stone industry has extraordinary materials, craftsmanship and possibilities — but the process around selection and coordination often remains unstructured.
@@ -236,13 +236,13 @@ const AboutPage = () => {
                 </div>
             </section>
 
-            {/* MANIFESTO — Why Stonevo Exists */}
+            {/* MANIFESTO — Why Ston Exists */}
             <section style={{ padding:'140px 48px', background:'#0d0c0a' }}>
                 <div className="sv-manifesto-grid" style={{ maxWidth:1400, margin:'0 auto', display:'grid', gridTemplateColumns:'200px 1fr', gap:48, alignItems:'start' }}>
                     <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.75, paddingTop:14 }}>Why We Exist</p>
                     <div>
                         <p className="sv sv-manifesto-text sv-d1">
-                            Stonevo aims to bridge that gap — combining advisory thinking, sourcing understanding, design sensitivity and coordination structure into <em style={{ fontStyle:'italic', color:'#A37D4B' }}>one integrated experience.</em>
+                            Ston aims to bridge that gap — combining advisory thinking, sourcing understanding, design sensitivity and coordination structure into <em style={{ fontStyle:'italic', color:'#A37D4B' }}>one integrated experience.</em>
                         </p>
                         <div className="sv-manifesto-followup" style={{ marginTop:40, borderTop:'1px solid rgba(255,255,255,0.07)', paddingTop:32, display:'grid', gridTemplateColumns:'1fr 1fr', gap:48 }}>
                             <p className="sv sv-d2" style={{ fontFamily:'Manrope, sans-serif', fontSize:15, fontWeight:300, lineHeight:1.75, color:'#a89e8d' }}>
@@ -285,12 +285,12 @@ const AboutPage = () => {
                 </div>
             </section>
 
-            {/* WHAT STONEVO DOES */}
+            {/* WHAT STON DOES */}
             <section style={{ padding:'140px 48px', background:'#0d0c0a' }}>
                 <div style={{ maxWidth:1400, margin:'0 auto' }}>
                     <div className="sv-phil-header" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:48, marginBottom:80, alignItems:'end' }}>
                         <div>
-                            <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.75, marginBottom:20 }}>What Stonevo Does</p>
+                            <p className="sv" style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:800, letterSpacing:'0.45em', textTransform:'uppercase', color:'#A37D4B', opacity:0.75, marginBottom:20 }}>What Ston Does</p>
                             <h2 className="sv sv-phil-h2 sv-d1">
                                 One integrated<br /><em style={{ fontStyle:'italic', color:'#A37D4B' }}>experience.</em>
                             </h2>
@@ -395,8 +395,8 @@ const AboutPage = () => {
 
             {/* FOOTER */}
             <footer style={{ background:'#0d0c0a', borderTop:'1px solid rgba(255,255,255,0.05)', padding:'32px 48px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <span style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.3em', textTransform:'uppercase', color:'#6b6357' }}>Stonevo</span>
-                <span style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.3em', textTransform:'uppercase', color:'#6b6357' }}>© {new Date().getFullYear()} Stonevo Architectural. Artifact of Nature.</span>
+                <span style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.3em', textTransform:'uppercase', color:'#6b6357' }}>Ston</span>
+                <span style={{ fontFamily:'Manrope, sans-serif', fontSize:10, fontWeight:700, letterSpacing:'0.3em', textTransform:'uppercase', color:'#6b6357' }}>© {new Date().getFullYear()} Ston Architectural. Artifact of Nature.</span>
             </footer>
         </>
     );
