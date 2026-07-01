@@ -5,10 +5,10 @@ import AIVisualizationModal from './AIVisualizationModal';
 /**
  * Premium Image Modal for full-screen stone viewing.
  */
-function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true, onAddToRequirements }) {
+function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true, onAddToRequirements, initialBookmatch = null }) {
     const [isVisualizing, setIsVisualizing] = useState(false);
     // null = off | '2way' = side-by-side mirror | '4way' = 2×2 quad mirror
-    const [bookmatchMode, setBookmatchMode] = useState(null);
+    const [bookmatchMode, setBookmatchMode] = useState(initialBookmatch);
     // '4way' vertical direction: 'down' = original on top, mirror below | 'up' = mirror on top, original below
     const [flipDir, setFlipDir] = useState('down');
 
