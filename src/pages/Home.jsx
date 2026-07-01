@@ -122,6 +122,7 @@ function Home({ role }) {
     const [pendingRequestCount, setPendingRequestCount] = useState(0);
     const [customStoneOpen, setCustomStoneOpen] = useState(false);
     const [stoneToVisualize, setStoneToVisualize] = useState(null); // re-visualize a saved stone
+    const [csBookmatch, setCsBookmatch] = useState(null); // bookmatch mode for the custom stone being visualized: null | '2way' | '4way'
     const [renamingId, setRenamingId] = useState(null);
     const [renameValue, setRenameValue] = useState('');
 
@@ -725,13 +726,25 @@ function Home({ role }) {
                                         {cs.cropped_image_url && (
                                             <span className="absolute top-2 left-2 text-[7px] font-bold uppercase tracking-wider bg-[#eca413]/80 text-black px-1.5 py-0.5 rounded">✂</span>
                                         )}
-                                        {/* Hover overlay with Visualize button */}
-                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/cs:opacity-100 transition-opacity flex items-center justify-center">
+                                        {/* Hover overlay: Visualize + bookmatch options */}
+                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/cs:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 px-3">
                                             <button
-                                                onClick={() => setStoneToVisualize(cs)}
-                                                className="flex items-center gap-2 px-4 py-2 bg-[#eca413] text-black text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-white transition-all shadow-xl"
+                                                onClick={() => { setCsBookmatch(null); setStoneToVisualize(cs); }}
+                                                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-[#eca413] text-black text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-white transition-all shadow-xl"
                                             >
                                                 <Sparkles size={11} /> Visualize
+                                            </button>
+                                            <button
+                                                onClick={() => { setCsBookmatch('2way'); setStoneToVisualize(cs); }}
+                                                className="w-full px-3 py-1.5 bg-white/10 border border-white/20 text-white text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-white/20 transition-all"
+                                            >
+                                                2-Way Bookmatch
+                                            </button>
+                                            <button
+                                                onClick={() => { setCsBookmatch('4way'); setStoneToVisualize(cs); }}
+                                                className="w-full px-3 py-1.5 bg-white/10 border border-white/20 text-white text-[9px] font-bold uppercase tracking-widest rounded-full hover:bg-white/20 transition-all"
+                                            >
+                                                4-Way Bookmatch
                                             </button>
                                         </div>
                                         {/* Delete button */}
@@ -842,12 +855,14 @@ function Home({ role }) {
                 onClose={() => setCustomStoneOpen(false)}
             />
 
-            {/* Re-visualize a previously uploaded stone */}
+            {/* Re-visualize a previously uploaded stone (optionally bookmatched) */}
             {stoneToVisualize && (
                 <AIVisualizationModal
                     isOpen={true}
                     stone={stoneToVisualize}
-                    onClose={() => setStoneToVisualize(null)}
+                    bookmatchMode={csBookmatch}
+                    bookmatchDir={csBookmatch === '4way' ? 'down' : null}
+                    onClose={() => { setStoneToVisualize(null); setCsBookmatch(null); }}
                 />
             )}
 
