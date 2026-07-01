@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import AIVisualizationModal from './AIVisualizationModal';
 
@@ -11,6 +11,38 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
     const [bookmatchMode, setBookmatchMode] = useState(initialBookmatch);
     // '4way' vertical direction: 'down' = original on top, mirror below | 'up' = mirror on top, original below
     const [flipDir, setFlipDir] = useState('down');
+
+    // Measure the image area + the slab's natural aspect ratio so the bookmatch
+    // composite can be sized to show the WHOLE slab (no crop, no seam gaps).
+    const imgAreaRef = useRef(null);
+    const [box, setBox] = useState({ w: 0, h: 0 });
+    const [imgAR, setImgAR] = useState(1); // natural width / height of the slab
+
+    useEffect(() => {
+        const el = imgAreaRef.current;
+        if (!el) return;
+        const measure = () => setBox({ w: el.clientWidth, h: el.clientHeight });
+        measure();
+        const ro = new ResizeObserver(measure);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, [bookmatchMode]);
+
+    useEffect(() => {
+        if (!stone?.imageUrl) return;
+        const img = new Image();
+        img.onload = () => { if (img.naturalHeight) setImgAR(img.naturalWidth / img.naturalHeight); };
+        img.src = stone.imageUrl;
+    }, [stone?.imageUrl]);
+
+    // Fit a composite of aspect ratio `compAR` inside the measured box (contain).
+    const fitBox = (compAR) => {
+        const { w, h } = box;
+        if (!w || !h) return { w: '100%', h: '100%' };
+        let fw = w, fh = w / compAR;
+        if (fh > h) { fh = h; fw = h * compAR; }
+        return { w: Math.round(fw), h: Math.round(fh) };
+    };
 
     if (!stone || !isOpen) return null;
 
@@ -114,7 +146,7 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
                     )}
 
                     {/* Image Container */}
-                    <div className="w-full md:flex-1 bg-stone-900 flex items-center justify-center overflow-hidden relative h-[50vh] md:h-full shrink-0">
+                    <div ref={imgAreaRef} className="w-full md:flex-1 bg-stone-900 flex items-center justify-center overflow-hidden relative h-[50vh] md:h-full shrink-0">
                         {!bookmatchMode && (
                             <img
                                 key={stone.id}
@@ -124,30 +156,32 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
                             />
                         )}
 
-                        {bookmatchMode === '2way' && (
-                            <div className="flex w-full h-full animate-fade-in">
-                                <div className="flex-1 h-full overflow-hidden mr-[-1px] relative z-10">
-                                    <img src={stone.imageUrl} className="w-full h-full object-cover" />
+                        {/* 2-WAY: composite AR = 2×slab → each half holds the whole slab, no crop */}
+                        {bookmatchMode === '2way' && (() => {
+                            const fit = fitBox(2 * imgAR);
+                            return (
+                                <div style={{ width: fit.w, height: fit.h, display: 'flex' }} className="animate-fade-in">
+                                    <img src={stone.imageUrl} style={{ width: '50%', height: '100%', objectFit: 'fill', display: 'block', marginRight: -1 }} />
+                                    <img src={stone.imageUrl} style={{ width: '50%', height: '100%', objectFit: 'fill', display: 'block', transform: 'scaleX(-1)' }} />
                                 </div>
-                                <div className="flex-1 h-full overflow-hidden relative z-0">
-                                    <img src={stone.imageUrl} className="w-full h-full object-cover scale-x-[-1]" />
-                                </div>
-                            </div>
-                        )}
+                            );
+                        })()}
 
+                        {/* 4-WAY: composite AR = slab AR → each quadrant holds the whole slab, no crop */}
                         {bookmatchMode === '4way' && (() => {
                             const isUp = flipDir === 'up';
                             const tl = isUp ? 'scaleY(-1)'   : 'none';
                             const tr = isUp ? 'scale(-1,-1)' : 'scaleX(-1)';
                             const bl = isUp ? 'none'         : 'scaleY(-1)';
                             const br = isUp ? 'scaleX(-1)'   : 'scale(-1,-1)';
+                            const fit = fitBox(imgAR);
                             const cell = (transform, pos) => (
                                 <div style={{ position: 'absolute', overflow: 'hidden', ...pos }}>
-                                    <img src={stone.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', transform, display: 'block' }} />
+                                    <img src={stone.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'fill', transform, display: 'block' }} />
                                 </div>
                             );
                             return (
-                                <div style={{ position: 'relative', width: '100%', height: '100%' }} className="animate-fade-in">
+                                <div style={{ position: 'relative', width: fit.w, height: fit.h }} className="animate-fade-in">
                                     {cell(tl, { top: 0,    left: 0,     width: '50%', height: 'calc(50% + 1px)' })}
                                     {cell(tr, { top: 0,    left: '50%', width: '50%', height: 'calc(50% + 1px)' })}
                                     {cell(bl, { top: '50%', left: 0,    width: '50%', height: '50%' })}
