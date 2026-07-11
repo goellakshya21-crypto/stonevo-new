@@ -403,10 +403,18 @@ const AboutPage = () => {
                 .scroll-section { position: absolute; left: 0; right: 0; padding: 0 48px; }
                 .align-left { padding-left: 8vw; padding-right: 50vw; }
                 .align-right { padding-left: 50vw; padding-right: 8vw; }
-                .align-left .section-inner, .align-right .section-inner { max-width: 42vw; }
-                .section-label { display: block; font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.4em; text-transform: uppercase; color: var(--bronze); opacity: 0.8; margin-bottom: 24px; }
-                .section-heading { font-family: var(--serif); font-weight: 300; letter-spacing: -0.03em; line-height: 1.08; font-size: clamp(34px, 4.6vw, 68px); color: var(--cream); margin-bottom: 24px; white-space: pre-line; }
-                .section-body { font-family: var(--sans); font-size: 16px; font-weight: 300; line-height: 1.75; color: var(--text-mid); }
+                .align-left .section-inner, .align-right .section-inner {
+                    max-width: 42vw;
+                    background: rgba(253,252,248,0.92);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    padding: 40px 44px;
+                    border-radius: 20px;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+                }
+                .section-label { display: block; font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.4em; text-transform: uppercase; color: var(--bronze); opacity: 1; margin-bottom: 24px; }
+                .section-heading { font-family: var(--serif); font-weight: 300; letter-spacing: -0.03em; line-height: 1.08; font-size: clamp(34px, 4.6vw, 68px); color: #0d0c0a; margin-bottom: 24px; white-space: pre-line; }
+                .section-body { font-family: var(--sans); font-size: 16px; font-weight: 300; line-height: 1.75; color: #2a2620; }
 
                 /* STATS SECTION */
                 .section-stats { display: flex; align-items: center; justify-content: center; padding: 0 48px; }
@@ -418,17 +426,26 @@ const AboutPage = () => {
 
                 /* HOW WE HELP list */
                 .help-list { list-style: none; margin-top: 8px; }
-                .help-list li { font-family: var(--serif); font-size: clamp(18px, 1.7vw, 24px); font-weight: 300; font-style: italic; color: var(--cream); line-height: 1.5; padding: 14px 0; border-top: 1px solid rgba(255,255,255,0.08); }
+                .help-list li { font-family: var(--serif); font-size: clamp(18px, 1.7vw, 24px); font-weight: 300; font-style: italic; color: #0d0c0a; line-height: 1.5; padding: 14px 0; border-top: 1px solid rgba(13,12,10,0.12); }
 
                 /* CTA SECTION */
                 .section-cta { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 48px; }
-                .section-cta .section-inner { max-width: 56ch; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+                .section-cta .section-inner {
+                    max-width: 56ch; display: flex; flex-direction: column; align-items: center; gap: 24px;
+                    background: rgba(253,252,248,0.92);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
+                    padding: 48px 44px;
+                    border-radius: 20px;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+                }
+                .section-cta .section-heading { color: #0d0c0a; }
+                .section-cta .section-body { color: #2a2620; }
 
                 @media (max-width: 900px) {
                     .ab-hero-heading { font-size: clamp(40px, 13vw, 84px); }
                     .align-left, .align-right { padding-left: 8vw; padding-right: 8vw; text-align: center; }
-                    .align-left .section-inner, .align-right .section-inner { max-width: 100%; margin: 0 auto; }
-                    .align-left .section-inner, .align-right .section-inner { background: rgba(13,12,10,0.72); backdrop-filter: blur(6px); padding: 28px 20px; border-radius: 16px; }
+                    .align-left .section-inner, .align-right .section-inner { max-width: 100%; margin: 0 auto; padding: 28px 20px; }
                     .stats-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
                 }
             `}</style>
