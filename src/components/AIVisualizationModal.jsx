@@ -6,7 +6,7 @@ import { aiVisualizer } from '../lib/aiVisualizer';
 import { supabase } from '../lib/supabaseClient';
 
 // Room / application options shown during visualization
-const ALL_ROOM_APPS = ['Flooring', 'Washroom', 'Feature Wall', 'Counter Top', 'Outdoor', 'Façade'];
+const ALL_ROOM_APPS = ['Flooring', 'Washroom', 'Feature Wall', 'Counter Top', 'Outdoor'];
 
 const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, intendedApp, allowCustomStone, onStoneUploaded, bookmatchMode = null, bookmatchDir = null }) => {
     const [loading, setLoading] = useState(false);
