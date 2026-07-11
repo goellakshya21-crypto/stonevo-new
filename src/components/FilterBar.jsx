@@ -68,8 +68,7 @@ const FilterBar = ({ filters, setFilters, onReset }) => {
         { value: 'Washroom', label: 'Washroom' },
         { value: 'Feature Wall', label: 'Feature Wall' },
         { value: 'Counter Top', label: 'Counter Top' },
-        { value: 'Outdoor', label: 'Outdoor' },
-        { value: 'Façade', label: 'Façade' }
+        { value: 'Outdoor', label: 'Outdoor' }
     ];
 
     const patternOptions = [
