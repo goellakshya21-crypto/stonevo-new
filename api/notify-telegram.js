@@ -7,7 +7,7 @@
  *  - TELEGRAM_TEAM_PHONES: comma-separated 10-digit phone numbers to skip
  *  - TELEGRAM_QUIET_START: hour 0-23 IST when quiet starts (default 23)
  *  - TELEGRAM_QUIET_END:   hour 0-23 IST when quiet ends   (default 8)
- *  - TELEGRAM_COOLDOWN_MIN: min minutes between pings for same phone (default 60)
+ *  - TELEGRAM_COOLDOWN_MIN: min minutes between pings for same phone (default 120)
  *
  * POST body fields:
  *  - event:      'login' | 'signup' | 'request'   (controls formatting + cooldown rules)
@@ -192,9 +192,9 @@ export default async function handler(req, res) {
         // Routine logins during quiet hours go silent
         const silentNotification = inQuietHours && body.event === 'login' && !body.isFirstLogin;
 
-        // 3. Cooldown — disabled by default (0 = ping every visit).
-        // To enable: set TELEGRAM_COOLDOWN_MIN env var to a positive number of minutes.
-        const cooldownMin = parseInt(process.env.TELEGRAM_COOLDOWN_MIN || '0', 10);
+        // 3. Cooldown — 120 min default (same phone won't re-ping on refresh).
+        // Override with TELEGRAM_COOLDOWN_MIN env var (minutes). Set to 0 to disable.
+        const cooldownMin = parseInt(process.env.TELEGRAM_COOLDOWN_MIN ?? '120', 10);
         if (cooldownMin > 0 && body.event === 'login' && !body.isFirstLogin && cleanPhone) {
             if (await shouldSkipForCooldown(cleanPhone, cooldownMin)) {
                 return res.status(200).json({ ok: true, skipped: true, reason: 'cooldown' });
