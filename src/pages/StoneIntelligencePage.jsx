@@ -406,7 +406,6 @@ const StoneIntelligencePage = () => {
                     <div className="si-nav-tabs" style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(28,24,20,0.55)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 100, padding: 5 }}>
                         <NavTab to="/about">About</NavTab>
                         <NavTab to="/stone-intelligence" active>Stone Intelligence</NavTab>
-                        <NavTab to="/team">Our Team</NavTab>
                         <NavTab to="/advisory">Audit & Advisory</NavTab>
                     </div>
                 </nav>

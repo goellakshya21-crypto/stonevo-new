@@ -5,7 +5,6 @@ import BuilderPortal from './pages/BuilderPortal';
 import AdminPage from './pages/AdminPage';
 import AdvisoryServices from './pages/AdvisoryServices';
 import AboutPage from './pages/AboutPage';
-import TeamPage from './pages/TeamPage';
 import StoneIntelligencePage from './pages/StoneIntelligencePage';
 import VendorPortal from './pages/VendorPortal';
 import PrivilegeCircle from './pages/PrivilegeCircle';
@@ -29,7 +28,6 @@ function App() {
           <Route path="/builder" element={<BuilderPortal />} />
           <Route path="/advisory" element={<AdvisoryServices />} />
           <Route path="/about" element={<AboutPage />} />
-          <Route path="/team" element={<TeamPage />} />
           <Route path="/stone-intelligence" element={<StoneIntelligencePage />} />
           <Route path="/vendor" element={<VendorPortal />} />
           <Route path="/circle" element={<PrivilegeCircle />} />
