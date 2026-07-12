@@ -6,10 +6,11 @@ import Lenis from 'lenis';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const FRAME_COUNT = 240;
+const FRAME_COUNT = 226;
 const FRAME_PATH = (i) => `/about-frames/frame_${String(i).padStart(4, '0')}.webp`;
 const FRAME_SPEED = 2.0;
-const IMAGE_SCALE = 0.85;
+// Full-bleed cover — frames fill the entire viewport edge-to-edge, no side bars.
+const IMAGE_SCALE = 1.0;
 
 const SECTIONS = [
     {
