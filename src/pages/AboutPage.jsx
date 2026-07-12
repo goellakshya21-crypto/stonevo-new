@@ -6,9 +6,9 @@ import Lenis from 'lenis';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const FRAME_COUNT = 226;
+const FRAME_COUNT = 361;
 const FRAME_PATH = (i) => `/about-frames/frame_${String(i).padStart(4, '0')}.webp`;
-const FRAME_SPEED = 2.0;
+const FRAME_SPEED = 1.3;
 // Full-bleed cover — frames fill the entire viewport edge-to-edge, no side bars.
 const IMAGE_SCALE = 1.0;
 
@@ -152,7 +152,7 @@ const AboutPage = () => {
         if (!ready) return;
 
         const lenis = new Lenis({
-            duration: 1.2,
+            duration: 1.6,
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
             smoothWheel: true,
         });
@@ -400,7 +400,7 @@ const AboutPage = () => {
                 .ab-marquee-text { display: inline-flex; white-space: nowrap; font-family: var(--serif); font-style: italic; font-weight: 700; font-size: clamp(64px, 12vw, 190px); letter-spacing: -0.02em; color: transparent; -webkit-text-stroke: 1px rgba(163,125,75,0.35); }
 
                 /* SCROLL CONTAINER */
-                .ab-scroll-container { position: relative; z-index: 10; height: 900vh; }
+                .ab-scroll-container { position: relative; z-index: 10; height: 1300vh; }
                 .scroll-section { position: absolute; left: 0; right: 0; padding: 0 48px; }
                 .align-left { padding-left: 8vw; padding-right: 50vw; }
                 .align-right { padding-left: 50vw; padding-right: 8vw; }
