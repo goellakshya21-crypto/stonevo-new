@@ -101,10 +101,10 @@ const StoneIntelligencePage = () => {
 
                 .si-headline {
                     font-family: 'Noto Serif', serif;
-                    font-size: clamp(36px, 4.4vw, 60px);
+                    font-size: clamp(32px, 3.8vw, 52px);
                     font-weight: 300;
                     letter-spacing: -0.03em;
-                    line-height: 1.08;
+                    line-height: 1.1;
                     color: #FDFCF8;
                 }
                 .si-headline em { font-style: italic; color: #A37D4B; }
@@ -411,16 +411,16 @@ const StoneIntelligencePage = () => {
                 </nav>
 
                 {/* HERO */}
-                <section id="si-hero" className="si-hero" style={{ position: 'relative', minHeight: '80vh', display: 'flex', alignItems: 'center', padding: '130px 48px 60px', background: '#0d0c0a', overflow: 'hidden' }}>
+                <section id="si-hero" className="si-hero" style={{ position: 'relative', minHeight: '80vh', display: 'flex', alignItems: 'center', padding: '110px 48px 50px', background: '#0d0c0a', overflow: 'hidden' }}>
                     <div className="si-hero-watermark">INTELLIGENCE</div>
                     <div className="si-hero-inner" style={{ position: 'relative', zIndex: 1, maxWidth: 1400, margin: '0 auto', width: '100%', display: 'grid', gridTemplateColumns: '6fr 5fr', gap: 80, alignItems: 'center' }}>
                         <div>
-                            <p className="si si-eyebrow" style={{ opacity: 0.85, marginBottom: 28 }}>Stone Intelligence</p>
-                            <h1 className="si si-d1 si-headline" style={{ marginBottom: 24 }}>
+                            <p className="si si-eyebrow" style={{ opacity: 0.85, marginBottom: 18 }}>Stone Intelligence</p>
+                            <h1 className="si si-d1 si-headline" style={{ marginBottom: 16 }}>
                                 A more <em>thoughtful</em><br />way to understand<br />natural stone.
                             </h1>
-                            <p className="si si-d2" style={{ fontFamily: 'Noto Serif, serif', fontSize: 22, fontStyle: 'italic', color: '#A37D4B', opacity: 0.9, maxWidth: '32ch', lineHeight: 1.4 }}>
-                                Not what stone is — but how to think about stone correctly.
+                            <p className="si si-d2" style={{ fontFamily: 'Noto Serif, serif', fontSize: 19, fontStyle: 'italic', color: '#A37D4B', opacity: 0.9, maxWidth: '32ch', lineHeight: 1.35 }}>
+                                Not what stone is, but how to think about stone correctly.
                             </p>
                         </div>
                         <aside className="si si-d2 si-hero-right" style={{ borderLeft: '1px solid rgba(163,125,75,0.25)', paddingLeft: 40, paddingBottom: 8 }}>
