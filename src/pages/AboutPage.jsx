@@ -506,8 +506,12 @@ const AboutPage = () => {
             <div className={`ab-loader ${ready ? 'ab-loader-hidden' : ''}`}>
                 <svg className="ab-loader-s" viewBox="0 0 200 260">
                     <defs>
+                        {/* Custom N mark: corner-to-corner diagonal with thin slits
+                            separating it from the sheared stems (matches the logo). */}
                         <clipPath id="abSClip">
-                            <text x="100" y="210" textAnchor="middle" fontFamily="'Noto Serif', serif" fontWeight="700" fontSize="230">S</text>
+                            <path d="M40,55 L74,55 L160,205 L126,205 Z" />
+                            <path d="M40,63.5 L64,105.4 L64,205 L40,205 Z" />
+                            <path d="M136,55 L160,55 L160,196.5 L136,154.6 Z" />
                         </clipPath>
                         <linearGradient id="abGoldFront" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="#FFF8E1" />
@@ -538,13 +542,16 @@ const AboutPage = () => {
                     {/* Soft pulsing glow behind the glyph */}
                     <circle className="ab-loader-glow" cx="100" cy="132" r="100" fill="url(#abGlow)" />
 
-                    {/* Faint outline of the S, always visible */}
-                    <text x="100" y="210" textAnchor="middle" fontFamily="'Noto Serif', serif" fontWeight="700" fontSize="230"
-                        fill="none" stroke="rgba(163,125,75,0.32)" strokeWidth="2">S</text>
+                    {/* Faint outline of the N, always visible */}
+                    <g fill="none" stroke="rgba(163,125,75,0.32)" strokeWidth="2">
+                        <path d="M40,55 L74,55 L160,205 L126,205 Z" />
+                        <path d="M40,63.5 L64,105.4 L64,205 L40,205 Z" />
+                        <path d="M136,55 L160,55 L160,196.5 L136,154.6 Z" />
+                    </g>
 
-                    {/* Liquid, clipped inside the S */}
+                    {/* Liquid, clipped inside the N */}
                     <g clipPath="url(#abSClip)">
-                        <g style={{ transform: `translateY(${258 - 2.75 * displayProgress}px)` }}>
+                        <g style={{ transform: `translateY(${210 - 1.75 * displayProgress}px)` }}>
                             <g className="ab-liquid-bob">
                                 {/* Back layer: darker, slower, drifting the other way */}
                                 <g className="ab-wave-back">
@@ -581,7 +588,7 @@ const AboutPage = () => {
                                 {/* Bubbles rising through the liquid */}
                                 <circle className="ab-bubble" cx="86" cy="130" r="3" fill="rgba(253,252,248,0.35)" />
                                 <circle className="ab-bubble ab-bubble-2" cx="112" cy="165" r="2" fill="rgba(253,252,248,0.3)" />
-                                <circle className="ab-bubble ab-bubble-3" cx="98" cy="195" r="2.5" fill="rgba(253,252,248,0.25)" />
+                                <circle className="ab-bubble ab-bubble-3" cx="118" cy="195" r="2.5" fill="rgba(253,252,248,0.25)" />
                             </g>
                         </g>
                     </g>
