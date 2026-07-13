@@ -518,16 +518,22 @@ const AboutPage = () => {
                             <path d="M40,63.5 L64,105.4 L64,205 L40,205 Z" />
                             <path d="M136,55 L160,55 L160,196.5 L136,154.6 Z" />
                         </clipPath>
+                        {/* Liquid gold in the logo's palette: deep amber -> rich gold */}
                         <linearGradient id="abGoldFront" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#FFF8E1" />
-                            <stop offset="28%" stopColor="#F9E3A8" />
-                            <stop offset="55%" stopColor="#E3B96B" />
-                            <stop offset="80%" stopColor="#B8894A" />
-                            <stop offset="100%" stopColor="#7A5C33" />
+                            <stop offset="0%" stopColor="#F2CD79" />
+                            <stop offset="40%" stopColor="#DFAE4F" />
+                            <stop offset="75%" stopColor="#B8842F" />
+                            <stop offset="100%" stopColor="#7C531B" />
                         </linearGradient>
                         <linearGradient id="abGoldBack" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#C9A45E" />
-                            <stop offset="100%" stopColor="#6B5430" />
+                            <stop offset="0%" stopColor="#9C6D2E" />
+                            <stop offset="100%" stopColor="#5C3F14" />
+                        </linearGradient>
+                        {/* Logo gradient for the N outline: dark lower-left -> bright upper-right */}
+                        <linearGradient id="abLogoGold" x1="0" y1="1" x2="1" y2="0">
+                            <stop offset="0%" stopColor="#7C531B" />
+                            <stop offset="50%" stopColor="#C89237" />
+                            <stop offset="100%" stopColor="#F2CD79" />
                         </linearGradient>
                         <linearGradient id="abSheenGrad" x1="0" y1="0" x2="1" y2="0">
                             <stop offset="0%" stopColor="rgba(255,250,235,0)" />
@@ -547,8 +553,8 @@ const AboutPage = () => {
                     {/* Soft pulsing glow behind the glyph */}
                     <circle className="ab-loader-glow" cx="100" cy="132" r="100" fill="url(#abGlow)" />
 
-                    {/* Faint outline of the N, always visible */}
-                    <g fill="none" stroke="rgba(163,125,75,0.32)" strokeWidth="2">
+                    {/* Outline of the N in the logo gradient, always visible */}
+                    <g fill="none" stroke="url(#abLogoGold)" strokeWidth="2" opacity="0.45">
                         <path d="M40,55 L74,55 L160,205 L126,205 Z" />
                         <path d="M40,63.5 L64,105.4 L64,205 L40,205 Z" />
                         <path d="M136,55 L160,55 L160,196.5 L136,154.6 Z" />
