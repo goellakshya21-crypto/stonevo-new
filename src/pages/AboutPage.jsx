@@ -406,12 +406,8 @@ const AboutPage = () => {
                 .align-right { padding-left: 50vw; padding-right: 8vw; }
                 .align-left .section-inner, .align-right .section-inner {
                     max-width: 42vw;
-                    background: rgba(253,252,248,0.92);
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                    padding: 40px 44px;
-                    border-radius: 20px;
-                    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+                    padding: 60px 64px;
+                    background: radial-gradient(ellipse 100% 90% at center, rgba(253,252,248,0.92) 0%, rgba(253,252,248,0.8) 40%, rgba(253,252,248,0.4) 70%, rgba(253,252,248,0) 100%);
                 }
                 .section-label { display: block; font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.4em; text-transform: uppercase; color: var(--bronze); opacity: 1; margin-bottom: 24px; }
                 .section-heading { font-family: var(--serif); font-weight: 300; letter-spacing: -0.03em; line-height: 1.08; font-size: clamp(34px, 4.6vw, 68px); color: #0d0c0a; margin-bottom: 24px; white-space: pre-line; }
@@ -433,12 +429,8 @@ const AboutPage = () => {
                 .section-cta { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 48px; }
                 .section-cta .section-inner {
                     max-width: 56ch; display: flex; flex-direction: column; align-items: center; gap: 24px;
-                    background: rgba(253,252,248,0.92);
-                    backdrop-filter: blur(10px);
-                    -webkit-backdrop-filter: blur(10px);
-                    padding: 48px 44px;
-                    border-radius: 20px;
-                    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+                    padding: 70px 64px;
+                    background: radial-gradient(ellipse 100% 90% at center, rgba(253,252,248,0.92) 0%, rgba(253,252,248,0.8) 40%, rgba(253,252,248,0.4) 70%, rgba(253,252,248,0) 100%);
                 }
                 .section-cta .section-heading { color: #0d0c0a; }
                 .section-cta .section-body { color: #2a2620; }
