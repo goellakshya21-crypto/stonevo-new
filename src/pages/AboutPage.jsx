@@ -376,14 +376,13 @@ const AboutPage = () => {
                     min-height: 100vh;
                     background: var(--bg);
                     display: flex; flex-direction: column; justify-content: center;
-                    padding: 140px 48px 80px;
-                    overflow: hidden;
+                    padding: 120px 48px 100px;
                 }
-                .ab-hero-label { font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.45em; text-transform: uppercase; color: var(--bronze); opacity: 0.85; margin-bottom: 24px; }
-                .ab-hero-heading { font-family: var(--serif); font-weight: 300; letter-spacing: -0.03em; line-height: 0.98; font-size: clamp(52px, 10vw, 168px); margin-bottom: 32px; }
+                .ab-hero-label { font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.45em; text-transform: uppercase; color: var(--bronze); opacity: 0.85; margin-bottom: 16px; }
+                .ab-hero-heading { font-family: var(--serif); font-weight: 300; letter-spacing: -0.03em; line-height: 0.98; font-size: clamp(44px, 8vw, 132px); margin-bottom: 22px; }
                 .ab-hero-word { display: inline-block; }
                 .ab-hero-heading em { font-style: italic; color: var(--bronze); }
-                .ab-hero-tagline { font-family: var(--sans); font-size: 16px; font-weight: 300; line-height: 1.75; color: var(--text-mid); max-width: 42ch; margin-bottom: 36px; }
+                .ab-hero-tagline { font-family: var(--sans); font-size: 16px; font-weight: 300; line-height: 1.75; color: var(--text-mid); max-width: 42ch; margin-bottom: 24px; }
                 .ab-hero-cta { display: inline-flex; align-items: center; gap: 14px; font-family: var(--sans); font-size: 12px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; color: var(--bg); background: var(--bronze); border: none; cursor: pointer; padding: 20px 44px; border-radius: 100px; width: fit-content; transition: background 0.3s, transform 0.2s, box-shadow 0.3s; box-shadow: 0 8px 48px rgba(163,125,75,0.5), 0 2px 12px rgba(0,0,0,0.4); }
                 .ab-hero-cta:hover { background: var(--cream); transform: scale(1.04); }
                 .ab-hero-scroll { position: absolute; bottom: 40px; left: 48px; display: flex; align-items: center; gap: 12px; font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--text-dim); }
