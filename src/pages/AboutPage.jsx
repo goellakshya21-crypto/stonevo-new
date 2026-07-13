@@ -465,7 +465,7 @@ const AboutPage = () => {
                 <p className="ab-hero-label">Chapter I — Purpose</p>
                 <h1 className="ab-hero-heading">
                     <span className="ab-hero-word">Why</span>{' '}
-                    <span className="ab-hero-word">Ston</span>{' '}
+                    <span className="ab-hero-word">STON</span>{' '}
                     <span className="ab-hero-word"><em>exists.</em></span>
                 </h1>
                 <p className="ab-hero-tagline">
