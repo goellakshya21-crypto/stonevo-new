@@ -49,7 +49,9 @@ const HELP_LINES = [
 const AboutPage = () => {
     const navigate = useNavigate();
 
-    const [loadProgress, setLoadProgress] = useState(0);
+    // Shown percent is min(actual frames loaded, timed ramp) so the fill
+    // animation always plays for at least MIN_LOADER_MS, even fully cached.
+    const [displayProgress, setDisplayProgress] = useState(0);
     const [ready, setReady] = useState(false);
 
     const canvasRef = useRef(null);
@@ -62,6 +64,7 @@ const AboutPage = () => {
     const framesRef = useRef([]);
     const currentFrameRef = useRef(0);
     const bgColorRef = useRef('#0d0c0a');
+    const actualProgressRef = useRef(0);
 
     const enter = () => {
         sessionStorage.setItem('sv_enter', '1');
@@ -77,8 +80,7 @@ const AboutPage = () => {
 
         const onOneLoaded = () => {
             loadedCount += 1;
-            if (!cancelled) setLoadProgress(Math.round((loadedCount / FRAME_COUNT) * 100));
-            if (loadedCount === FRAME_COUNT && !cancelled) setReady(true);
+            if (!cancelled) actualProgressRef.current = (loadedCount / FRAME_COUNT) * 100;
         };
 
         const loadFrame = (i) => {
@@ -98,6 +100,25 @@ const AboutPage = () => {
         }, 30);
 
         return () => { cancelled = true; };
+    }, []);
+
+    // ── Loader pacing: time-gated fill so the liquid pour is always seen ──
+    // setInterval, not rAF: rAF stops entirely in background tabs and the
+    // loader would never complete there.
+    useEffect(() => {
+        const MIN_LOADER_MS = 2200;
+        const start = performance.now();
+        const iv = setInterval(() => {
+            const t = Math.min(1, (performance.now() - start) / MIN_LOADER_MS);
+            const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+            const shown = Math.min(actualProgressRef.current, eased * 100);
+            setDisplayProgress(Math.round(shown));
+            if (shown >= 100) {
+                clearInterval(iv);
+                setReady(true);
+            }
+        }, 50);
+        return () => clearInterval(iv);
     }, []);
 
     // ── Canvas draw ──────────────────────────────────────────────────────
@@ -348,10 +369,47 @@ const AboutPage = () => {
                     transition: opacity 0.6s ease, visibility 0.6s;
                 }
                 .ab-loader.ab-loader-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-                .ab-loader-brand { font-family: var(--serif); font-size: 20px; letter-spacing: 0.3em; color: var(--cream); }
-                .ab-loader-barwrap { width: 220px; height: 2px; background: rgba(255,255,255,0.08); margin-top: 28px; overflow: hidden; }
-                .ab-loader-bar { height: 100%; background: var(--bronze); transition: width 0.2s linear; }
-                .ab-loader-percent { font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: 0.3em; color: var(--text-dim); margin-top: 14px; }
+                .ab-loader-s {
+                    width: min(190px, 40vw); height: auto; display: block;
+                    filter: drop-shadow(0 0 14px rgba(255,222,150,0.30)) drop-shadow(0 0 46px rgba(197,160,89,0.22));
+                }
+                @keyframes ab-wave-fwd { from { transform: translateX(0); } to { transform: translateX(-100px); } }
+                @keyframes ab-wave-rev { from { transform: translateX(-100px); } to { transform: translateX(0); } }
+                .ab-wave-front { animation: ab-wave-fwd 1.0s linear infinite; }
+                .ab-wave-back { animation: ab-wave-rev 2.2s linear infinite; }
+                .ab-wave-ripple { animation: ab-wave-fwd 0.7s linear infinite; }
+                @keyframes ab-liquid-bob { from { transform: translateY(-2px); } to { transform: translateY(2px); } }
+                .ab-liquid-bob { animation: ab-liquid-bob 1.2s ease-in-out infinite alternate; }
+                @keyframes ab-glint-shimmer { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.9; } }
+                .ab-glint { animation: ab-glint-shimmer 1.4s ease-in-out infinite; }
+                @keyframes ab-sheen-sweep {
+                    0% { transform: translateX(-90px); }
+                    55% { transform: translateX(330px); }
+                    100% { transform: translateX(330px); }
+                }
+                .ab-sheen { animation: ab-sheen-sweep 3s ease-in-out infinite; }
+                @keyframes ab-bubble-rise {
+                    0% { transform: translateY(0); opacity: 0; }
+                    12% { opacity: 0.7; }
+                    85% { opacity: 0.5; }
+                    100% { transform: translateY(-160px); opacity: 0; }
+                }
+                .ab-bubble { animation: ab-bubble-rise 3.4s ease-in infinite; }
+                .ab-bubble-2 { animation-delay: 1.2s; animation-duration: 4.1s; }
+                .ab-bubble-3 { animation-delay: 2.2s; animation-duration: 3.1s; }
+                @keyframes ab-glow-pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+                .ab-loader-glow { animation: ab-glow-pulse 3.2s ease-in-out infinite; }
+                .ab-loader-percent {
+                    font-family: var(--serif); font-weight: 300; font-size: 34px;
+                    letter-spacing: 0.02em; color: var(--cream); margin-top: 18px; line-height: 1;
+                    font-variant-numeric: tabular-nums;
+                }
+                .ab-loader-percent span { font-size: 16px; color: var(--bronze); margin-left: 3px; }
+                .ab-loader-tag {
+                    font-family: var(--sans); font-size: 9px; font-weight: 800;
+                    letter-spacing: 0.4em; text-transform: uppercase;
+                    color: var(--text-dim); margin-top: 12px;
+                }
 
                 /* HEADER */
                 .ab-header {
@@ -444,9 +502,90 @@ const AboutPage = () => {
 
             {/* LOADER */}
             <div className={`ab-loader ${ready ? 'ab-loader-hidden' : ''}`}>
-                <div className="ab-loader-brand">STON</div>
-                <div className="ab-loader-barwrap"><div className="ab-loader-bar" style={{ width: `${loadProgress}%` }} /></div>
-                <div className="ab-loader-percent">{loadProgress}%</div>
+                <svg className="ab-loader-s" viewBox="0 0 200 260">
+                    <defs>
+                        <clipPath id="abSClip">
+                            <text x="100" y="210" textAnchor="middle" fontFamily="'Noto Serif', serif" fontWeight="700" fontSize="230">S</text>
+                        </clipPath>
+                        <linearGradient id="abGoldFront" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#FFF8E1" />
+                            <stop offset="28%" stopColor="#F9E3A8" />
+                            <stop offset="55%" stopColor="#E3B96B" />
+                            <stop offset="80%" stopColor="#B8894A" />
+                            <stop offset="100%" stopColor="#7A5C33" />
+                        </linearGradient>
+                        <linearGradient id="abGoldBack" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#C9A45E" />
+                            <stop offset="100%" stopColor="#6B5430" />
+                        </linearGradient>
+                        <linearGradient id="abSheenGrad" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor="rgba(255,250,235,0)" />
+                            <stop offset="50%" stopColor="rgba(255,250,235,0.55)" />
+                            <stop offset="100%" stopColor="rgba(255,250,235,0)" />
+                        </linearGradient>
+                        <linearGradient id="abCaustic" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="rgba(255,246,220,0.45)" />
+                            <stop offset="100%" stopColor="rgba(255,246,220,0)" />
+                        </linearGradient>
+                        <radialGradient id="abGlow" cx="0.5" cy="0.5" r="0.5">
+                            <stop offset="0%" stopColor="rgba(197,160,89,0.30)" />
+                            <stop offset="100%" stopColor="rgba(197,160,89,0)" />
+                        </radialGradient>
+                    </defs>
+
+                    {/* Soft pulsing glow behind the glyph */}
+                    <circle className="ab-loader-glow" cx="100" cy="132" r="100" fill="url(#abGlow)" />
+
+                    {/* Faint outline of the S, always visible */}
+                    <text x="100" y="210" textAnchor="middle" fontFamily="'Noto Serif', serif" fontWeight="700" fontSize="230"
+                        fill="none" stroke="rgba(163,125,75,0.32)" strokeWidth="2">S</text>
+
+                    {/* Liquid, clipped inside the S */}
+                    <g clipPath="url(#abSClip)">
+                        <g style={{ transform: `translateY(${258 - 2.75 * displayProgress}px)` }}>
+                            <g className="ab-liquid-bob">
+                                {/* Back layer: darker, slower, drifting the other way */}
+                                <g className="ab-wave-back">
+                                    <path
+                                        fill="url(#abGoldBack)" opacity="0.55"
+                                        d="M-100,6 C-75,-4 -75,16 -50,6 C-25,-4 -25,16 0,6 C25,-4 25,16 50,6 C75,-4 75,16 100,6 C125,-4 125,16 150,6 C175,-4 175,16 200,6 C225,-4 225,16 250,6 C275,-4 275,16 300,6 L300,430 L-100,430 Z"
+                                    />
+                                </g>
+                                {/* Front layer: bright metallic gold, small fast chop like water */}
+                                <g className="ab-wave-front">
+                                    <path
+                                        fill="url(#abGoldFront)" opacity="0.9"
+                                        d="M-100,10 C-75,5 -75,15 -50,10 C-25,5 -25,15 0,10 C25,5 25,15 50,10 C75,5 75,15 100,10 C125,5 125,15 150,10 C175,5 175,15 200,10 C225,5 225,15 250,10 C275,5 275,15 300,10 L300,430 L-100,430 Z"
+                                    />
+                                    <path
+                                        className="ab-glint"
+                                        fill="none" stroke="rgba(255,252,240,0.8)" strokeWidth="1.6"
+                                        d="M-100,10 C-75,5 -75,15 -50,10 C-25,5 -25,15 0,10 C25,5 25,15 50,10 C75,5 75,15 100,10 C125,5 125,15 150,10 C175,5 175,15 200,10 C225,5 225,15 250,10 C275,5 275,15 300,10"
+                                    />
+                                </g>
+                                {/* Light entering the water just below the surface */}
+                                <rect x="-100" y="13" width="400" height="34" fill="url(#abCaustic)" />
+                                {/* Fast light ripple skimming the surface */}
+                                <g className="ab-wave-ripple">
+                                    <path
+                                        fill="rgba(255,240,200,0.3)"
+                                        d="M-100,8 C-87.5,4 -87.5,12 -75,8 C-62.5,4 -62.5,12 -50,8 C-37.5,4 -37.5,12 -25,8 C-12.5,4 -12.5,12 0,8 C12.5,4 12.5,12 25,8 C37.5,4 37.5,12 50,8 C62.5,4 62.5,12 75,8 C87.5,4 87.5,12 100,8 C112.5,4 112.5,12 125,8 C137.5,4 137.5,12 150,8 C162.5,4 162.5,12 175,8 C187.5,4 187.5,12 200,8 C212.5,4 212.5,12 225,8 C237.5,4 237.5,12 250,8 C262.5,4 262.5,12 275,8 C287.5,4 287.5,12 300,8 L300,26 L-100,26 Z"
+                                    />
+                                </g>
+                                {/* Specular sheen sweeping across the liquid */}
+                                <g className="ab-sheen">
+                                    <rect x="-60" y="-20" width="46" height="480" fill="url(#abSheenGrad)" transform="skewX(-20)" />
+                                </g>
+                                {/* Bubbles rising through the liquid */}
+                                <circle className="ab-bubble" cx="86" cy="130" r="3" fill="rgba(253,252,248,0.35)" />
+                                <circle className="ab-bubble ab-bubble-2" cx="112" cy="165" r="2" fill="rgba(253,252,248,0.3)" />
+                                <circle className="ab-bubble ab-bubble-3" cx="98" cy="195" r="2.5" fill="rgba(253,252,248,0.25)" />
+                            </g>
+                        </g>
+                    </g>
+                </svg>
+                <div className="ab-loader-percent">{displayProgress}<span>%</span></div>
+                <div className="ab-loader-tag">Preparing the experience</div>
             </div>
 
             {/* HEADER */}
