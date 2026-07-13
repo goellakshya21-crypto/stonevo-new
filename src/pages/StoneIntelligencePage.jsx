@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import StonWordmark from '../components/StonWordmark';
 
 // Stone Intelligence — editorial long-read about natural stone
 // Ported from the Stone Intelligence.html design 1:1.
@@ -402,7 +403,7 @@ const StoneIntelligencePage = () => {
                 {/* NAV */}
                 <nav className="si-nav" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '28px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(13,12,10,0.85) 0%, transparent 100%)', pointerEvents: 'none' }} />
-                    <Link to="/" style={{ position: 'relative', zIndex: 1, fontFamily: 'Noto Serif, serif', fontSize: 18, letterSpacing: '0.2em', color: '#FDFCF8', textDecoration: 'none' }}>STON</Link>
+                    <Link to="/" style={{ position: 'relative', zIndex: 1, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}><StonWordmark height={17} /></Link>
                     <div className="si-nav-tabs" style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(28,24,20,0.55)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 100, padding: 5 }}>
                         <NavTab to="/about">About</NavTab>
                         <NavTab to="/stone-intelligence" active>Stone Intelligence</NavTab>
@@ -802,7 +803,7 @@ const StoneIntelligencePage = () => {
 
                 {/* FOOTER */}
                 <footer className="si-footer" style={{ background: '#0d0c0a', borderTop: '1px solid rgba(255,255,255,0.05)', padding: '32px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontFamily: 'Manrope, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#6b6357' }}>Ston</span>
+                    <span><StonWordmark height={11} /></span>
                     <span style={{ fontFamily: 'Manrope, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#6b6357' }}>© 2026 Ston Architectural. Artifact of Nature.</span>
                 </footer>
             </div>

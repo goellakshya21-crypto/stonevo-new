@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import StonWordmark from '../components/StonWordmark';
 import {
     summarize, fmtPoints, CIRCLES,
     EXPERIENCE_TYPES, DESTINATION_TYPES, MONTHS,
@@ -120,7 +121,7 @@ const PrivilegeCircle = () => {
 
             {/* NAV */}
             <nav style={S.nav}>
-                <Link to="/" style={S.logo}>STON</Link>
+                <Link to="/" style={S.logo}><StonWordmark height={16} /></Link>
                 <div style={S.navRight}>
                     <span style={S.circleBadge(circle.current)}>{circle.current.label}</span>
                     <Link to="/" style={S.backLink}>← Gallery</Link>

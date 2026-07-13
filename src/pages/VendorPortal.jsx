@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { compressImage } from '../utils/imageOptimizer';
 import { Phone, ShieldCheck, Plus, Upload, Trash2, Edit3, X, LogOut, Image as ImageIcon } from 'lucide-react';
 import { notifyLogin } from '../utils/notifyTelegram';
+import StonWordmark from '../components/StonWordmark';
 
 const DEV_NUMBERS = ['7678320944', '7042353166']; // OTP bypass with 000000
 
@@ -260,7 +261,7 @@ const VendorDashboard = ({ vendor, onLogout }) => {
             <header className="border-b border-white/5 bg-stone-950/95 backdrop-blur-md sticky top-0 z-30">
                 <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
                     <div className="flex items-center gap-6">
-                        <Link to="/" className="font-serif tracking-[0.2em] text-white">STON</Link>
+                        <Link to="/" className="inline-flex items-center"><StonWordmark height={16} /></Link>
                         <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-bronze border border-bronze/30 px-3 py-1 rounded-full">Vendor Portal</span>
                     </div>
                     <div className="flex items-center gap-4">

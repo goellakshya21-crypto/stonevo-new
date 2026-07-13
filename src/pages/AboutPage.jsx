@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
+import StonWordmark from '../components/StonWordmark';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -20,7 +21,7 @@ const SECTIONS = [
         body: 'Ston bridges that gap by combining advisory thinking, sourcing understanding, design sensitivity and coordination structure into one integrated experience.',
         align: 'left',
         animation: 'slide-left',
-        enter: 20, leave: 34,
+        enter: 8, leave: 22,
     },
     {
         id: 'belief',
@@ -29,7 +30,7 @@ const SECTIONS = [
         body: 'Natural stone should align with the design language of a project, its functionality, maintenance expectations, and the realities of execution.',
         align: 'right',
         animation: 'slide-right',
-        enter: 34, leave: 48,
+        enter: 24, leave: 38,
     },
 ];
 
@@ -303,12 +304,13 @@ const AboutPage = () => {
                     darkOverlay.style.opacity = opacity;
                 }
 
-                // Marquee fade window
+                // Marquee fade window — brief pass right after the circle wipe,
+                // before the first text section settles in
                 if (marqueeWrap) {
                     let mOpacity = 0;
-                    if (p >= 0.07 && p < 0.11) mOpacity = (p - 0.07) / 0.04;
-                    else if (p >= 0.11 && p < 0.18) mOpacity = 1;
-                    else if (p >= 0.18 && p < 0.22) mOpacity = 1 - (p - 0.18) / 0.04;
+                    if (p >= 0.03 && p < 0.05) mOpacity = (p - 0.03) / 0.02;
+                    else if (p >= 0.05 && p < 0.08) mOpacity = 1;
+                    else if (p >= 0.08 && p < 0.11) mOpacity = 1 - (p - 0.08) / 0.03;
                     marqueeWrap.style.opacity = mOpacity;
                 }
             },
@@ -602,7 +604,7 @@ const AboutPage = () => {
 
             {/* HEADER */}
             <nav className="ab-header">
-                <Link to="/" className="ab-logo">STON</Link>
+                <Link to="/" className="ab-logo"><StonWordmark height={17} /></Link>
                 <div className="ab-nav-tabs">
                     <Link to="/about" className="ab-nav-tab active">About</Link>
                     <Link to="/stone-intelligence" className="ab-nav-tab">Stone Intelligence</Link>
@@ -615,7 +617,7 @@ const AboutPage = () => {
                 <p className="ab-hero-label">Chapter I · Purpose</p>
                 <h1 className="ab-hero-heading">
                     <span className="ab-hero-word">Why</span>{' '}
-                    <span className="ab-hero-word">STON</span>{' '}
+                    <span className="ab-hero-word"><StonWordmark height="0.72em" /></span>{' '}
                     <span className="ab-hero-word"><em>exists.</em></span>
                 </h1>
                 <p className="ab-hero-tagline">
@@ -661,7 +663,7 @@ const AboutPage = () => {
                 {/* STATS — Four Disciplines */}
                 <section
                     className="scroll-section section-stats"
-                    data-enter="50" data-leave="64" data-animation="stagger-up"
+                    data-enter="40" data-leave="54" data-animation="stagger-up"
                 >
                     <div className="stats-grid">
                         {DISCIPLINES.map((d) => (
@@ -677,7 +679,7 @@ const AboutPage = () => {
                 {/* HOW WE HELP */}
                 <section
                     className="scroll-section section-content align-left"
-                    data-enter="66" data-leave="80" data-animation="fade-up"
+                    data-enter="56" data-leave="70" data-animation="fade-up"
                 >
                     <div className="section-inner">
                         <span className="section-label">004 / Approach</span>
@@ -691,7 +693,7 @@ const AboutPage = () => {
                 {/* OUR APPROACH */}
                 <section
                     className="scroll-section section-content align-right"
-                    data-enter="82" data-leave="94" data-animation="clip-reveal"
+                    data-enter="72" data-leave="86" data-animation="clip-reveal"
                 >
                     <div className="section-inner">
                         <span className="section-label">005 / Method</span>
@@ -705,7 +707,7 @@ const AboutPage = () => {
                 {/* CTA — persists */}
                 <section
                     className="scroll-section section-cta"
-                    data-enter="94" data-leave="100" data-animation="rotate-in" data-persist="true"
+                    data-enter="88" data-leave="100" data-animation="rotate-in" data-persist="true"
                 >
                     <div className="section-inner">
                         <span className="section-label">006 / Objective</span>

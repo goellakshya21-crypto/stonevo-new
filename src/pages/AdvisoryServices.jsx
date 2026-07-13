@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import StonWordmark from '../components/StonWordmark';
 
 /**
  * Audit & Advisory — implemented from Claude Design handoff (Advisory.html).
@@ -604,7 +605,7 @@ const AdvisoryServices = () => {
 
             {/* NAV */}
             <nav className="adv-nav">
-                <Link to="/" className="adv-nav-logo">STON</Link>
+                <Link to="/" className="adv-nav-logo"><StonWordmark height={17} /></Link>
                 <div className="adv-nav-tabs">
                     <Link to="/about" className="adv-nav-tab">About</Link>
                     <Link to="/stone-intelligence" className="adv-nav-tab">Stone Intelligence</Link>
@@ -832,7 +833,7 @@ const AdvisoryServices = () => {
 
             {/* FOOTER */}
             <footer className="adv-footer">
-                <span>Ston</span>
+                <span><StonWordmark height={11} /></span>
                 <span>© 2026 Ston Architectural. Artifact of Nature.</span>
             </footer>
         </div>
