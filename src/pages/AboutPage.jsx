@@ -17,7 +17,7 @@ const SECTIONS = [
         id: 'purpose',
         label: '001 / Purpose',
         heading: 'One integrated\nexperience.',
-        body: 'Ston bridges the gap — combining advisory thinking, sourcing understanding, design sensitivity and coordination structure into one integrated experience.',
+        body: 'Ston bridges that gap by combining advisory thinking, sourcing understanding, design sensitivity and coordination structure into one integrated experience.',
         align: 'left',
         animation: 'slide-left',
         enter: 20, leave: 34,
@@ -35,14 +35,14 @@ const SECTIONS = [
 
 const DISCIPLINES = [
     { n: 1, title: 'Advisory', body: 'Aligning material selections with design intent.' },
-    { n: 2, title: 'Sourcing', body: 'Curated slab selection — the right lots for the right projects.' },
+    { n: 2, title: 'Sourcing', body: 'Curated slab selection, matching the right lots to the right projects.' },
     { n: 3, title: 'Coordination', body: 'Vendor alignment from brief through to installation.' },
     { n: 4, title: 'Guidance', body: 'Navigating the full stone journey with clarity.' },
 ];
 
 const HELP_LINES = [
-    'Understanding project intent first — not overwhelming clients with random options.',
-    'Narrowing to meaningful, value-for-money selections — not generic vendor-driven picks.',
+    'Understanding project intent first, instead of overwhelming clients with random options.',
+    'Narrowing things down to meaningful, value-for-money selections instead of generic, vendor-driven picks.',
     'Simplifying coordination throughout, so the design vision survives execution.',
 ];
 
@@ -462,14 +462,14 @@ const AboutPage = () => {
 
             {/* HERO */}
             <section className="ab-hero" ref={heroRef}>
-                <p className="ab-hero-label">Chapter I — Purpose</p>
+                <p className="ab-hero-label">Chapter I · Purpose</p>
                 <h1 className="ab-hero-heading">
                     <span className="ab-hero-word">Why</span>{' '}
                     <span className="ab-hero-word">STON</span>{' '}
                     <span className="ab-hero-word"><em>exists.</em></span>
                 </h1>
                 <p className="ab-hero-tagline">
-                    The natural stone industry has extraordinary materials, craftsmanship and possibilities — but the process around selection and coordination often remains unstructured.
+                    The natural stone industry has extraordinary materials, craftsmanship and possibilities, but the process around selection and coordination often remains unstructured.
                 </p>
                 <button onClick={enter} className="ab-hero-cta">
                     Enter Platform <span>→</span>
@@ -547,7 +547,7 @@ const AboutPage = () => {
                         <span className="section-label">005 / Method</span>
                         <h2 className="section-heading">{'A better overall\nproject experience.'}</h2>
                         <p className="section-body">
-                            We do not believe in overwhelming clients with hundreds of random options. Our role is to understand, narrow, and align — so the right stone finds the right space: meaningful choices, sourcing clarity, and a design that survives all the way from brief to final slab.
+                            We don't believe in overwhelming clients with hundreds of random options. Our role is to understand, narrow and align, so the right stone finds the right space: meaningful choices, sourcing clarity, and a design that survives all the way from brief to final slab.
                         </p>
                     </div>
                 </section>
@@ -561,7 +561,7 @@ const AboutPage = () => {
                         <span className="section-label">006 / Objective</span>
                         <h2 className="section-heading">Not just to <em style={{ fontStyle: 'italic', color: 'var(--bronze)' }}>select a stone.</em></h2>
                         <p className="section-body">
-                            The objective is to create a better overall project experience — guided, curated, informed, coordinated.
+                            The objective is to create a better overall project experience: guided, curated, informed and coordinated.
                         </p>
                         <button onClick={enter} className="cta-button ab-hero-cta">Enter the Platform</button>
                     </div>
