@@ -101,10 +101,10 @@ const StoneIntelligencePage = () => {
 
                 .si-headline {
                     font-family: 'Noto Serif', serif;
-                    font-size: clamp(48px, 7vw, 92px);
+                    font-size: clamp(36px, 4.4vw, 60px);
                     font-weight: 300;
                     letter-spacing: -0.03em;
-                    line-height: 1.0;
+                    line-height: 1.08;
                     color: #FDFCF8;
                 }
                 .si-headline em { font-style: italic; color: #A37D4B; }
@@ -411,7 +411,7 @@ const StoneIntelligencePage = () => {
                 </nav>
 
                 {/* HERO */}
-                <section id="si-hero" className="si-hero" style={{ position: 'relative', minHeight: '80vh', display: 'flex', alignItems: 'center', padding: '160px 48px 80px', background: '#0d0c0a', overflow: 'hidden' }}>
+                <section id="si-hero" className="si-hero" style={{ position: 'relative', minHeight: '80vh', display: 'flex', alignItems: 'center', padding: '130px 48px 60px', background: '#0d0c0a', overflow: 'hidden' }}>
                     <div className="si-hero-watermark">INTELLIGENCE</div>
                     <div className="si-hero-inner" style={{ position: 'relative', zIndex: 1, maxWidth: 1400, margin: '0 auto', width: '100%', display: 'grid', gridTemplateColumns: '6fr 5fr', gap: 80, alignItems: 'center' }}>
                         <div>
