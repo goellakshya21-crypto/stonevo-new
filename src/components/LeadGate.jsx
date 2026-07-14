@@ -5,6 +5,40 @@ import { supabase } from '../lib/supabaseClient';
 import { Phone, Mail, Building, Globe, User, ShieldCheck, Compass, Hammer, X } from 'lucide-react';
 import { useRequirements } from '../context/RequirementsContext';
 import { notifyLogin, notifyArchitectSignup, notifyClientRequest } from '../utils/notifyTelegram';
+import StonWordmark from './StonWordmark';
+
+// ── Pre-launch gate ──────────────────────────────────────────────────────
+// The gallery is closed until public launch. Only these numbers get through
+// after logging in; everyone else sees the "opening soon" notice below.
+// Flip GALLERY_LOCKED to false (or delete this + the check in the approved
+// branch) on launch day.
+const GALLERY_LOCKED = true;
+const LAUNCH_ALLOWED_PHONES = ['9910978887'];
+
+const PreLaunchNotice = () => (
+    <div className="fixed inset-0 z-[150] bg-stone-950 flex items-center justify-center px-6 overflow-y-auto">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-bronze/10 blur-[140px] rounded-full pointer-events-none" />
+        <div className="relative text-center max-w-xl py-16 space-y-8">
+            <StonWordmark height={26} />
+            <p className="text-bronze/80 text-[10px] uppercase tracking-[0.5em] font-bold">Private Preview</p>
+            <h1 className="font-serif text-3xl md:text-5xl text-stone-100 leading-tight">
+                We are almost ready.
+            </h1>
+            <p className="text-stone-400 text-sm md:text-base leading-relaxed max-w-md mx-auto">
+                Thank you for signing in. The gallery is in its final stage of preparation
+                and opens in <span className="text-bronze font-semibold">15 days</span>.
+                Your access is saved, and this same number will get you in on opening day.
+            </p>
+            <div className="pt-4 flex items-center justify-center gap-8 flex-wrap">
+                {[['/about', 'About'], ['/stone-intelligence', 'Stone Intelligence'], ['/advisory', 'Audit & Advisory']].map(([to, label]) => (
+                    <Link key={to} to={to} className="text-[10px] uppercase tracking-[0.25em] font-bold text-stone-300 hover:text-bronze transition-colors border-b border-bronze/30 pb-1">
+                        {label}
+                    </Link>
+                ))}
+            </div>
+        </div>
+    </div>
+);
 
 const LeadGate = ({ children }) => {
     const { setLeadId: setContextLeadId, clearSession } = useRequirements();
@@ -492,6 +526,14 @@ const LeadGate = ({ children }) => {
     }
 
     if (status === 'approved' || status === 'welcome') {
+        // Pre-launch: everyone except the allowed numbers sees the notice
+        if (GALLERY_LOCKED) {
+            const loginPhone = String(formData.phone || localStorage.getItem('stonevo_user_phone') || '')
+                .replace(/\D/g, '').slice(-10);
+            if (!LAUNCH_ALLOWED_PHONES.includes(loginPhone)) {
+                return <PreLaunchNotice />;
+            }
+        }
         return (
             <>
                 <div className={`transition-all duration-1000 ${status === 'welcome' ? 'blur-xl scale-[1.02] pointer-events-none' : 'blur-0'}`}>
