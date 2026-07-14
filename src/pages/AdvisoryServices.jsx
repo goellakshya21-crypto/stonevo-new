@@ -587,10 +587,10 @@ const AdvisoryServices = () => {
                     .adv-hero-right { border-left: none; padding-left: 0; border-top: 1px solid rgba(163,125,75,0.25); padding-top: 36px; }
                 }
                 @media (max-width: 760px) {
-                    .adv-nav { padding: 18px 20px; flex-wrap: wrap; gap: 14px; }
-                    .adv-nav-tabs { gap: 18px; overflow-x: auto; max-width: 100%; }
-                    .adv-nav-tab { font-size: 9px; letter-spacing: 0.16em; }
-                    .adv-nav-tab.active { padding: 8px 16px; }
+                    .adv-nav { padding: 12px 16px 10px; flex-direction: column; align-items: center; gap: 10px; }
+                    .adv-nav-tabs { gap: 12px; max-width: 100%; justify-content: center; }
+                    .adv-nav-tab { font-size: 8px; letter-spacing: 0.1em; padding: 7px 0; }
+                    .adv-nav-tab.active { padding: 7px 12px; }
                     .adv-hero { padding: 130px 24px 60px; }
                     .adv-tiers, .adv-perspective, .adv-closing { padding: 70px 24px; }
                     .adv-tier { padding: 36px 28px; }

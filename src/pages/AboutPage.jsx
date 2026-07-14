@@ -510,14 +510,11 @@ const AboutPage = () => {
                 .section-cta .section-body { color: #2a2620; }
 
                 @media (max-width: 900px) {
-                    .ab-header { padding: 18px 20px; gap: 14px; }
-                    .ab-nav-tabs {
-                        gap: 16px; overflow-x: auto; max-width: calc(100vw - 130px);
-                        -webkit-overflow-scrolling: touch; scrollbar-width: none;
-                    }
-                    .ab-nav-tabs::-webkit-scrollbar { display: none; }
-                    .ab-nav-tab { font-size: 8.5px; letter-spacing: 0.14em; }
-                    .ab-nav-tab.active { padding: 8px 14px; }
+                    /* Stack the header: logo on top, all three tabs visible below */
+                    .ab-header { padding: 12px 16px 10px; flex-direction: column; align-items: center; gap: 10px; }
+                    .ab-nav-tabs { gap: 12px; max-width: 100%; justify-content: center; }
+                    .ab-nav-tab { font-size: 8px; letter-spacing: 0.1em; padding: 7px 0; }
+                    .ab-nav-tab.active { padding: 7px 12px; }
                     .ab-hero { padding: 100px 24px 80px; }
                     .ab-hero-heading { font-size: clamp(40px, 13vw, 84px); }
                     .ab-hero-scroll { left: 24px; }

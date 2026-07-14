@@ -389,8 +389,9 @@ const StoneIntelligencePage = () => {
                     .si-checklist-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
                 }
                 @media (max-width: 760px) {
-                    .si-nav { padding: 20px 24px !important; }
-                    .si-nav-tabs { gap: 18px !important; overflow-x: auto !important; max-width: 100% !important; }
+                    .si-nav { padding: 12px 16px 10px !important; flex-direction: column !important; align-items: center !important; gap: 10px !important; }
+                    .si-nav-tabs { gap: 12px !important; max-width: 100% !important; justify-content: center !important; }
+                    .si-nav-tabs a { font-size: 8px !important; letter-spacing: 0.1em !important; }
                     .si-section, .si-hero { padding: 70px 24px !important; }
                     .si-closing { padding: 80px 24px !important; }
                     .si-cat-grid { grid-template-columns: 1fr !important; }
