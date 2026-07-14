@@ -10,6 +10,10 @@ gsap.registerPlugin(ScrollTrigger);
 const FRAME_COUNT = 361;
 const FRAME_PATH = (i) => `/about-frames/frame_${String(i).padStart(4, '0')}.webp`;
 const FRAME_SPEED = 1.3;
+// Only play the full liquid-fill intro once per browser session — frames are
+// cached after the first visit, so replaying it on every SPA nav back to
+// /about is just an annoying repeat, not a real load.
+const LOADER_SEEN_KEY = 'ston_about_loader_seen';
 // Full-bleed cover — frames fill the entire viewport edge-to-edge, no side bars.
 const IMAGE_SCALE = 1.0;
 
@@ -51,9 +55,12 @@ const AboutPage = () => {
     const navigate = useNavigate();
 
     // Shown percent is min(actual frames loaded, timed ramp) so the fill
-    // animation always plays for at least MIN_LOADER_MS, even fully cached.
-    const [displayProgress, setDisplayProgress] = useState(0);
-    const [ready, setReady] = useState(false);
+    // animation always plays for at least MIN_LOADER_MS, even fully cached —
+    // but only the first time this browser session; skip straight to ready
+    // on repeat visits (e.g. navigating back via the nav tabs).
+    const [alreadySeenLoader] = useState(() => sessionStorage.getItem(LOADER_SEEN_KEY) === '1');
+    const [displayProgress, setDisplayProgress] = useState(alreadySeenLoader ? 100 : 0);
+    const [ready, setReady] = useState(alreadySeenLoader);
 
     const canvasRef = useRef(null);
     const canvasWrapRef = useRef(null);
@@ -71,56 +78,6 @@ const AboutPage = () => {
         sessionStorage.setItem('sv_enter', '1');
         navigate('/');
     };
-
-    // ── Frame preload ────────────────────────────────────────────────────
-    useEffect(() => {
-        let cancelled = false;
-        const frames = new Array(FRAME_COUNT);
-        framesRef.current = frames;
-        let loadedCount = 0;
-
-        const onOneLoaded = () => {
-            loadedCount += 1;
-            if (!cancelled) actualProgressRef.current = (loadedCount / FRAME_COUNT) * 100;
-        };
-
-        const loadFrame = (i) => {
-            const img = new Image();
-            img.onload = onOneLoaded;
-            img.onerror = onOneLoaded;
-            img.src = FRAME_PATH(i + 1);
-            frames[i] = img;
-        };
-
-        // Phase 1: first frames immediately for fast first paint
-        for (let i = 0; i < Math.min(15, FRAME_COUNT); i++) loadFrame(i);
-        // Phase 2: rest in background
-        setTimeout(() => {
-            if (cancelled) return;
-            for (let i = 15; i < FRAME_COUNT; i++) loadFrame(i);
-        }, 30);
-
-        return () => { cancelled = true; };
-    }, []);
-
-    // ── Loader pacing: time-gated fill so the liquid pour is always seen ──
-    // setInterval, not rAF: rAF stops entirely in background tabs and the
-    // loader would never complete there.
-    useEffect(() => {
-        const MIN_LOADER_MS = 2200;
-        const start = performance.now();
-        const iv = setInterval(() => {
-            const t = Math.min(1, (performance.now() - start) / MIN_LOADER_MS);
-            const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
-            const shown = Math.min(actualProgressRef.current, eased * 100);
-            setDisplayProgress(Math.round(shown));
-            if (shown >= 100) {
-                clearInterval(iv);
-                setReady(true);
-            }
-        }, 50);
-        return () => clearInterval(iv);
-    }, []);
 
     // ── Canvas draw ──────────────────────────────────────────────────────
     const sampleBgColor = (img) => {
@@ -153,6 +110,64 @@ const AboutPage = () => {
         ctx.fillRect(0, 0, cw, ch);
         ctx.drawImage(img, dx, dy, dw, dh);
     }, []);
+
+    // ── Frame preload ────────────────────────────────────────────────────
+    useEffect(() => {
+        let cancelled = false;
+        const frames = new Array(FRAME_COUNT);
+        framesRef.current = frames;
+        let loadedCount = 0;
+
+        const onOneLoaded = (i) => {
+            loadedCount += 1;
+            if (cancelled) return;
+            actualProgressRef.current = (loadedCount / FRAME_COUNT) * 100;
+            // Redraw once whichever frame is currently "on screen" finishes
+            // loading — on a repeat visit (loader skipped) this is the only
+            // thing that puts pixels on the canvas, since nothing else
+            // triggers a draw until the user scrolls.
+            if (i === currentFrameRef.current) drawFrame(i);
+        };
+
+        const loadFrame = (i) => {
+            const img = new Image();
+            img.onload = () => onOneLoaded(i);
+            img.onerror = () => onOneLoaded(i);
+            img.src = FRAME_PATH(i + 1);
+            frames[i] = img;
+        };
+
+        // Phase 1: first frames immediately for fast first paint
+        for (let i = 0; i < Math.min(15, FRAME_COUNT); i++) loadFrame(i);
+        // Phase 2: rest in background
+        setTimeout(() => {
+            if (cancelled) return;
+            for (let i = 15; i < FRAME_COUNT; i++) loadFrame(i);
+        }, 30);
+
+        return () => { cancelled = true; };
+    }, [drawFrame]);
+
+    // ── Loader pacing: time-gated fill so the liquid pour is always seen ──
+    // setInterval, not rAF: rAF stops entirely in background tabs and the
+    // loader would never complete there. Skipped entirely on repeat visits.
+    useEffect(() => {
+        if (alreadySeenLoader) return;
+        const MIN_LOADER_MS = 2200;
+        const start = performance.now();
+        const iv = setInterval(() => {
+            const t = Math.min(1, (performance.now() - start) / MIN_LOADER_MS);
+            const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+            const shown = Math.min(actualProgressRef.current, eased * 100);
+            setDisplayProgress(Math.round(shown));
+            if (shown >= 100) {
+                clearInterval(iv);
+                sessionStorage.setItem(LOADER_SEEN_KEY, '1');
+                setReady(true);
+            }
+        }, 50);
+        return () => clearInterval(iv);
+    }, [alreadySeenLoader]);
 
     // ── Canvas sizing ────────────────────────────────────────────────────
     useEffect(() => {
