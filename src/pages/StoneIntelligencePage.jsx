@@ -32,18 +32,19 @@ const NavTab = ({ to, active, children }) => (
             fontFamily: 'Manrope, sans-serif',
             fontSize: 10,
             fontWeight: 800,
-            letterSpacing: '0.28em',
+            letterSpacing: '0.22em',
             textTransform: 'uppercase',
-            color: active ? '#0d0c0a' : 'rgba(253,252,248,0.55)',
+            color: active ? '#0d0c0a' : 'rgba(253,252,248,0.75)',
             background: active ? '#A37D4B' : 'transparent',
             textDecoration: 'none',
-            padding: '10px 22px',
+            padding: active ? '10px 22px' : '10px 0',
             borderRadius: 100,
             whiteSpace: 'nowrap',
-            transition: 'color 0.3s, background 0.3s'
+            textShadow: active ? 'none' : '0 2px 10px rgba(0,0,0,0.55)',
+            transition: 'color 0.3s, background 0.3s, padding 0.3s'
         }}
         onMouseEnter={e => { if (!active) e.target.style.color = '#FDFCF8'; }}
-        onMouseLeave={e => { if (!active) e.target.style.color = 'rgba(253,252,248,0.55)'; }}
+        onMouseLeave={e => { if (!active) e.target.style.color = 'rgba(253,252,248,0.75)'; }}
     >
         {children}
     </Link>
@@ -389,7 +390,7 @@ const StoneIntelligencePage = () => {
                 }
                 @media (max-width: 760px) {
                     .si-nav { padding: 20px 24px !important; }
-                    .si-nav-tabs { padding: 4px !important; gap: 0 !important; }
+                    .si-nav-tabs { gap: 18px !important; overflow-x: auto !important; max-width: 100% !important; }
                     .si-section, .si-hero { padding: 70px 24px !important; }
                     .si-closing { padding: 80px 24px !important; }
                     .si-cat-grid { grid-template-columns: 1fr !important; }
@@ -404,7 +405,7 @@ const StoneIntelligencePage = () => {
                 <nav className="si-nav" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '28px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(13,12,10,0.85) 0%, transparent 100%)', pointerEvents: 'none' }} />
                     <Link to="/" style={{ position: 'relative', zIndex: 1, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}><StonWordmark height={17} /></Link>
-                    <div className="si-nav-tabs" style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(28,24,20,0.55)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 100, padding: 5 }}>
+                    <div className="si-nav-tabs" style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 34 }}>
                         <NavTab to="/about">About</NavTab>
                         <NavTab to="/stone-intelligence" active>Stone Intelligence</NavTab>
                         <NavTab to="/advisory">Audit & Advisory</NavTab>

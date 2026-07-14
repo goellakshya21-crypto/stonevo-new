@@ -96,29 +96,23 @@ const AdvisoryServices = () => {
                 .adv-nav-logo:hover { color: var(--bronze); }
                 .adv-nav-tabs {
                     position: relative; z-index: 1;
-                    display: flex; align-items: center; gap: 4px;
-                    background: rgba(28,24,20,0.55);
-                    border: 1px solid rgba(255,255,255,0.06);
-                    backdrop-filter: blur(20px);
-                    -webkit-backdrop-filter: blur(20px);
-                    border-radius: 100px;
-                    padding: 5px;
+                    display: flex; align-items: center; gap: 34px;
                 }
                 .adv-nav-tab {
                     font-family: var(--sans);
-                    font-size: 9.5px;
+                    font-size: 10px;
                     font-weight: 800;
-                    letter-spacing: 0.18em;
+                    letter-spacing: 0.22em;
                     text-transform: uppercase;
-                    color: rgba(253,252,248,0.55);
+                    color: rgba(253,252,248,0.75);
                     text-decoration: none;
-                    padding: 10px 16px;
-                    border-radius: 100px;
+                    padding: 10px 0;
                     white-space: nowrap;
-                    transition: color 0.3s, background 0.3s;
+                    transition: color 0.3s, background 0.3s, padding 0.3s;
+                    text-shadow: 0 2px 10px rgba(0,0,0,0.55);
                 }
                 .adv-nav-tab:hover { color: var(--cream); }
-                .adv-nav-tab.active { background: var(--bronze); color: #0d0c0a; }
+                .adv-nav-tab.active { background: var(--bronze); color: #0d0c0a; padding: 10px 22px; border-radius: 100px; text-shadow: none; }
 
                 /* HERO */
                 .adv-hero {
@@ -594,8 +588,9 @@ const AdvisoryServices = () => {
                 }
                 @media (max-width: 760px) {
                     .adv-nav { padding: 18px 20px; flex-wrap: wrap; gap: 14px; }
-                    .adv-nav-tabs { padding: 4px; gap: 0; overflow-x: auto; max-width: 100%; }
-                    .adv-nav-tab { padding: 8px 12px; font-size: 9px; letter-spacing: 0.16em; }
+                    .adv-nav-tabs { gap: 18px; overflow-x: auto; max-width: 100%; }
+                    .adv-nav-tab { font-size: 9px; letter-spacing: 0.16em; }
+                    .adv-nav-tab.active { padding: 8px 16px; }
                     .adv-hero { padding: 130px 24px 60px; }
                     .adv-tiers, .adv-perspective, .adv-closing { padding: 70px 24px; }
                     .adv-tier { padding: 36px 28px; }

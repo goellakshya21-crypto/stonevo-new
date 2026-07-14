@@ -418,10 +418,10 @@ const AboutPage = () => {
                 }
                 .ab-logo { position: relative; z-index: 1; font-family: var(--serif); font-size: 18px; letter-spacing: 0.2em; color: var(--cream); text-decoration: none; transition: color 0.3s; }
                 .ab-logo:hover { color: var(--bronze); }
-                .ab-nav-tabs { position: relative; z-index: 1; display: flex; align-items: center; gap: 4px; background: rgba(28,24,20,0.55); border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 100px; padding: 5px; }
-                .ab-nav-tab { font-family: var(--sans); font-size: 9.5px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(253,252,248,0.55); text-decoration: none; padding: 10px 16px; border-radius: 100px; white-space: nowrap; transition: color 0.3s, background 0.3s; }
+                .ab-nav-tabs { position: relative; z-index: 1; display: flex; align-items: center; gap: 34px; }
+                .ab-nav-tab { font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(253,252,248,0.75); text-decoration: none; padding: 10px 0; white-space: nowrap; transition: color 0.3s, background 0.3s, padding 0.3s; text-shadow: 0 2px 10px rgba(0,0,0,0.55); }
                 .ab-nav-tab:hover { color: var(--cream); }
-                .ab-nav-tab.active { background: var(--bronze); color: var(--bg); }
+                .ab-nav-tab.active { background: var(--bronze); color: var(--bg); padding: 10px 22px; border-radius: 100px; text-shadow: none; }
 
                 /* HERO */
                 .ab-hero {
