@@ -375,7 +375,7 @@ const AboutPage = () => {
                 .ab-loader.ab-loader-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
                 .ab-loader-s {
                     width: min(190px, 40vw); height: auto; display: block;
-                    filter: drop-shadow(0 0 14px rgba(255,222,150,0.30)) drop-shadow(0 0 46px rgba(197,160,89,0.22));
+                    filter: drop-shadow(0 0 14px rgba(230,185,95,0.16)) drop-shadow(0 0 46px rgba(197,160,89,0.12));
                 }
                 @keyframes ab-wave-fwd { from { transform: translateX(0); } to { transform: translateX(-100px); } }
                 @keyframes ab-wave-rev { from { transform: translateX(-100px); } to { transform: translateX(0); } }
@@ -384,7 +384,7 @@ const AboutPage = () => {
                 .ab-wave-ripple { animation: ab-wave-fwd 0.7s linear infinite; }
                 @keyframes ab-liquid-bob { from { transform: translateY(-2px); } to { transform: translateY(2px); } }
                 .ab-liquid-bob { animation: ab-liquid-bob 1.2s ease-in-out infinite alternate; }
-                @keyframes ab-glint-shimmer { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.9; } }
+                @keyframes ab-glint-shimmer { 0%, 100% { opacity: 0.15; } 50% { opacity: 0.5; } }
                 .ab-glint { animation: ab-glint-shimmer 1.4s ease-in-out infinite; }
                 @keyframes ab-sheen-sweep {
                     0% { transform: translateX(-90px); }
@@ -392,15 +392,6 @@ const AboutPage = () => {
                     100% { transform: translateX(330px); }
                 }
                 .ab-sheen { animation: ab-sheen-sweep 3s ease-in-out infinite; }
-                @keyframes ab-bubble-rise {
-                    0% { transform: translateY(0); opacity: 0; }
-                    12% { opacity: 0.7; }
-                    85% { opacity: 0.5; }
-                    100% { transform: translateY(-160px); opacity: 0; }
-                }
-                .ab-bubble { animation: ab-bubble-rise 3.4s ease-in infinite; }
-                .ab-bubble-2 { animation-delay: 1.2s; animation-duration: 4.1s; }
-                .ab-bubble-3 { animation-delay: 2.2s; animation-duration: 3.1s; }
                 @keyframes ab-glow-pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
                 .ab-loader-glow { animation: ab-glow-pulse 3.2s ease-in-out infinite; }
                 .ab-loader-percent {
@@ -511,43 +502,53 @@ const AboutPage = () => {
             <div className={`ab-loader ${ready ? 'ab-loader-hidden' : ''}`}>
                 <svg className="ab-loader-s" viewBox="0 0 200 260">
                     <defs>
-                        {/* Custom N mark: corner-to-corner diagonal with thin slits
-                            separating it from the sheared stems (matches the logo). */}
+                        {/* N mark traced from the logo: diagonal exactly stem-width,
+                            tips flush with the letter box, hairline slits shearing
+                            the left stem's top cap and right stem's bottom cap. */}
                         <clipPath id="abSClip">
-                            <path d="M40,55 L74,55 L160,205 L126,205 Z" />
-                            <path d="M40,63.5 L64,105.4 L64,205 L40,205 Z" />
-                            <path d="M136,55 L160,55 L160,196.5 L136,154.6 Z" />
+                            <path d="M40,55 L60,55 L160,205 L140,205 Z" />
+                            <path d="M40,71 L60,101 L60,205 L40,205 Z" />
+                            <path d="M140,55 L160,55 L160,189 L140,159 Z" />
                         </clipPath>
-                        {/* Liquid gold in the logo's palette: deep amber -> rich gold */}
-                        <linearGradient id="abGoldFront" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#F2CD79" />
-                            <stop offset="40%" stopColor="#DFAE4F" />
-                            <stop offset="75%" stopColor="#B8842F" />
-                            <stop offset="100%" stopColor="#7C531B" />
-                        </linearGradient>
                         <linearGradient id="abGoldBack" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="#9C6D2E" />
                             <stop offset="100%" stopColor="#5C3F14" />
                         </linearGradient>
-                        {/* Logo gradient for the N outline: dark lower-left -> bright upper-right */}
-                        <linearGradient id="abLogoGold" x1="0" y1="1" x2="1" y2="0">
-                            <stop offset="0%" stopColor="#7C531B" />
-                            <stop offset="50%" stopColor="#C89237" />
+                        {/* The logo's gradient, anchored to the glyph box so the
+                            filled N shows exactly the logo's coloring: dark amber
+                            lower-left rising to rich gold upper-right. */}
+                        <linearGradient id="abLogoGold" gradientUnits="userSpaceOnUse" x1="40" y1="205" x2="160" y2="55">
+                            <stop offset="0%" stopColor="#6E4715" />
+                            <stop offset="45%" stopColor="#B8842F" />
+                            <stop offset="80%" stopColor="#E8B85C" />
                             <stop offset="100%" stopColor="#F2CD79" />
                         </linearGradient>
                         <linearGradient id="abSheenGrad" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor="rgba(255,250,235,0)" />
-                            <stop offset="50%" stopColor="rgba(255,250,235,0.55)" />
-                            <stop offset="100%" stopColor="rgba(255,250,235,0)" />
+                            <stop offset="0%" stopColor="rgba(242,205,121,0)" />
+                            <stop offset="50%" stopColor="rgba(242,205,121,0.35)" />
+                            <stop offset="100%" stopColor="rgba(242,205,121,0)" />
                         </linearGradient>
                         <linearGradient id="abCaustic" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="rgba(255,246,220,0.45)" />
-                            <stop offset="100%" stopColor="rgba(255,246,220,0)" />
+                            <stop offset="0%" stopColor="rgba(242,205,121,0.25)" />
+                            <stop offset="100%" stopColor="rgba(242,205,121,0)" />
                         </linearGradient>
                         <radialGradient id="abGlow" cx="0.5" cy="0.5" r="0.5">
-                            <stop offset="0%" stopColor="rgba(197,160,89,0.30)" />
+                            <stop offset="0%" stopColor="rgba(197,160,89,0.18)" />
                             <stop offset="100%" stopColor="rgba(197,160,89,0)" />
                         </radialGradient>
+                        {/* Animated liquid surface used as a mask over the logo fill */}
+                        <mask id="abLiquidMask" maskUnits="userSpaceOnUse" x="-100" y="-100" width="400" height="560">
+                            <g style={{ transform: `translateY(${210 - 1.75 * displayProgress}px)` }}>
+                                <g className="ab-liquid-bob">
+                                    <g className="ab-wave-front">
+                                        <path
+                                            fill="#fff"
+                                            d="M-100,10 C-75,5 -75,15 -50,10 C-25,5 -25,15 0,10 C25,5 25,15 50,10 C75,5 75,15 100,10 C125,5 125,15 150,10 C175,5 175,15 200,10 C225,5 225,15 250,10 C275,5 275,15 300,10 L300,430 L-100,430 Z"
+                                        />
+                                    </g>
+                                </g>
+                            </g>
+                        </mask>
                     </defs>
 
                     {/* Soft pulsing glow behind the glyph */}
@@ -555,51 +556,52 @@ const AboutPage = () => {
 
                     {/* Outline of the N in the logo gradient, always visible */}
                     <g fill="none" stroke="url(#abLogoGold)" strokeWidth="2" opacity="0.45">
-                        <path d="M40,55 L74,55 L160,205 L126,205 Z" />
-                        <path d="M40,63.5 L64,105.4 L64,205 L40,205 Z" />
-                        <path d="M136,55 L160,55 L160,196.5 L136,154.6 Z" />
+                        <path d="M40,55 L60,55 L160,205 L140,205 Z" />
+                        <path d="M40,71 L60,101 L60,205 L40,205 Z" />
+                        <path d="M140,55 L160,55 L160,189 L140,159 Z" />
                     </g>
 
                     {/* Liquid, clipped inside the N */}
                     <g clipPath="url(#abSClip)">
+                        {/* Back layer: darker swell peeking above the main surface */}
                         <g style={{ transform: `translateY(${210 - 1.75 * displayProgress}px)` }}>
                             <g className="ab-liquid-bob">
-                                {/* Back layer: darker, slower, drifting the other way */}
                                 <g className="ab-wave-back">
                                     <path
                                         fill="url(#abGoldBack)" opacity="0.55"
                                         d="M-100,6 C-75,-4 -75,16 -50,6 C-25,-4 -25,16 0,6 C25,-4 25,16 50,6 C75,-4 75,16 100,6 C125,-4 125,16 150,6 C175,-4 175,16 200,6 C225,-4 225,16 250,6 C275,-4 275,16 300,6 L300,430 L-100,430 Z"
                                     />
                                 </g>
-                                {/* Front layer: bright metallic gold, small fast chop like water */}
+                            </g>
+                        </g>
+
+                        {/* Main body: the logo's own gradient, revealed by the rising
+                            liquid mask — so the filled N looks exactly like the logo */}
+                        <rect x="30" y="45" width="140" height="170" fill="url(#abLogoGold)" mask="url(#abLiquidMask)" />
+
+                        {/* Surface effects, tinted gold and kept subtle */}
+                        <g style={{ transform: `translateY(${210 - 1.75 * displayProgress}px)` }}>
+                            <g className="ab-liquid-bob">
                                 <g className="ab-wave-front">
                                     <path
-                                        fill="url(#abGoldFront)" opacity="0.9"
-                                        d="M-100,10 C-75,5 -75,15 -50,10 C-25,5 -25,15 0,10 C25,5 25,15 50,10 C75,5 75,15 100,10 C125,5 125,15 150,10 C175,5 175,15 200,10 C225,5 225,15 250,10 C275,5 275,15 300,10 L300,430 L-100,430 Z"
-                                    />
-                                    <path
                                         className="ab-glint"
-                                        fill="none" stroke="rgba(255,252,240,0.8)" strokeWidth="1.6"
+                                        fill="none" stroke="rgba(242,205,121,0.55)" strokeWidth="1.4"
                                         d="M-100,10 C-75,5 -75,15 -50,10 C-25,5 -25,15 0,10 C25,5 25,15 50,10 C75,5 75,15 100,10 C125,5 125,15 150,10 C175,5 175,15 200,10 C225,5 225,15 250,10 C275,5 275,15 300,10"
                                     />
                                 </g>
-                                {/* Light entering the water just below the surface */}
+                                {/* Light entering the liquid just below the surface */}
                                 <rect x="-100" y="13" width="400" height="34" fill="url(#abCaustic)" />
-                                {/* Fast light ripple skimming the surface */}
+                                {/* Fast ripple skimming the surface */}
                                 <g className="ab-wave-ripple">
                                     <path
-                                        fill="rgba(255,240,200,0.3)"
+                                        fill="rgba(230,185,95,0.22)"
                                         d="M-100,8 C-87.5,4 -87.5,12 -75,8 C-62.5,4 -62.5,12 -50,8 C-37.5,4 -37.5,12 -25,8 C-12.5,4 -12.5,12 0,8 C12.5,4 12.5,12 25,8 C37.5,4 37.5,12 50,8 C62.5,4 62.5,12 75,8 C87.5,4 87.5,12 100,8 C112.5,4 112.5,12 125,8 C137.5,4 137.5,12 150,8 C162.5,4 162.5,12 175,8 C187.5,4 187.5,12 200,8 C212.5,4 212.5,12 225,8 C237.5,4 237.5,12 250,8 C262.5,4 262.5,12 275,8 C287.5,4 287.5,12 300,8 L300,26 L-100,26 Z"
                                     />
                                 </g>
-                                {/* Specular sheen sweeping across the liquid */}
+                                {/* Sheen sweeping across the liquid */}
                                 <g className="ab-sheen">
                                     <rect x="-60" y="-20" width="46" height="480" fill="url(#abSheenGrad)" transform="skewX(-20)" />
                                 </g>
-                                {/* Bubbles rising through the liquid */}
-                                <circle className="ab-bubble" cx="86" cy="130" r="3" fill="rgba(253,252,248,0.35)" />
-                                <circle className="ab-bubble ab-bubble-2" cx="112" cy="165" r="2" fill="rgba(253,252,248,0.3)" />
-                                <circle className="ab-bubble ab-bubble-3" cx="118" cy="195" r="2.5" fill="rgba(253,252,248,0.25)" />
                             </g>
                         </g>
                     </g>

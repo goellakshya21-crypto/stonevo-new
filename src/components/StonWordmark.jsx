@@ -42,11 +42,12 @@ const StonWordmark = ({ height = 18, className, style }) => {
             {/* O — perfect circle */}
             <circle cx="302" cy="50" r="43.5" fill="none" stroke={`url(#${gradId})`} strokeWidth="13" />
 
-            {/* N — sliced: diagonal + sheared stems with thin slits */}
+            {/* N — traced from the logo: diagonal exactly stem-width, flush tips,
+                hairline slits shearing the stem caps */}
             <g transform="translate(394,0)" fill={`url(#${gradId})`}>
-                <path d="M0,0 L20,0 L80,100 L60,100 Z" />
-                <path d="M0,8 L14,31.3 L14,100 L0,100 Z" />
-                <path d="M66,0 L80,0 L80,92 L66,68.7 Z" />
+                <path d="M0,0 L13,0 L80,100 L67,100 Z" />
+                <path d="M0,10.8 L13,30.2 L13,100 L0,100 Z" />
+                <path d="M67,0 L80,0 L80,89.2 L67,69.8 Z" />
             </g>
         </svg>
     );
