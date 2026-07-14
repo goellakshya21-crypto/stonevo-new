@@ -204,6 +204,10 @@ const AboutPage = () => {
         const darkOverlay = darkOverlayRef.current;
         const marqueeWrap = marqueeWrapRef.current;
 
+        // Phones get a shorter scroll container (1000vh vs 1300vh), which
+        // would make the footage race; slow the scrub so pacing feels the same.
+        const frameSpeed = window.matchMedia('(max-width: 900px)').matches ? 1.15 : FRAME_SPEED;
+
         // Draw first frame immediately
         drawFrame(0);
 
@@ -289,7 +293,7 @@ const AboutPage = () => {
                 }
 
                 // Frame playback
-                const accelerated = Math.min(p * FRAME_SPEED, 1);
+                const accelerated = Math.min(p * frameSpeed, 1);
                 const index = Math.min(Math.floor(accelerated * FRAME_COUNT), FRAME_COUNT - 1);
                 if (index !== currentFrameRef.current) {
                     currentFrameRef.current = index;
@@ -517,9 +521,9 @@ const AboutPage = () => {
                     .ab-hero { padding: 100px 24px 80px; }
                     .ab-hero-heading { font-size: clamp(40px, 13vw, 84px); }
                     .ab-hero-scroll { left: 24px; }
-                    /* Shorter scroll journey on phones: 1300vh of thumb-scrolling
-                       is exhausting; sections are %-positioned so they adapt. */
-                    .ab-scroll-container { height: 800vh; }
+                    /* Shorter scroll journey on phones than desktop's 1300vh,
+                       but with enough runway that the video doesn't race. */
+                    .ab-scroll-container { height: 1000vh; }
                     .scroll-section { padding: 0 24px; }
                     .align-left, .align-right { padding-left: 6vw; padding-right: 6vw; text-align: center; }
                     .align-left .section-inner, .align-right .section-inner { max-width: 100%; margin: 0 auto; padding: 28px 20px; }

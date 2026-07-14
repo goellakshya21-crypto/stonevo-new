@@ -3,6 +3,12 @@
 @tailwind utilities;
 
 @layer base {
+  /* html-level clamp too: body-only overflow-x can still let mobile Chrome
+     zoom out to fit overflowing content, showing a band beside the page */
+  html {
+    @apply overflow-x-hidden;
+  }
+
   body {
     @apply bg-background-dark text-white font-sans antialiased overflow-x-hidden selection:bg-primary/40;
   }
