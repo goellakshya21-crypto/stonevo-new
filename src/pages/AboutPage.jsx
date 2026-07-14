@@ -506,10 +506,25 @@ const AboutPage = () => {
                 .section-cta .section-body { color: #2a2620; }
 
                 @media (max-width: 900px) {
+                    .ab-header { padding: 18px 20px; gap: 14px; }
+                    .ab-nav-tabs {
+                        gap: 16px; overflow-x: auto; max-width: calc(100vw - 130px);
+                        -webkit-overflow-scrolling: touch; scrollbar-width: none;
+                    }
+                    .ab-nav-tabs::-webkit-scrollbar { display: none; }
+                    .ab-nav-tab { font-size: 8.5px; letter-spacing: 0.14em; }
+                    .ab-nav-tab.active { padding: 8px 14px; }
+                    .ab-hero { padding: 100px 24px 80px; }
                     .ab-hero-heading { font-size: clamp(40px, 13vw, 84px); }
-                    .align-left, .align-right { padding-left: 8vw; padding-right: 8vw; text-align: center; }
+                    .ab-hero-scroll { left: 24px; }
+                    /* Shorter scroll journey on phones: 1300vh of thumb-scrolling
+                       is exhausting; sections are %-positioned so they adapt. */
+                    .ab-scroll-container { height: 800vh; }
+                    .scroll-section { padding: 0 24px; }
+                    .align-left, .align-right { padding-left: 6vw; padding-right: 6vw; text-align: center; }
                     .align-left .section-inner, .align-right .section-inner { max-width: 100%; margin: 0 auto; padding: 28px 20px; }
                     .stats-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+                    .section-cta .section-inner { padding: 36px 22px; }
                 }
             `}</style>
 
