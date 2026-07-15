@@ -64,6 +64,16 @@ function makeBookmatch(dataUrl) {
     });
 }
 
+// ─── Helper: measure an image's natural aspect ratio ─────────────────────────
+function getImageAR(dataUrl) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(img.naturalWidth / img.naturalHeight);
+        img.onerror = () => resolve(null);
+        img.src = dataUrl;
+    });
+}
+
 // ─── Helper: centre-crop an image to a target aspect ratio ───────────────────
 // jsPDF's addImage stretches to fit, which distorts slabs and renders. This
 // crops the source to the destination box's aspect first, so every image in
@@ -510,6 +520,61 @@ async function buildPDF(stones) {
         return { value, sub };
     };
 
+    // ── Raw slab page — the entire slab, uncropped ────────────────────────────
+    // The detail pages show only a cropped strip; this slide shows the whole
+    // specimen contained within a frame, exactly as photographed.
+    const addRawSlabPage = async (stone) => {
+        if (!stone.imageDataUrl) return false;
+        const imgAR = await getImageAR(stone.imageDataUrl);
+        if (!imgAR) return false;
+        addPage();
+        drawRunHead();
+
+        drawEyebrow('SPECIMEN · RAW SLAB', PAD_X, 30);
+
+        // Big serif title: the stone name, unmissable
+        pdf.setFont(SERIF, 'normal');
+        pdf.setFontSize(34);
+        setText(C.ink);
+        pdf.text(stone.name || '—', PAD_X, 48);
+
+        // "AS PHOTOGRAPHED" note, right-aligned on the title line
+        withTracking(0.5, () => {
+            pdf.setFont(MONO, 'normal');
+            pdf.setFontSize(7);
+            setText(C.faint);
+            pdf.text('ENTIRE SLAB · AS PHOTOGRAPHED', W - PAD_X, 46, { align: 'right' });
+        });
+
+        // Contained image — the WHOLE slab visible, no cropping
+        const boxTop = 56;
+        const boxBot = H - 24;
+        const availW = W - PAD_X * 2;
+        const availH = boxBot - boxTop;
+        let iw = availW;
+        let ih = iw / imgAR;
+        if (ih > availH) { ih = availH; iw = ih * imgAR; }
+        const ix = (W - iw) / 2;
+        const iy = boxTop + (availH - ih) / 2;
+        embedImage(stone.imageDataUrl, ix, iy, iw, ih);
+
+        // Hairline frame + corner captions
+        setDraw(C.line);
+        pdf.setLineWidth(0.3);
+        pdf.rect(ix, iy, iw, ih);
+        withTracking(0.5, () => {
+            pdf.setFont(MONO, 'bold');
+            pdf.setFontSize(6.5);
+            setText(C.faint);
+            pdf.text('RAW SLAB', ix, iy + ih + 5);
+            pdf.text('POLISHED', ix + iw, iy + ih + 5, { align: 'right' });
+        });
+
+        pageNum++;
+        drawFoot('RAW SLAB', String(pageNum).padStart(2, '0'));
+        return true;
+    };
+
     // ── Two-way bookmatch page — one per stone, before its application pages ──
     // The slab and its mirror meet at a centre seam, full width of the page,
     // in the same editorial language as the rest of the dossier.
@@ -519,16 +584,20 @@ async function buildPDF(stones) {
         addPage();
         drawRunHead();
 
-        drawEyebrow('SPECIMEN STUDY · TWO-WAY BOOKMATCH', PAD_X, 32);
+        drawEyebrow(`SPECIMEN STUDY · ${(stone.name || '—').toUpperCase()}`, PAD_X, 30);
 
-        // Stone name (serif, right-aligned on the same line as the eyebrow)
-        pdf.setFont(SERIF, 'italic');
-        pdf.setFontSize(24);
+        // Big serif title so the client can't miss what they're looking at:
+        // "Two-Way" in ink + "Bookmatch" in italic accent, cover-style.
+        pdf.setFont(SERIF, 'normal');
+        pdf.setFontSize(34);
         setText(C.ink);
-        pdf.text(stone.name || '—', W - PAD_X, 34, { align: 'right' });
+        pdf.text('Two-Way', PAD_X, 48);
+        pdf.setFont(SERIF, 'italic');
+        setText(C.accent);
+        pdf.text('Bookmatch', PAD_X + pdf.getTextWidth('Two-Way') + 3, 48);
 
         // Composite box — as wide as the page body allows, centred vertically
-        const boxTop = 44;
+        const boxTop = 56;
         const boxBot = H - 26;
         const availW = W - PAD_X * 2;
         const availH = boxBot - boxTop;
@@ -717,6 +786,7 @@ async function buildPDF(stones) {
         for (const { stone, app } of groups[k].items) {
             if (!bookmatched.has(stone.id) && stone.imageDataUrl) {
                 bookmatched.add(stone.id);
+                await addRawSlabPage(stone);
                 await addBookmatchPage(stone);
             }
             specCounter++;
