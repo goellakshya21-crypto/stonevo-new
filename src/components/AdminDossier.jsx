@@ -358,8 +358,11 @@ async function buildPDF(stones) {
     const subText = `${stones.length} specimen${stones.length !== 1 ? 's' : ''}, sourced and matched to application — presented with AI-rendered interiors.`;
     pdf.text(pdf.splitTextToSize(subText, textColW), PAD_X, textCenterY + 30);
 
-    // Meta row (3 columns)
+    // Meta row (3 columns) — values are wrapped to their column width (max
+    // two lines, ellipsis beyond) so long application lists can't run into
+    // the neighbouring column.
     const metaY = textCenterY + 48;
+    const colGap = textColW / 3;
     const metaCol = (x, label, value) => {
         withTracking(0.4, () => {
             pdf.setFont(MONO, 'normal');
@@ -371,10 +374,14 @@ async function buildPDF(stones) {
             pdf.setFont(MONO, 'bold');
             pdf.setFontSize(8);
             setText(C.ink);
-            pdf.text(value, x, metaY + 5);
+            let lines = pdf.splitTextToSize(value, colGap - 8);
+            if (lines.length > 2) {
+                lines = lines.slice(0, 2);
+                lines[1] = lines[1].replace(/.{2}$/, '') + '…';
+            }
+            pdf.text(lines, x, metaY + 5);
         });
     };
-    const colGap = textColW / 3;
     metaCol(PAD_X,                   'SPECIMENS',   `${String(stones.length).padStart(2, '0')} — CURATED`);
     metaCol(PAD_X + colGap,          'APPLICATIONS', (order.map(o => groups[o].label).join(' · ') || '—').toUpperCase());
     metaCol(PAD_X + colGap * 2,      'ISSUED',       new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase());
