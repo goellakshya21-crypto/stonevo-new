@@ -39,6 +39,62 @@ function fileToDataUrl(file) {
     });
 }
 
+// ─── Helper: build a two-way bookmatch composite from a slab image ───────────
+// Draws the slab and its horizontal mirror side by side, so the veining meets
+// at the centre seam exactly like a real bookmatched installation.
+function makeBookmatch(dataUrl) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            const w = img.naturalWidth, h = img.naturalHeight;
+            const c = document.createElement('canvas');
+            c.width = w * 2;
+            c.height = h;
+            const ctx = c.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            ctx.save();
+            ctx.scale(-1, 1);
+            ctx.drawImage(img, -w * 2, 0);
+            ctx.restore();
+            try { resolve({ dataUrl: c.toDataURL('image/jpeg', 0.92), ar: (w * 2) / h }); }
+            catch { resolve(null); }
+        };
+        img.onerror = () => resolve(null);
+        img.src = dataUrl;
+    });
+}
+
+// ─── Helper: centre-crop an image to a target aspect ratio ───────────────────
+// jsPDF's addImage stretches to fit, which distorts slabs and renders. This
+// crops the source to the destination box's aspect first, so every image in
+// the dossier is embedded cover-style with no distortion.
+function coverCrop(dataUrl, targetAR) {
+    return new Promise((resolve) => {
+        if (!dataUrl) return resolve(null);
+        const img = new Image();
+        img.onload = () => {
+            const w = img.naturalWidth, h = img.naturalHeight;
+            const srcAR = w / h;
+            let sx = 0, sy = 0, sw = w, sh = h;
+            if (srcAR > targetAR) {
+                sw = h * targetAR;
+                sx = (w - sw) / 2;
+            } else {
+                sh = w / targetAR;
+                sy = (h - sh) / 2;
+            }
+            const c = document.createElement('canvas');
+            c.width = Math.round(sw);
+            c.height = Math.round(sh);
+            c.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
+            try { resolve(c.toDataURL('image/jpeg', 0.92)); }
+            catch { resolve(dataUrl); }
+        };
+        img.onerror = () => resolve(dataUrl);
+        img.src = dataUrl;
+    });
+}
+
 // ─── Font loader ──────────────────────────────────────────────────────────────
 // Fetches Cormorant Garamond + Space Mono TTFs from /public/fonts and registers
 // them with the jsPDF instance. Cached at module scope so subsequent renders
@@ -254,13 +310,14 @@ async function buildPDF(stones) {
     addPage(true);
     drawRunHead();
 
-    // Image panel — right side, full body height
+    // Image panel — right side, full body height (cover-cropped, no stretch)
     const bodyTop = 24;            // approx where body starts under run-head
     const bodyBot = H - 18;        // approx where body ends above foot
     const splitRatio = 1.06 / (1.06 + 0.94);
     const splitColX = W * splitRatio; // x boundary between text and image
     if (coverPanelDataUrl) {
-        embedImage(coverPanelDataUrl, splitColX, bodyTop, W - splitColX, bodyBot - bodyTop);
+        const cropped = await coverCrop(coverPanelDataUrl, (W - splitColX) / (bodyBot - bodyTop));
+        embedImage(cropped, splitColX, bodyTop, W - splitColX, bodyBot - bodyTop);
     }
     // Vertical hairline between panels
     setDraw(C.line);
@@ -331,7 +388,7 @@ async function buildPDF(stones) {
     pdf.setFont(MONO, 'normal');
     pdf.setFontSize(9);
     setText(C.muted);
-    const leadText = 'Each specimen is presented as a raw slab and as an AI-rendered application, with format, lot availability and indicative price for private clients.';
+    const leadText = 'Each specimen is presented as a raw slab, a two-way bookmatch study, and an AI-rendered application, with format, lot availability and indicative price for private clients.';
     pdf.text(pdf.splitTextToSize(leadText, 110), PAD_X, 82);
 
     // RIGHT column: TOC entries
@@ -380,7 +437,7 @@ async function buildPDF(stones) {
     // ─────────────────────────────────────────────────────────────────────────
     let pageNum = 2;
 
-    const addDividerPage = (appKey, appIndex) => {
+    const addDividerPage = async (appKey, appIndex) => {
         addPage();
         drawRunHead();
 
@@ -389,7 +446,8 @@ async function buildPDF(stones) {
         const dBodyBot = H - 18;
         const dSplitX = W * (1.06 / (1.06 + 0.94));
         if (dividerPanels[appKey]) {
-            embedImage(dividerPanels[appKey], dSplitX, dBodyTop, W - dSplitX, dBodyBot - dBodyTop);
+            const cropped = await coverCrop(dividerPanels[appKey], (W - dSplitX) / (dBodyBot - dBodyTop));
+            embedImage(cropped, dSplitX, dBodyTop, W - dSplitX, dBodyBot - dBodyTop);
         }
         setDraw(C.line);
         pdf.setLineWidth(0.2);
@@ -452,6 +510,69 @@ async function buildPDF(stones) {
         return { value, sub };
     };
 
+    // ── Two-way bookmatch page — one per stone, before its application pages ──
+    // The slab and its mirror meet at a centre seam, full width of the page,
+    // in the same editorial language as the rest of the dossier.
+    const addBookmatchPage = async (stone) => {
+        const bm = await makeBookmatch(stone.imageDataUrl);
+        if (!bm) return false;
+        addPage();
+        drawRunHead();
+
+        drawEyebrow('SPECIMEN STUDY · TWO-WAY BOOKMATCH', PAD_X, 32);
+
+        // Stone name (serif, right-aligned on the same line as the eyebrow)
+        pdf.setFont(SERIF, 'italic');
+        pdf.setFontSize(24);
+        setText(C.ink);
+        pdf.text(stone.name || '—', W - PAD_X, 34, { align: 'right' });
+
+        // Composite box — as wide as the page body allows, centred vertically
+        const boxTop = 44;
+        const boxBot = H - 26;
+        const availW = W - PAD_X * 2;
+        const availH = boxBot - boxTop;
+        let bw = availW;
+        let bh = bw / bm.ar;
+        if (bh > availH) { bh = availH; bw = bh * bm.ar; }
+        const bx = (W - bw) / 2;
+        const by = boxTop + (availH - bh) / 2;
+        embedImage(bm.dataUrl, bx, by, bw, bh);
+
+        // Hairline frame
+        setDraw(C.line);
+        pdf.setLineWidth(0.3);
+        pdf.rect(bx, by, bw, bh);
+
+        // Centre seam: accent ticks above and below the mirror line
+        const seamX = bx + bw / 2;
+        setDraw(C.accent);
+        pdf.setLineWidth(0.4);
+        pdf.line(seamX, by - 3.5, seamX, by - 1);
+        pdf.line(seamX, by + bh + 1, seamX, by + bh + 3.5);
+
+        // Seam caption between the ticks and the frame
+        withTracking(0.5, () => {
+            pdf.setFont(MONO, 'normal');
+            pdf.setFontSize(6);
+            setText(C.faint);
+            pdf.text('MIRROR SEAM', seamX, by - 5, { align: 'center' });
+        });
+
+        // Corner captions under the composite
+        withTracking(0.5, () => {
+            pdf.setFont(MONO, 'bold');
+            pdf.setFontSize(6.5);
+            setText(C.faint);
+            pdf.text('SLAB A · AS CUT', bx, by + bh + 6);
+            pdf.text('SLAB B · MIRRORED', bx + bw, by + bh + 6, { align: 'right' });
+        });
+
+        pageNum++;
+        drawFoot('TWO-WAY BOOKMATCH', String(pageNum).padStart(2, '0'));
+        return true;
+    };
+
     const addStoneDetailPage = async (stone, app, specIdx, totalSpecs) => {
         addPage();
         drawRunHead();
@@ -488,11 +609,12 @@ async function buildPDF(stones) {
             pdf.text('POLISHED', splitX - 4, slabY, { align: 'right' });
         });
 
-        // Slab image
+        // Slab image (cover-cropped to the strip, no stretch)
         const slabH = 26;
         const slabW = splitX - PAD_X - 4;
         if (stone.imageDataUrl) {
-            embedImage(stone.imageDataUrl, PAD_X, slabY + 2, slabW, slabH);
+            const croppedSlab = await coverCrop(stone.imageDataUrl, slabW / slabH);
+            embedImage(croppedSlab, PAD_X, slabY + 2, slabW, slabH);
         }
         setDraw(C.line);
         pdf.setLineWidth(0.3);
@@ -527,11 +649,12 @@ async function buildPDF(stones) {
         drawSpec(1, 'LOT',    stone.lotSize);
         drawSpec(2, 'PRICE',  stone.price);
 
-        // RIGHT: full-bleed render
+        // RIGHT: full-bleed render (cover-cropped, no stretch)
         if (app.renderUrl) {
             const renderDataUrl = await urlToDataUrl(app.renderUrl);
             if (renderDataUrl) {
-                embedImage(renderDataUrl, splitX, 0, W - splitX, H);
+                const croppedRender = await coverCrop(renderDataUrl, (W - splitX) / H);
+                embedImage(croppedRender, splitX, 0, W - splitX, H);
             }
             // Floating caption pill at bottom-left of render
             // (solid dark bg + 1px stroke-strong border, two segments separated by a vertical hairline)
@@ -587,10 +710,15 @@ async function buildPDF(stones) {
 
     let specCounter = 0;
     const totalSpecimens = pairs.length;
+    const bookmatched = new Set(); // one bookmatch page per stone, at first appearance
     for (let gi = 0; gi < order.length; gi++) {
         const k = order[gi];
-        addDividerPage(k, gi);
+        await addDividerPage(k, gi);
         for (const { stone, app } of groups[k].items) {
+            if (!bookmatched.has(stone.id) && stone.imageDataUrl) {
+                bookmatched.add(stone.id);
+                await addBookmatchPage(stone);
+            }
             specCounter++;
             await addStoneDetailPage(stone, app, specCounter, totalSpecimens);
         }
@@ -784,7 +912,7 @@ const AdminDossier = () => {
                             Stone Dossier Generator
                         </h2>
                         <p className="text-stone-500 text-sm mt-1">
-                            Add stones → generate AI renders → export a branded PDF dossier
+                            Add stones → generate AI renders → export a branded PDF dossier (each stone gets a two-way bookmatch page automatically)
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
