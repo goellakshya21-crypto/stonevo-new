@@ -583,13 +583,6 @@ function Home({ role }) {
                                 ◆ Privilege Circle
                             </Link>
 
-                            <button
-                                onClick={() => setIsDossierOpen(true)}
-                                className="px-5 py-2 border border-bronze/30 rounded-full text-[10px] uppercase tracking-widest text-bronze hover:bg-bronze hover:text-white transition-all font-bold backdrop-blur-md"
-                            >
-                                Create Dossier
-                            </button>
-
                             {/* Client Switcher Dropdown */}
                             {clients.length > 0 && (
                                 <div className="relative" onClick={e => e.stopPropagation()}>
@@ -638,15 +631,14 @@ function Home({ role }) {
 
                         </div>
                     )}
-                    {/* Clients / project owners get the dossier builder too */}
-                    {chatRole === 'builder' && (
-                        <button
-                            onClick={() => setIsDossierOpen(true)}
-                            className="px-5 py-2 border border-bronze/30 rounded-full text-[10px] uppercase tracking-widest text-bronze hover:bg-bronze hover:text-white transition-all font-bold backdrop-blur-md"
-                        >
-                            Create Dossier
-                        </button>
-                    )}
+                    {/* Dossier builder — every authenticated gallery user
+                        (architect, client/project owner, vendor, admin) */}
+                    <button
+                        onClick={() => setIsDossierOpen(true)}
+                        className="px-5 py-2 border border-bronze/30 rounded-full text-[10px] uppercase tracking-widest text-bronze hover:bg-bronze hover:text-white transition-all font-bold backdrop-blur-md"
+                    >
+                        Create Dossier
+                    </button>
                 </div>
                 <nav className="flex items-center gap-4">
                     <Link to="/advisory" className="text-[10px] uppercase tracking-widest text-stone-400 hover:text-white transition-colors font-bold py-2 px-4 border border-stone-800/50 rounded-full bg-stone-900/50 backdrop-blur-sm">Audit & Advisory</Link>
