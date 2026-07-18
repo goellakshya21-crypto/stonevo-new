@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { FileText, X, Sparkles, Loader2, Download, ChevronDown, Search, Check, Plus } from 'lucide-react';
 import { APPLICATION_OPTIONS, generateRender, buildPDF } from '../lib/dossierPdf';
 
@@ -107,19 +107,22 @@ const ArchitectDossier = ({ isOpen, onClose, marbles }) => {
 
     if (!isOpen) return null;
 
-    return (
-        <AnimatePresence>
-            <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                // Sit above every other overlay (the ProjectChat widget floats at
-                // the max 32-bit z-index; other modals reach z-300), so the
-                // dossier can never open behind something and look like nothing
-                // happened.
-                style={{ zIndex: 2147483647 }}
-                className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
-            >
-                <motion.div
-                    initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+    // Portal to <body>: the gallery is wrapped by LeadGate in a `blur-0`
+    // (filter: blur(0px)) div, which creates a containing block that makes
+    // position:fixed relative to that full-height wrapper — so the modal
+    // would centre thousands of px down the page, off-screen. Rendering
+    // outside that wrapper fixes it (same approach as the other modals).
+    //
+    // Plain divs, no framer-motion: the entrance animation was leaving the
+    // modal stuck at its initial opacity:0 in some builds. Visibility must
+    // never depend on a JS animation completing. Sit above every other
+    // overlay (ProjectChat floats at the max 32-bit z-index; modals reach z-300).
+    return createPortal((
+        <div
+            style={{ zIndex: 2147483647 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+                <div
                     className="w-full max-w-6xl h-[88vh] bg-stone-950 border border-white/10 rounded-2xl overflow-hidden flex flex-col"
                 >
                     {/* Header */}
@@ -283,10 +286,9 @@ const ArchitectDossier = ({ isOpen, onClose, marbles }) => {
                             )}
                         </div>
                     </div>
-                </motion.div>
-            </motion.div>
-        </AnimatePresence>
-    );
+                </div>
+        </div>
+    ), document.body);
 };
 
 export default ArchitectDossier;
