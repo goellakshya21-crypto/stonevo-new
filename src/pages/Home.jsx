@@ -16,6 +16,7 @@ import ProjectChat from '../components/ProjectChat';
 import ClientManager from '../components/ClientManager';
 import StonDebugPanel from '../components/StonDebugPanel';
 import StonWordmark from '../components/StonWordmark';
+import ArchitectDossier from '../components/ArchitectDossier';
 import { PowerOff, ChevronDown, Link as LinkIcon, Upload, Sparkles, Trash2, Pencil, Check, X as XIcon, Phone } from 'lucide-react';
 
 // Floating prompt for clients who haven't linked an architect yet
@@ -118,6 +119,7 @@ function Home({ role }) {
     const [stoneContextList, setStoneContextList] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [isClientManagerOpen, setIsClientManagerOpen] = useState(false);
+    const [isDossierOpen, setIsDossierOpen] = useState(false);
     const [clients, setClients] = useState([]);
     const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
     const [pendingRequestCount, setPendingRequestCount] = useState(0);
@@ -581,6 +583,13 @@ function Home({ role }) {
                                 ◆ Privilege Circle
                             </Link>
 
+                            <button
+                                onClick={() => setIsDossierOpen(true)}
+                                className="px-5 py-2 border border-bronze/30 rounded-full text-[10px] uppercase tracking-widest text-bronze hover:bg-bronze hover:text-white transition-all font-bold backdrop-blur-md"
+                            >
+                                Create Dossier
+                            </button>
+
                             {/* Client Switcher Dropdown */}
                             {clients.length > 0 && (
                                 <div className="relative" onClick={e => e.stopPropagation()}>
@@ -907,6 +916,13 @@ function Home({ role }) {
             <ClientManager
                 isOpen={isClientManagerOpen}
                 onClose={() => setIsClientManagerOpen(false)}
+            />
+
+            {/* Architect dossier builder — gallery stones only, no uploads */}
+            <ArchitectDossier
+                isOpen={isDossierOpen}
+                onClose={() => setIsDossierOpen(false)}
+                marbles={marbles}
             />
 
             {/* Prompt unlinked clients to connect their architect */}
