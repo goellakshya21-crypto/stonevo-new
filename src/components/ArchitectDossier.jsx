@@ -111,7 +111,12 @@ const ArchitectDossier = ({ isOpen, onClose, marbles }) => {
         <AnimatePresence>
             <motion.div
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+                // Sit above every other overlay (the ProjectChat widget floats at
+                // the max 32-bit z-index; other modals reach z-300), so the
+                // dossier can never open behind something and look like nothing
+                // happened.
+                style={{ zIndex: 2147483647 }}
+                className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
             >
                 <motion.div
                     initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
