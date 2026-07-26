@@ -680,8 +680,8 @@ const AdvisoryServices = () => {
 
                             <div className="adv-tier-pricing">
                                 <div className="adv-tier-price-row">
-                                    <p className="adv-tier-price-label">Advisory Fee</p>
-                                    <p className="adv-tier-price-value">₹1,000</p>
+                                    <p className="adv-tier-price-label">Project quotation</p>
+                                    <p className="adv-tier-price-sub">Quoted according to your project scope and requirements.</p>
                                 </div>
                             </div>
 
@@ -730,12 +730,8 @@ const AdvisoryServices = () => {
 
                             <div className="adv-tier-pricing">
                                 <div className="adv-tier-price-row">
-                                    <p className="adv-tier-price-label">Professional Fee</p>
-                                    <p className="adv-tier-price-value">₹25,000</p>
-                                </div>
-                                <div className="adv-tier-price-row">
-                                    <p className="adv-tier-price-label">Coordination Fee</p>
-                                    <p className="adv-tier-price-sub">Applicable on overall material value.</p>
+                                    <p className="adv-tier-price-label">Project quotation</p>
+                                    <p className="adv-tier-price-sub">Quoted according to your project scope and requirements.</p>
                                 </div>
                             </div>
                         </article>
@@ -775,12 +771,8 @@ const AdvisoryServices = () => {
 
                             <div className="adv-tier-pricing">
                                 <div className="adv-tier-price-row">
-                                    <p className="adv-tier-price-label">Professional Fee</p>
-                                    <p className="adv-tier-price-value">₹75,000<span className="plus"> +</span></p>
-                                </div>
-                                <div className="adv-tier-price-row">
-                                    <p className="adv-tier-price-label">Coordination Fee</p>
-                                    <p className="adv-tier-price-sub">Applicable on overall material value.</p>
+                                    <p className="adv-tier-price-label">Project quotation</p>
+                                    <p className="adv-tier-price-sub">Quoted according to your project scope and requirements.</p>
                                 </div>
                             </div>
                         </article>
