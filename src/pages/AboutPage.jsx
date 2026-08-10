@@ -364,7 +364,7 @@ const AboutPage = () => {
     return (
         <div className="ab-root">
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Manrope:wght@300;400;500;700;800&display=swap');
+                @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Manrope:wght@300;400;500;700;800&display=swap');
 
                 .ab-root {
                     --bronze: #A37D4B;
@@ -482,7 +482,7 @@ const AboutPage = () => {
                     background: radial-gradient(ellipse 100% 90% at center, rgba(253,252,248,0.92) 0%, rgba(253,252,248,0.8) 40%, rgba(253,252,248,0.4) 70%, rgba(253,252,248,0) 100%);
                 }
                 .section-label { display: block; font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.4em; text-transform: uppercase; color: var(--bronze); opacity: 1; margin-bottom: 24px; }
-                .section-heading { font-family: var(--serif); font-weight: 700; letter-spacing: -0.015em; line-height: 1.2; font-size: clamp(14px, 1.4vw, 28px); color: #0d0c0a; margin-bottom: 22px; white-space: nowrap; }
+                .section-heading { font-family: var(--serif); font-weight: 900; letter-spacing: -0.015em; line-height: 1.2; font-size: clamp(12px, 1.3vw, 26px); color: #0d0c0a; margin-bottom: 22px; white-space: nowrap; }
                 .section-body { font-family: var(--sans); font-size: 16px; font-weight: 300; line-height: 1.75; color: #2a2620; max-width: 44vw; text-align: justify; text-align-last: left; }
 
                 /* STATS SECTION */
