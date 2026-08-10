@@ -485,12 +485,18 @@ const AboutPage = () => {
                 }
                 /* The two longest headings ("Intentional Choices..." and "A better
                    overall project experience") don't fit heading-xl in the default
-                   44vw box, so they get a wider one. The align-right box also has
-                   to start further left (padding-left 50vw -> 30vw) or a 60vw+ box
-                   starting at the 50vw mark would run off the right edge of the
-                   viewport entirely -- same failure mode as the earlier cropping bug. */
-                .section-inner-wide { max-width: 66vw; }
-                .align-right.approach-wide { padding-left: 30vw; }
+                   44vw box, so they get a wider one. A block with width:auto never
+                   renders wider than its AVAILABLE space even if max-width allows
+                   more -- so it's not enough to just raise max-width here, the
+                   opposite-side padding (reserved for the video half) has to shrink
+                   too, or the box silently stays capped at the old ~42vw. The
+                   align-right box also has to start further left (padding-left
+                   50vw -> 30vw) or a wide box starting at the 50vw mark would run
+                   off the right edge of the viewport -- same failure mode as the
+                   earlier cropping bug. */
+                .section-inner-wide { max-width: 72vw; }
+                .align-left.help-wide { padding-right: 10vw; }
+                .align-right.approach-wide { padding-left: 22vw; }
                 .section-label { display: block; font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.4em; text-transform: uppercase; color: var(--bronze); opacity: 1; margin-bottom: 24px; }
                 .section-heading { font-family: 'Playfair Display', var(--serif); font-weight: 600; letter-spacing: -0.005em; line-height: 1.15; color: #0d0c0a; margin-bottom: 22px; white-space: nowrap; }
                 .heading-xl { font-size: clamp(20px, 2.5vw, 42px); }
@@ -532,6 +538,7 @@ const AboutPage = () => {
                     .ab-scroll-container { height: 1000vh; }
                     .scroll-section { padding: 0 24px; }
                     .align-left, .align-right { padding-left: 6vw; padding-right: 6vw; text-align: center; }
+                    .align-left.help-wide { padding-right: 6vw; }
                     .align-right.approach-wide { padding-left: 6vw; }
                     .align-left .section-inner, .align-right .section-inner { width: auto; max-width: 100%; margin: 0 auto; padding: 28px 20px; }
                     .section-heading { white-space: normal; }
@@ -729,7 +736,7 @@ const AboutPage = () => {
 
                 {/* HOW WE HELP */}
                 <section
-                    className="scroll-section section-content align-left"
+                    className="scroll-section section-content align-left help-wide"
                     data-enter="56" data-leave="70" data-animation="fade-up"
                 >
                     <div className="section-inner section-inner-wide">
