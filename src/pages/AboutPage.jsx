@@ -485,16 +485,17 @@ const AboutPage = () => {
                 }
                 /* The two longest headings ("Intentional Choices..." and "A better
                    overall project experience") don't fit heading-xl in the default
-                   44vw box, so they get a wider one. A block with width:auto never
-                   renders wider than its AVAILABLE space even if max-width allows
-                   more -- so it's not enough to just raise max-width here, the
-                   opposite-side padding (reserved for the video half) has to shrink
-                   too, or the box silently stays capped at the old ~42vw. The
-                   align-right box also has to start further left (padding-left
-                   50vw -> 30vw) or a wide box starting at the 50vw mark would run
-                   off the right edge of the viewport -- same failure mode as the
-                   earlier cropping bug. */
-                .section-inner-wide { max-width: 88vw; }
+                   44vw box. Guessing a fixed vw width for them kept being wrong in
+                   both directions, so instead of guessing: width:max-content makes
+                   the box shrink-wrap EXACTLY to what the text actually measures,
+                   which by definition can never overflow its own box. max-width is
+                   just a hard safety ceiling -- calculated precisely from each
+                   section's own padding geometry (100vw minus its start offset and
+                   opposite-side padding, minus a small margin) -- so the box can
+                   never run off the viewport edge either, regardless of exactly how
+                   wide the text turns out to render. */
+                .help-inner-wide { width: max-content; max-width: 86vw; }
+                .approach-inner-wide { width: max-content; max-width: 68vw; }
                 .align-left.help-wide { padding-right: 4vw; }
                 .align-right.approach-wide { padding-left: 22vw; }
                 .section-label { display: block; font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.4em; text-transform: uppercase; color: var(--bronze); opacity: 1; margin-bottom: 24px; }
@@ -739,7 +740,7 @@ const AboutPage = () => {
                     className="scroll-section section-content align-left help-wide"
                     data-enter="56" data-leave="70" data-animation="fade-up"
                 >
-                    <div className="section-inner section-inner-wide">
+                    <div className="section-inner help-inner-wide">
                         <h2 className="section-heading heading-xl">Intentional Choices Over Endless Options</h2>
                         <ul className="help-list">
                             {HELP_LINES.map((l, i) => <li key={i}>{l}</li>)}
@@ -752,7 +753,7 @@ const AboutPage = () => {
                     className="scroll-section section-content align-right approach-wide"
                     data-enter="72" data-leave="86" data-animation="clip-reveal"
                 >
-                    <div className="section-inner section-inner-wide">
+                    <div className="section-inner approach-inner-wide">
                         <h2 className="section-heading heading-xl">A better overall project experience</h2>
                         <p className="section-body">
                             We don't believe in overwhelming clients with hundreds of random options. Our role is to understand, narrow and align, so the right stone finds the right space: meaningful choices, sourcing clarity, and a design that survives all the way from brief to final slab.
