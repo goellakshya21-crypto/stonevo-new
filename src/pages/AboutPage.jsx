@@ -21,6 +21,7 @@ const SECTIONS = [
     {
         id: 'purpose',
         heading: 'One integrated experience',
+        headingClass: 'heading-xl',
         body: 'Ston bridges that gap by combining advisory thinking, sourcing understanding, design sensitivity and coordination structure into one integrated experience.',
         align: 'left',
         animation: 'slide-left',
@@ -29,6 +30,7 @@ const SECTIONS = [
     {
         id: 'belief',
         heading: 'Not a material selection. A long-term decision',
+        headingClass: 'heading-xs',
         body: 'Natural stone should align with the design language of a project, its functionality, maintenance expectations, and the realities of execution.',
         align: 'right',
         animation: 'slide-right',
@@ -482,7 +484,16 @@ const AboutPage = () => {
                     background: radial-gradient(ellipse 100% 90% at center, rgba(253,252,248,0.92) 0%, rgba(253,252,248,0.8) 40%, rgba(253,252,248,0.4) 70%, rgba(253,252,248,0) 100%);
                 }
                 .section-label { display: block; font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.4em; text-transform: uppercase; color: var(--bronze); opacity: 1; margin-bottom: 24px; }
-                .section-heading { font-family: 'Playfair Display', var(--serif); font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; font-size: clamp(13px, 1.5vw, 28px); color: #0d0c0a; margin-bottom: 22px; white-space: nowrap; }
+                /* Base heading style -- font-size is set per heading below via a
+                   size modifier, since each heading needs a different size to
+                   fit its own character count on one line. Sizing every heading
+                   for the WORST-case (longest) string left short headings
+                   needlessly tiny. */
+                .section-heading { font-family: 'Playfair Display', var(--serif); font-weight: 600; letter-spacing: -0.005em; line-height: 1.15; color: #0d0c0a; margin-bottom: 22px; white-space: nowrap; }
+                .heading-xl { font-size: clamp(20px, 2.5vw, 42px); }
+                .heading-lg { font-size: clamp(17px, 1.9vw, 37px); }
+                .heading-sm { font-size: clamp(15px, 1.55vw, 32px); }
+                .heading-xs { font-size: clamp(14px, 1.4vw, 29px); }
                 .section-body { font-family: var(--sans); font-size: 16px; font-weight: 300; line-height: 1.75; color: #2a2620; max-width: 44vw; text-align: justify; text-align-last: left; }
 
                 /* STATS SECTION */
@@ -693,7 +704,7 @@ const AboutPage = () => {
                         data-enter={s.enter} data-leave={s.leave} data-animation={s.animation}
                     >
                         <div className="section-inner">
-                            <h2 className="section-heading">{s.heading}</h2>
+                            <h2 className={`section-heading ${s.headingClass}`}>{s.heading}</h2>
                             <p className="section-body">{s.body}</p>
                         </div>
                     </section>
@@ -721,7 +732,7 @@ const AboutPage = () => {
                     data-enter="56" data-leave="70" data-animation="fade-up"
                 >
                     <div className="section-inner">
-                        <h2 className="section-heading">Not hundreds of options. Meaningful choices</h2>
+                        <h2 className="section-heading heading-sm">Not hundreds of options. Meaningful choices</h2>
                         <ul className="help-list">
                             {HELP_LINES.map((l, i) => <li key={i}>{l}</li>)}
                         </ul>
@@ -734,7 +745,7 @@ const AboutPage = () => {
                     data-enter="72" data-leave="86" data-animation="clip-reveal"
                 >
                     <div className="section-inner">
-                        <h2 className="section-heading">A better overall project experience</h2>
+                        <h2 className="section-heading heading-lg">A better overall project experience</h2>
                         <p className="section-body">
                             We don't believe in overwhelming clients with hundreds of random options. Our role is to understand, narrow and align, so the right stone finds the right space: meaningful choices, sourcing clarity, and a design that survives all the way from brief to final slab.
                         </p>
@@ -747,7 +758,7 @@ const AboutPage = () => {
                     data-enter="88" data-leave="100" data-animation="rotate-in" data-persist="true"
                 >
                     <div className="section-inner">
-                        <h2 className="section-heading">Not just to <em style={{ fontStyle: 'italic', color: 'var(--bronze)' }}>select a stone</em></h2>
+                        <h2 className="section-heading heading-xl">Not just to <em style={{ fontStyle: 'italic', color: 'var(--bronze)' }}>select a stone</em></h2>
                         <p className="section-body">
                             The objective is to create a better overall project experience: guided, curated, informed and coordinated.
                         </p>
