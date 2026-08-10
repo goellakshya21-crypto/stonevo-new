@@ -410,6 +410,7 @@ const StoneIntelligencePage = () => {
                         <NavTab to="/about">About</NavTab>
                         <NavTab to="/stone-intelligence" active>Stone Intelligence</NavTab>
                         <NavTab to="/advisory">Audit & Advisory</NavTab>
+                        <NavTab to="/team">Our Team</NavTab>
                     </div>
                 </nav>
 

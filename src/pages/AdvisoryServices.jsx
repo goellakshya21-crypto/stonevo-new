@@ -605,6 +605,7 @@ const AdvisoryServices = () => {
                     <Link to="/about" className="adv-nav-tab">About</Link>
                     <Link to="/stone-intelligence" className="adv-nav-tab">Stone Intelligence</Link>
                     <Link to="/advisory" className="adv-nav-tab active">Audit &amp; Advisory</Link>
+                    <Link to="/team" className="adv-nav-tab">Our Team</Link>
                 </div>
             </nav>
 

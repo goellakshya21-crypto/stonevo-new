@@ -6,6 +6,7 @@ import AdminPage from './pages/AdminPage';
 import AdvisoryServices from './pages/AdvisoryServices';
 import AboutPage from './pages/AboutPage';
 import StoneIntelligencePage from './pages/StoneIntelligencePage';
+import TeamPage from './pages/TeamPage';
 import VendorPortal from './pages/VendorPortal';
 import PrivilegeCircle from './pages/PrivilegeCircle';
 import LeadGate from './components/LeadGate';
@@ -29,6 +30,7 @@ function App() {
           <Route path="/advisory" element={<AdvisoryServices />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/stone-intelligence" element={<StoneIntelligencePage />} />
+          <Route path="/team" element={<TeamPage />} />
           <Route path="/vendor" element={<VendorPortal />} />
           <Route path="/circle" element={<PrivilegeCircle />} />
           <Route path="/internal-management-stonevo-9921" element={<AdminPage />} />

@@ -20,7 +20,6 @@ const IMAGE_SCALE = 1.0;
 const SECTIONS = [
     {
         id: 'purpose',
-        label: '001 / Purpose',
         heading: 'One integrated experience.',
         body: 'Ston bridges that gap by combining advisory thinking, sourcing understanding, design sensitivity and coordination structure into one integrated experience.',
         align: 'left',
@@ -29,7 +28,6 @@ const SECTIONS = [
     },
     {
         id: 'belief',
-        label: '002 / Belief',
         heading: 'Not a material selection. A long-term decision.',
         body: 'Natural stone should align with the design language of a project, its functionality, maintenance expectations, and the realities of execution.',
         align: 'right',
@@ -648,6 +646,7 @@ const AboutPage = () => {
                     <Link to="/about" className="ab-nav-tab active">About</Link>
                     <Link to="/stone-intelligence" className="ab-nav-tab">Stone Intelligence</Link>
                     <Link to="/advisory" className="ab-nav-tab">Audit &amp; Advisory</Link>
+                    <Link to="/team" className="ab-nav-tab">Our Team</Link>
                 </div>
             </nav>
 
@@ -692,7 +691,6 @@ const AboutPage = () => {
                         data-enter={s.enter} data-leave={s.leave} data-animation={s.animation}
                     >
                         <div className="section-inner">
-                            <span className="section-label">{s.label}</span>
                             <h2 className="section-heading">{s.heading}</h2>
                             <p className="section-body">{s.body}</p>
                         </div>
@@ -721,7 +719,6 @@ const AboutPage = () => {
                     data-enter="56" data-leave="70" data-animation="fade-up"
                 >
                     <div className="section-inner">
-                        <span className="section-label">004 / Approach</span>
                         <h2 className="section-heading">Not hundreds of options. Meaningful choices.</h2>
                         <ul className="help-list">
                             {HELP_LINES.map((l, i) => <li key={i}>{l}</li>)}
@@ -735,7 +732,6 @@ const AboutPage = () => {
                     data-enter="72" data-leave="86" data-animation="clip-reveal"
                 >
                     <div className="section-inner">
-                        <span className="section-label">005 / Method</span>
                         <h2 className="section-heading">A better overall project experience.</h2>
                         <p className="section-body">
                             We don't believe in overwhelming clients with hundreds of random options. Our role is to understand, narrow and align, so the right stone finds the right space: meaningful choices, sourcing clarity, and a design that survives all the way from brief to final slab.
@@ -749,7 +745,6 @@ const AboutPage = () => {
                     data-enter="88" data-leave="100" data-animation="rotate-in" data-persist="true"
                 >
                     <div className="section-inner">
-                        <span className="section-label">006 / Objective</span>
                         <h2 className="section-heading">Not just to <em style={{ fontStyle: 'italic', color: 'var(--bronze)' }}>select a stone.</em></h2>
                         <p className="section-body">
                             The objective is to create a better overall project experience: guided, curated, informed and coordinated.
