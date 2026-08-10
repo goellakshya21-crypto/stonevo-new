@@ -21,7 +21,7 @@ const SECTIONS = [
     {
         id: 'purpose',
         heading: 'One integrated experience',
-        headingClass: 'heading-lg',
+        headingClass: 'heading-xl',
         body: 'Ston bridges that gap by combining advisory thinking, sourcing understanding, design sensitivity and coordination structure into one integrated experience.',
         align: 'left',
         animation: 'slide-left',
@@ -29,8 +29,8 @@ const SECTIONS = [
     },
     {
         id: 'belief',
-        heading: 'Not a material selection. A long-term decision',
-        headingClass: 'heading-xs',
+        heading: 'A Choice for Years',
+        headingClass: 'heading-xl',
         body: 'Natural stone should align with the design language of a project, its functionality, maintenance expectations, and the realities of execution.',
         align: 'right',
         animation: 'slide-right',
@@ -483,17 +483,17 @@ const AboutPage = () => {
                     padding: 56px 52px;
                     background: radial-gradient(ellipse 100% 90% at center, rgba(253,252,248,0.92) 0%, rgba(253,252,248,0.8) 40%, rgba(253,252,248,0.4) 70%, rgba(253,252,248,0) 100%);
                 }
+                /* The two longest headings ("Intentional Choices..." and "A better
+                   overall project experience") don't fit heading-xl in the default
+                   44vw box, so they get a wider one. The align-right box also has
+                   to start further left (padding-left 50vw -> 30vw) or a 60vw+ box
+                   starting at the 50vw mark would run off the right edge of the
+                   viewport entirely -- same failure mode as the earlier cropping bug. */
+                .section-inner-wide { max-width: 66vw; }
+                .align-right.approach-wide { padding-left: 30vw; }
                 .section-label { display: block; font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.4em; text-transform: uppercase; color: var(--bronze); opacity: 1; margin-bottom: 24px; }
-                /* Base heading style -- font-size is set per heading below via a
-                   size modifier, since each heading needs a different size to
-                   fit its own character count on one line. Sizing every heading
-                   for the WORST-case (longest) string left short headings
-                   needlessly tiny. */
                 .section-heading { font-family: 'Playfair Display', var(--serif); font-weight: 600; letter-spacing: -0.005em; line-height: 1.15; color: #0d0c0a; margin-bottom: 22px; white-space: nowrap; }
                 .heading-xl { font-size: clamp(20px, 2.5vw, 42px); }
-                .heading-lg { font-size: clamp(17px, 1.9vw, 37px); }
-                .heading-sm { font-size: clamp(15px, 1.55vw, 32px); }
-                .heading-xs { font-size: clamp(14px, 1.4vw, 29px); }
                 .section-body { font-family: var(--sans); font-size: 16px; font-weight: 300; line-height: 1.75; color: #2a2620; max-width: 44vw; text-align: justify; text-align-last: left; }
 
                 /* STATS SECTION */
@@ -532,6 +532,7 @@ const AboutPage = () => {
                     .ab-scroll-container { height: 1000vh; }
                     .scroll-section { padding: 0 24px; }
                     .align-left, .align-right { padding-left: 6vw; padding-right: 6vw; text-align: center; }
+                    .align-right.approach-wide { padding-left: 6vw; }
                     .align-left .section-inner, .align-right .section-inner { width: auto; max-width: 100%; margin: 0 auto; padding: 28px 20px; }
                     .section-heading { white-space: normal; }
                     .section-body { max-width: 100%; }
@@ -731,8 +732,8 @@ const AboutPage = () => {
                     className="scroll-section section-content align-left"
                     data-enter="56" data-leave="70" data-animation="fade-up"
                 >
-                    <div className="section-inner">
-                        <h2 className="section-heading heading-sm">Not hundreds of options. Meaningful choices</h2>
+                    <div className="section-inner section-inner-wide">
+                        <h2 className="section-heading heading-xl">Intentional Choices Over Endless Options</h2>
                         <ul className="help-list">
                             {HELP_LINES.map((l, i) => <li key={i}>{l}</li>)}
                         </ul>
@@ -741,11 +742,11 @@ const AboutPage = () => {
 
                 {/* OUR APPROACH */}
                 <section
-                    className="scroll-section section-content align-right"
+                    className="scroll-section section-content align-right approach-wide"
                     data-enter="72" data-leave="86" data-animation="clip-reveal"
                 >
-                    <div className="section-inner">
-                        <h2 className="section-heading heading-lg">A better overall project experience</h2>
+                    <div className="section-inner section-inner-wide">
+                        <h2 className="section-heading heading-xl">A better overall project experience</h2>
                         <p className="section-body">
                             We don't believe in overwhelming clients with hundreds of random options. Our role is to understand, narrow and align, so the right stone finds the right space: meaningful choices, sourcing clarity, and a design that survives all the way from brief to final slab.
                         </p>
