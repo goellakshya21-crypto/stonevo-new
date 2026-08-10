@@ -20,7 +20,7 @@ const IMAGE_SCALE = 1.0;
 const SECTIONS = [
     {
         id: 'purpose',
-        heading: 'One integrated experience.',
+        heading: 'One integrated experience',
         body: 'Ston bridges that gap by combining advisory thinking, sourcing understanding, design sensitivity and coordination structure into one integrated experience.',
         align: 'left',
         animation: 'slide-left',
@@ -28,7 +28,7 @@ const SECTIONS = [
     },
     {
         id: 'belief',
-        heading: 'Not a material selection. A long-term decision.',
+        heading: 'Not a material selection. A long-term decision',
         body: 'Natural stone should align with the design language of a project, its functionality, maintenance expectations, and the realities of execution.',
         align: 'right',
         animation: 'slide-right',
@@ -452,7 +452,7 @@ const AboutPage = () => {
                     padding: 120px 48px 100px;
                 }
                 .ab-hero-label { font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.45em; text-transform: uppercase; color: var(--bronze); opacity: 0.85; margin-bottom: 16px; }
-                .ab-hero-heading { font-family: var(--serif); font-weight: 300; letter-spacing: -0.03em; line-height: 0.98; font-size: clamp(44px, 8vw, 132px); margin-bottom: 22px; }
+                .ab-hero-heading { font-family: var(--serif); font-weight: 300; letter-spacing: -0.03em; line-height: 0.98; font-size: clamp(44px, 8vw, 132px); margin-bottom: 22px; white-space: nowrap; }
                 .ab-hero-word { display: inline-block; }
                 .ab-hero-heading em { font-style: italic; color: var(--bronze); }
                 .ab-hero-tagline { font-family: var(--sans); font-size: 16px; font-weight: 300; line-height: 1.75; color: var(--text-mid); max-width: 42ch; margin-bottom: 24px; }
@@ -477,13 +477,14 @@ const AboutPage = () => {
                 .align-left { padding-left: 8vw; padding-right: 50vw; }
                 .align-right { padding-left: 50vw; padding-right: 8vw; }
                 .align-left .section-inner, .align-right .section-inner {
-                    max-width: 44vw;
+                    width: max-content;
+                    max-width: 90vw;
                     padding: 56px 52px;
                     background: radial-gradient(ellipse 100% 90% at center, rgba(253,252,248,0.92) 0%, rgba(253,252,248,0.8) 40%, rgba(253,252,248,0.4) 70%, rgba(253,252,248,0) 100%);
                 }
                 .section-label { display: block; font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.4em; text-transform: uppercase; color: var(--bronze); opacity: 1; margin-bottom: 24px; }
-                .section-heading { font-family: var(--serif); font-weight: 700; letter-spacing: -0.015em; line-height: 1.2; font-size: clamp(26px, 3.2vw, 46px); color: #0d0c0a; margin-bottom: 22px; }
-                .section-body { font-family: var(--sans); font-size: 16px; font-weight: 300; line-height: 1.75; color: #2a2620; }
+                .section-heading { font-family: var(--serif); font-weight: 700; letter-spacing: -0.015em; line-height: 1.2; font-size: clamp(20px, 2.6vw, 40px); color: #0d0c0a; margin-bottom: 22px; white-space: nowrap; }
+                .section-body { font-family: var(--sans); font-size: 16px; font-weight: 300; line-height: 1.75; color: #2a2620; max-width: 44vw; }
 
                 /* STATS SECTION */
                 .section-stats { display: flex; align-items: center; justify-content: center; padding: 0 48px; }
@@ -514,14 +515,16 @@ const AboutPage = () => {
                     .ab-nav-tab { font-size: 8px; letter-spacing: 0.1em; padding: 7px 0; }
                     .ab-nav-tab.active { padding: 7px 12px; }
                     .ab-hero { padding: 100px 24px 80px; }
-                    .ab-hero-heading { font-size: clamp(40px, 13vw, 84px); }
+                    .ab-hero-heading { font-size: clamp(40px, 13vw, 84px); white-space: normal; }
                     .ab-hero-scroll { left: 24px; }
                     /* Shorter scroll journey on phones than desktop's 1300vh,
                        but with enough runway that the video doesn't race. */
                     .ab-scroll-container { height: 1000vh; }
                     .scroll-section { padding: 0 24px; }
                     .align-left, .align-right { padding-left: 6vw; padding-right: 6vw; text-align: center; }
-                    .align-left .section-inner, .align-right .section-inner { max-width: 100%; margin: 0 auto; padding: 28px 20px; }
+                    .align-left .section-inner, .align-right .section-inner { width: auto; max-width: 100%; margin: 0 auto; padding: 28px 20px; }
+                    .section-heading { white-space: normal; }
+                    .section-body { max-width: 100%; }
                     .stats-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
                     .section-cta .section-inner { padding: 36px 22px; }
                 }
@@ -656,7 +659,7 @@ const AboutPage = () => {
                 <h1 className="ab-hero-heading">
                     <span className="ab-hero-word">Why</span>{' '}
                     <span className="ab-hero-word"><StonWordmark height="0.72em" /></span>{' '}
-                    <span className="ab-hero-word"><em>exists.</em></span>
+                    <span className="ab-hero-word"><em>exists</em></span>
                 </h1>
                 <p className="ab-hero-tagline">
                     The natural stone industry has extraordinary materials, craftsmanship and possibilities, but the process around selection and coordination often remains unstructured.
@@ -719,7 +722,7 @@ const AboutPage = () => {
                     data-enter="56" data-leave="70" data-animation="fade-up"
                 >
                     <div className="section-inner">
-                        <h2 className="section-heading">Not hundreds of options. Meaningful choices.</h2>
+                        <h2 className="section-heading">Not hundreds of options. Meaningful choices</h2>
                         <ul className="help-list">
                             {HELP_LINES.map((l, i) => <li key={i}>{l}</li>)}
                         </ul>
@@ -732,7 +735,7 @@ const AboutPage = () => {
                     data-enter="72" data-leave="86" data-animation="clip-reveal"
                 >
                     <div className="section-inner">
-                        <h2 className="section-heading">A better overall project experience.</h2>
+                        <h2 className="section-heading">A better overall project experience</h2>
                         <p className="section-body">
                             We don't believe in overwhelming clients with hundreds of random options. Our role is to understand, narrow and align, so the right stone finds the right space: meaningful choices, sourcing clarity, and a design that survives all the way from brief to final slab.
                         </p>
@@ -745,7 +748,7 @@ const AboutPage = () => {
                     data-enter="88" data-leave="100" data-animation="rotate-in" data-persist="true"
                 >
                     <div className="section-inner">
-                        <h2 className="section-heading">Not just to <em style={{ fontStyle: 'italic', color: 'var(--bronze)' }}>select a stone.</em></h2>
+                        <h2 className="section-heading">Not just to <em style={{ fontStyle: 'italic', color: 'var(--bronze)' }}>select a stone</em></h2>
                         <p className="section-body">
                             The objective is to create a better overall project experience: guided, curated, informed and coordinated.
                         </p>
