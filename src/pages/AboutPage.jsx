@@ -484,7 +484,7 @@ const AboutPage = () => {
                 }
                 .section-label { display: block; font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.4em; text-transform: uppercase; color: var(--bronze); opacity: 1; margin-bottom: 24px; }
                 .section-heading { font-family: var(--serif); font-weight: 700; letter-spacing: -0.015em; line-height: 1.2; font-size: clamp(20px, 2.6vw, 40px); color: #0d0c0a; margin-bottom: 22px; white-space: nowrap; }
-                .section-body { font-family: var(--sans); font-size: 16px; font-weight: 300; line-height: 1.75; color: #2a2620; max-width: 44vw; }
+                .section-body { font-family: var(--sans); font-size: 16px; font-weight: 300; line-height: 1.75; color: #2a2620; max-width: 44vw; text-align: justify; text-align-last: left; }
 
                 /* STATS SECTION */
                 .section-stats { display: flex; align-items: center; justify-content: center; padding: 0 48px; }
