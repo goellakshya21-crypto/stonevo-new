@@ -21,7 +21,7 @@ const SECTIONS = [
     {
         id: 'purpose',
         heading: 'One integrated experience',
-        headingClass: 'heading-xl',
+        headingClass: 'heading-lg',
         body: 'Ston bridges that gap by combining advisory thinking, sourcing understanding, design sensitivity and coordination structure into one integrated experience.',
         align: 'left',
         animation: 'slide-left',
