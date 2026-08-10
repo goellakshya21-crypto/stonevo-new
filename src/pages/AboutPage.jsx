@@ -494,8 +494,8 @@ const AboutPage = () => {
                    50vw -> 30vw) or a wide box starting at the 50vw mark would run
                    off the right edge of the viewport -- same failure mode as the
                    earlier cropping bug. */
-                .section-inner-wide { max-width: 72vw; }
-                .align-left.help-wide { padding-right: 10vw; }
+                .section-inner-wide { max-width: 88vw; }
+                .align-left.help-wide { padding-right: 4vw; }
                 .align-right.approach-wide { padding-left: 22vw; }
                 .section-label { display: block; font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.4em; text-transform: uppercase; color: var(--bronze); opacity: 1; margin-bottom: 24px; }
                 .section-heading { font-family: 'Playfair Display', var(--serif); font-weight: 600; letter-spacing: -0.005em; line-height: 1.15; color: #0d0c0a; margin-bottom: 22px; white-space: nowrap; }
