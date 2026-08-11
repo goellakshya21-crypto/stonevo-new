@@ -211,8 +211,7 @@ const AboutPage = () => {
 
         // Hero entrance (plays once on load, not scroll-linked)
         const heroTl = gsap.timeline({ delay: 0.2 });
-        heroTl.from('.ab-hero-label', { opacity: 0, y: 16, duration: 0.7, ease: 'power3.out' })
-            .from('.ab-hero-word', { opacity: 0, y: 40, stagger: 0.09, duration: 0.9, ease: 'power3.out' }, '-=0.4')
+        heroTl.from('.ab-hero-word', { opacity: 0, y: 40, stagger: 0.09, duration: 0.9, ease: 'power3.out' })
             .from('.ab-hero-tagline', { opacity: 0, y: 20, duration: 0.8, ease: 'power3.out' }, '-=0.5')
             .from('.ab-hero-cta', { opacity: 0, y: 20, duration: 0.7, ease: 'power3.out' }, '-=0.5')
             .from('.ab-hero-scroll', { opacity: 0, duration: 0.6 }, '-=0.4');
@@ -451,7 +450,6 @@ const AboutPage = () => {
                     display: flex; flex-direction: column; justify-content: center;
                     padding: 120px 48px 100px;
                 }
-                .ab-hero-label { font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.45em; text-transform: uppercase; color: var(--bronze); opacity: 0.85; margin-bottom: 16px; }
                 .ab-hero-heading { font-family: var(--serif); font-weight: 300; letter-spacing: -0.03em; line-height: 0.98; font-size: clamp(44px, 8vw, 132px); margin-bottom: 22px; white-space: nowrap; }
                 .ab-hero-word { display: inline-block; }
                 .ab-hero-heading em { font-style: italic; color: var(--bronze); }
@@ -658,7 +656,6 @@ const AboutPage = () => {
 
             {/* HERO */}
             <section className="ab-hero" ref={heroRef}>
-                <p className="ab-hero-label">Chapter I · Purpose</p>
                 <h1 className="ab-hero-heading">
                     <span className="ab-hero-word">Why</span>{' '}
                     <span className="ab-hero-word"><StonWordmark height="0.72em" /></span>{' '}
