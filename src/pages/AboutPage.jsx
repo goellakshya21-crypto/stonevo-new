@@ -21,7 +21,6 @@ const SECTIONS = [
     {
         id: 'purpose',
         heading: 'One integrated experience',
-        headingClass: 'heading-xl',
         body: 'Ston bridges that gap by combining advisory thinking, sourcing understanding, design sensitivity and coordination structure into one integrated experience.',
         align: 'left',
         animation: 'slide-left',
@@ -30,7 +29,6 @@ const SECTIONS = [
     {
         id: 'belief',
         heading: 'A Choice for Years',
-        headingClass: 'heading-xl',
         body: 'Natural stone should align with the design language of a project, its functionality, maintenance expectations, and the realities of execution.',
         align: 'right',
         animation: 'slide-right',
@@ -479,29 +477,17 @@ const AboutPage = () => {
                 .align-left { padding-left: 8vw; padding-right: 50vw; }
                 .align-right { padding-left: 50vw; padding-right: 8vw; }
                 .align-left .section-inner, .align-right .section-inner {
-                    max-width: 44vw;
+                    max-width: 42vw;
                     padding: 56px 52px;
                     background: radial-gradient(ellipse 100% 90% at center, rgba(253,252,248,0.92) 0%, rgba(253,252,248,0.8) 40%, rgba(253,252,248,0.4) 70%, rgba(253,252,248,0) 100%);
                 }
-                /* The two longest headings ("Intentional Choices..." and "A better
-                   overall project experience") don't fit heading-xl in the default
-                   44vw box. Guessing a fixed vw width for them kept being wrong in
-                   both directions, so instead of guessing: width:max-content makes
-                   the box shrink-wrap EXACTLY to what the text actually measures,
-                   which by definition can never overflow its own box. max-width is
-                   just a hard safety ceiling -- calculated precisely from each
-                   section's own padding geometry (100vw minus its start offset and
-                   opposite-side padding, minus a small margin) -- so the box can
-                   never run off the viewport edge either, regardless of exactly how
-                   wide the text turns out to render. */
-                .section-inner.help-inner-wide { width: max-content; max-width: 86vw; }
-                .section-inner.approach-inner-wide { width: max-content; max-width: 68vw; }
-                .align-left.help-wide { padding-right: 4vw; }
-                .align-right.approach-wide { padding-left: 22vw; }
                 .section-label { display: block; font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.4em; text-transform: uppercase; color: var(--bronze); opacity: 1; margin-bottom: 24px; }
-                .section-heading { font-family: 'Playfair Display', var(--serif); font-weight: 600; letter-spacing: -0.005em; line-height: 1.15; color: #0d0c0a; margin-bottom: 22px; white-space: nowrap; }
-                .heading-xl { font-size: clamp(20px, 2.5vw, 42px); }
-                .section-body { font-family: var(--sans); font-size: 16px; font-weight: 300; line-height: 1.75; color: #2a2620; max-width: 44vw; text-align: justify; text-align-last: left; }
+                /* Headings wrap naturally instead of being forced onto one line --
+                   at this size a two-line heading reads as a deliberate editorial
+                   statement, not an error. Short headings still render on one line
+                   on their own; nothing has to be measured or guessed. */
+                .section-heading { font-family: 'Playfair Display', var(--serif); font-weight: 600; letter-spacing: -0.01em; line-height: 1.08; color: #0d0c0a; margin-bottom: 26px; font-size: clamp(30px, 3.6vw, 54px); text-wrap: balance; }
+                .section-body { font-family: var(--sans); font-size: 16px; font-weight: 300; line-height: 1.75; color: #2a2620; max-width: 42vw; text-align: justify; text-align-last: left; }
 
                 /* STATS SECTION */
                 .section-stats { display: flex; align-items: center; justify-content: center; padding: 0 48px; }
@@ -539,10 +525,8 @@ const AboutPage = () => {
                     .ab-scroll-container { height: 1000vh; }
                     .scroll-section { padding: 0 24px; }
                     .align-left, .align-right { padding-left: 6vw; padding-right: 6vw; text-align: center; }
-                    .align-left.help-wide { padding-right: 6vw; }
-                    .align-right.approach-wide { padding-left: 6vw; }
                     .align-left .section-inner, .align-right .section-inner { width: auto; max-width: 100%; margin: 0 auto; padding: 28px 20px; }
-                    .section-heading { white-space: normal; }
+                    .section-heading { font-size: clamp(26px, 8vw, 40px); }
                     .section-body { max-width: 100%; }
                     .stats-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
                     .section-cta .section-inner { padding: 36px 22px; }
@@ -713,7 +697,7 @@ const AboutPage = () => {
                         data-enter={s.enter} data-leave={s.leave} data-animation={s.animation}
                     >
                         <div className="section-inner">
-                            <h2 className={`section-heading ${s.headingClass}`}>{s.heading}</h2>
+                            <h2 className="section-heading">{s.heading}</h2>
                             <p className="section-body">{s.body}</p>
                         </div>
                     </section>
@@ -737,11 +721,11 @@ const AboutPage = () => {
 
                 {/* HOW WE HELP */}
                 <section
-                    className="scroll-section section-content align-left help-wide"
+                    className="scroll-section section-content align-left"
                     data-enter="56" data-leave="70" data-animation="fade-up"
                 >
-                    <div className="section-inner help-inner-wide">
-                        <h2 className="section-heading heading-xl">Intentional Choices Over Endless Options</h2>
+                    <div className="section-inner">
+                        <h2 className="section-heading">Intentional Choices Over Endless Options</h2>
                         <ul className="help-list">
                             {HELP_LINES.map((l, i) => <li key={i}>{l}</li>)}
                         </ul>
@@ -750,11 +734,11 @@ const AboutPage = () => {
 
                 {/* OUR APPROACH */}
                 <section
-                    className="scroll-section section-content align-right approach-wide"
+                    className="scroll-section section-content align-right"
                     data-enter="72" data-leave="86" data-animation="clip-reveal"
                 >
-                    <div className="section-inner approach-inner-wide">
-                        <h2 className="section-heading heading-xl">A better overall project experience</h2>
+                    <div className="section-inner">
+                        <h2 className="section-heading">A better overall project experience</h2>
                         <p className="section-body">
                             We don't believe in overwhelming clients with hundreds of random options. Our role is to understand, narrow and align, so the right stone finds the right space: meaningful choices, sourcing clarity, and a design that survives all the way from brief to final slab.
                         </p>
@@ -767,7 +751,7 @@ const AboutPage = () => {
                     data-enter="88" data-leave="100" data-animation="rotate-in" data-persist="true"
                 >
                     <div className="section-inner">
-                        <h2 className="section-heading heading-xl">Not just to <em style={{ fontStyle: 'italic', color: 'var(--bronze)' }}>select a stone</em></h2>
+                        <h2 className="section-heading">Not just to <em style={{ fontStyle: 'italic', color: 'var(--bronze)' }}>select a stone</em></h2>
                         <p className="section-body">
                             The objective is to create a better overall project experience: guided, curated, informed and coordinated.
                         </p>
