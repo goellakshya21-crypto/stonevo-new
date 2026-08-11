@@ -494,8 +494,8 @@ const AboutPage = () => {
                    opposite-side padding, minus a small margin) -- so the box can
                    never run off the viewport edge either, regardless of exactly how
                    wide the text turns out to render. */
-                .help-inner-wide { width: max-content; max-width: 86vw; }
-                .approach-inner-wide { width: max-content; max-width: 68vw; }
+                .section-inner.help-inner-wide { width: max-content; max-width: 86vw; }
+                .section-inner.approach-inner-wide { width: max-content; max-width: 68vw; }
                 .align-left.help-wide { padding-right: 4vw; }
                 .align-right.approach-wide { padding-left: 22vw; }
                 .section-label { display: block; font-family: var(--sans); font-size: 10px; font-weight: 800; letter-spacing: 0.4em; text-transform: uppercase; color: var(--bronze); opacity: 1; margin-bottom: 24px; }
