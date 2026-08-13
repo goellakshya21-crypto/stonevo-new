@@ -308,7 +308,7 @@ const AboutPage = () => {
                 }
 
                 // Section reveals
-                sectionData.forEach(({ tl, enter: en, leave, persist }) => {
+                sectionData.forEach(({ el, tl, enter: en, leave, persist }) => {
                     let prog;
                     if (p < en) prog = 0;
                     else if (p < en + BAND) prog = (p - en) / BAND;
@@ -316,7 +316,19 @@ const AboutPage = () => {
                     else if (!persist && p < leave + BAND) prog = 1 - (p - leave) / BAND;
                     else if (!persist) prog = 0;
                     else prog = 1;
-                    tl.progress(Math.min(1, Math.max(0, prog)));
+                    const clamped = Math.min(1, Math.max(0, prog));
+                    tl.progress(clamped);
+                    // The CTA's card is position:fixed (see above), so unlike the
+                    // other sections it's not hidden off-screen before its turn --
+                    // its own opacity has to be driven explicitly or it'd sit
+                    // permanently visible in the center of the screen from p=0.
+                    // pointer-events guards against the invisible fixed card
+                    // blocking clicks on whatever's underneath it (hero CTA, chat)
+                    // while opacity is still 0.
+                    if (el.classList.contains('section-cta')) {
+                        el.style.opacity = clamped;
+                        el.style.pointerEvents = clamped > 0.5 ? 'auto' : 'none';
+                    }
                 });
 
                 // Dark overlay synced to stats section
@@ -514,7 +526,7 @@ const AboutPage = () => {
                    center and STAYS there for the rest of the scroll, instead of
                    scrolling normally past its centered point like the other
                    sections do. */
-                .section-cta { position: fixed; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 48px; }
+                .section-cta { position: fixed; top: 50%; transform: translateY(-50%); opacity: 0; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 48px; }
                 .section-cta .section-inner {
                     max-width: 56ch; display: flex; flex-direction: column; align-items: center; gap: 24px;
                     padding: 70px 64px;
