@@ -7,8 +7,12 @@ import StonWordmark from '../components/StonWordmark';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const FRAME_COUNT = 361;
-const FRAME_PATH = (i) => `/about-frames/frame_${String(i).padStart(4, '0')}.webp`;
+const TOTAL_FRAMES = 361;
+// Skip the opening drone shot -- playback starts at frame_0016.webp instead
+// of frame_0001.webp. FRAME_COUNT is the USABLE frame count from that point.
+const FRAME_SKIP = 15;
+const FRAME_COUNT = TOTAL_FRAMES - FRAME_SKIP;
+const FRAME_PATH = (i) => `/about-frames/frame_${String(i + FRAME_SKIP).padStart(4, '0')}.webp`;
 const FRAME_SPEED = 1.3;
 // Only play the full liquid-fill intro once per browser session — frames are
 // cached after the first visit, so replaying it on every SPA nav back to
