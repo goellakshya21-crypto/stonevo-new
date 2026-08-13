@@ -227,10 +227,9 @@ const AboutPage = () => {
             const persist = section.dataset.persist === 'true';
             const type = section.dataset.animation;
             const mid = (enterFrac + leaveFrac) / 2;
-            // The CTA is the last section and uses native position:sticky (CSS)
-            // instead of the absolute-percentage placement the others use, so it
-            // scrolls normally into view and then genuinely LOCKS at center
-            // rather than sliding past it -- skip overriding its top/transform.
+            // The CTA is position:fixed and has its top/transform driven per
+            // frame from scroll progress (see the reveal loop below), so skip
+            // the absolute-percentage placement the other sections use.
             if (!section.classList.contains('section-cta')) {
                 section.style.top = `${mid * 100}%`;
                 section.style.transform = 'translateY(-50%)';
@@ -307,7 +306,7 @@ const AboutPage = () => {
                 }
 
                 // Section reveals
-                sectionData.forEach(({ tl, enter: en, leave, persist }) => {
+                sectionData.forEach(({ el, tl, enter: en, leave, persist }) => {
                     let prog;
                     if (p < en) prog = 0;
                     else if (p < en + BAND) prog = (p - en) / BAND;
@@ -315,7 +314,22 @@ const AboutPage = () => {
                     else if (!persist && p < leave + BAND) prog = 1 - (p - leave) / BAND;
                     else if (!persist) prog = 0;
                     else prog = 1;
-                    tl.progress(Math.min(1, Math.max(0, prog)));
+                    const clamped = Math.min(1, Math.max(0, prog));
+                    tl.progress(clamped);
+
+                    // The CTA is position:fixed, so it gets none of the implicit
+                    // hiding the absolutely-positioned sections get for free
+                    // (being scrolled off-screen until their turn). Drive it
+                    // explicitly: slide up from below the fold into dead centre
+                    // as it enters, then HOLD there for the rest of the scroll.
+                    // pointer-events stops the invisible card swallowing clicks
+                    // meant for the hero button / chat underneath it.
+                    if (el.classList.contains('section-cta')) {
+                        const slideVh = (1 - clamped) * 55;
+                        el.style.transform = `translateY(calc(-50% + ${slideVh}vh))`;
+                        el.style.opacity = clamped;
+                        el.style.pointerEvents = clamped > 0.5 ? 'auto' : 'none';
+                    }
                 });
 
                 // Dark overlay synced to stats section
@@ -508,20 +522,21 @@ const AboutPage = () => {
                 .help-list { list-style: none; margin-top: 8px; }
                 .help-list li { font-family: var(--serif); font-size: clamp(18px, 1.7vw, 24px); font-weight: 300; font-style: italic; color: #0d0c0a; line-height: 1.5; padding: 14px 0; border-top: 1px solid rgba(13,12,10,0.12); }
 
-                /* CTA SECTION */
-                /* position:sticky (not fixed) -- it's the only in-flow child of
-                   the 1300vh scroll container (everything else is absolute), so
-                   padding-top pushes it down to roughly where its old enter=88%
-                   point was (0.88 * 1300vh). PADDING, not margin: a first-child's
-                   top MARGIN collapses into the parent (no border/padding
-                   separating them), which silently shoved the entire 1300vh
-                   container ~11 screens down the page and desynced every scroll
-                   calculation on it. Padding is never subject to that collapse.
-                   It then scrolls normally into view like every other section,
-                   and genuinely LOCKS at center once its top edge reaches the
-                   50% threshold -- it cannot slide past it, unlike the
-                   absolute-positioned top:94% it used before. */
-                .section-cta { position: sticky; top: 50%; transform: translateY(-50%); padding-top: 1144vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-left: 48px; padding-right: 48px; }
+                /* CTA SECTION
+                   position:fixed, NOT sticky. Sticky was wrong twice over:
+                   (a) a percentage top offset on a sticky element resolves
+                   against the CONTAINING BLOCK (1300vh), not the viewport, so
+                   the threshold landed ~650vh off-screen; (b) pushing it into
+                   place with padding-top made the element's own box 1144vh
+                   tall, so translateY(-50%) shifted it by ~572vh and flung the
+                   card somewhere random. Fixed is also inherently safe here:
+                   being out of flow it cannot affect the scroll container's
+                   height or position, so it can't desync the scroll math the
+                   way the earlier margin-collapse did.
+                   The slide-in (so it visibly scrolls in rather than just
+                   appearing) and opacity are driven from scroll progress in JS
+                   -- see the section-reveal loop. */
+                .section-cta { position: fixed; top: 50%; transform: translateY(-50%); opacity: 0; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 48px; }
                 .section-cta .section-inner {
                     max-width: 56ch; display: flex; flex-direction: column; align-items: center; gap: 24px;
                     padding: 70px 64px;
@@ -542,9 +557,6 @@ const AboutPage = () => {
                     /* Shorter scroll journey on phones than desktop's 1300vh,
                        but with enough runway that the video doesn't race. */
                     .ab-scroll-container { height: 1000vh; }
-                    /* Mobile container is 1000vh, not 1300vh -- scale the sticky
-                       CTA's padding-top to match (0.88 * 1000vh) */
-                    .section-cta { padding-top: 880vh; }
                     .scroll-section { padding: 0 24px; }
                     .align-left, .align-right { padding-left: 6vw; padding-right: 6vw; text-align: center; }
                     .align-left .section-inner, .align-right .section-inner { width: auto; max-width: 100%; margin: 0 auto; padding: 28px 20px; }
