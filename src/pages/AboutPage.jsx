@@ -227,11 +227,10 @@ const AboutPage = () => {
             const persist = section.dataset.persist === 'true';
             const type = section.dataset.animation;
             const mid = (enterFrac + leaveFrac) / 2;
-            // The CTA is the last section and is meant to settle and stay put --
-            // it's pinned via CSS (position:fixed) instead, so skip the normal
-            // absolute-within-document placement. Without this, "persist" only
-            // freezes its opacity, not its position: it would keep scrolling
-            // normally past its centered point and slide up behind the header.
+            // The CTA is the last section and uses native position:sticky (CSS)
+            // instead of the absolute-percentage placement the others use, so it
+            // scrolls normally into view and then genuinely LOCKS at center
+            // rather than sliding past it -- skip overriding its top/transform.
             if (!section.classList.contains('section-cta')) {
                 section.style.top = `${mid * 100}%`;
                 section.style.transform = 'translateY(-50%)';
@@ -308,7 +307,7 @@ const AboutPage = () => {
                 }
 
                 // Section reveals
-                sectionData.forEach(({ el, tl, enter: en, leave, persist }) => {
+                sectionData.forEach(({ tl, enter: en, leave, persist }) => {
                     let prog;
                     if (p < en) prog = 0;
                     else if (p < en + BAND) prog = (p - en) / BAND;
@@ -316,19 +315,7 @@ const AboutPage = () => {
                     else if (!persist && p < leave + BAND) prog = 1 - (p - leave) / BAND;
                     else if (!persist) prog = 0;
                     else prog = 1;
-                    const clamped = Math.min(1, Math.max(0, prog));
-                    tl.progress(clamped);
-                    // The CTA's card is position:fixed (see above), so unlike the
-                    // other sections it's not hidden off-screen before its turn --
-                    // its own opacity has to be driven explicitly or it'd sit
-                    // permanently visible in the center of the screen from p=0.
-                    // pointer-events guards against the invisible fixed card
-                    // blocking clicks on whatever's underneath it (hero CTA, chat)
-                    // while opacity is still 0.
-                    if (el.classList.contains('section-cta')) {
-                        el.style.opacity = clamped;
-                        el.style.pointerEvents = clamped > 0.5 ? 'auto' : 'none';
-                    }
+                    tl.progress(Math.min(1, Math.max(0, prog)));
                 });
 
                 // Dark overlay synced to stats section
@@ -522,11 +509,14 @@ const AboutPage = () => {
                 .help-list li { font-family: var(--serif); font-size: clamp(18px, 1.7vw, 24px); font-weight: 300; font-style: italic; color: #0d0c0a; line-height: 1.5; padding: 14px 0; border-top: 1px solid rgba(13,12,10,0.12); }
 
                 /* CTA SECTION */
-                /* Pinned to the viewport (not the document) so it settles in the
-                   center and STAYS there for the rest of the scroll, instead of
-                   scrolling normally past its centered point like the other
-                   sections do. */
-                .section-cta { position: fixed; top: 50%; transform: translateY(-50%); opacity: 0; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 48px; }
+                /* position:sticky (not fixed) -- it's the only in-flow child of
+                   the 1300vh scroll container (everything else is absolute), so
+                   margin-top pushes it down to roughly where its old enter=88%
+                   point was (0.88 * 1300vh). It then scrolls normally into view
+                   like every other section, and genuinely LOCKS at center once
+                   its top edge reaches the 50% threshold -- it cannot slide past
+                   it, unlike the absolute-positioned top:94% it used before. */
+                .section-cta { position: sticky; top: 50%; transform: translateY(-50%); margin-top: 1144vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 48px; }
                 .section-cta .section-inner {
                     max-width: 56ch; display: flex; flex-direction: column; align-items: center; gap: 24px;
                     padding: 70px 64px;
@@ -547,6 +537,9 @@ const AboutPage = () => {
                     /* Shorter scroll journey on phones than desktop's 1300vh,
                        but with enough runway that the video doesn't race. */
                     .ab-scroll-container { height: 1000vh; }
+                    /* Mobile container is 1000vh, not 1300vh -- scale the sticky
+                       CTA's margin-top to match (0.88 * 1000vh) */
+                    .section-cta { margin-top: 880vh; }
                     .scroll-section { padding: 0 24px; }
                     .align-left, .align-right { padding-left: 6vw; padding-right: 6vw; text-align: center; }
                     .align-left .section-inner, .align-right .section-inner { width: auto; max-width: 100%; margin: 0 auto; padding: 28px 20px; }
