@@ -285,7 +285,10 @@ const AboutPage = () => {
                 // Hero fade + circle-wipe canvas reveal
                 if (heroSection) heroSection.style.opacity = Math.max(0, 1 - p * 15);
                 if (canvasWrap) {
-                    const wipe = Math.min(1, Math.max(0, (p - 0.01) / 0.06));
+                    // Reveal opens almost immediately and finishes BEFORE the hero
+                    // (which fades out by p=~0.067) is fully gone, so the video is
+                    // already visible underneath instead of a black gap between them.
+                    const wipe = Math.min(1, Math.max(0, (p - 0.002) / 0.03));
                     canvasWrap.style.clipPath = `circle(${wipe * 75}% at 50% 50%)`;
                 }
 
@@ -320,13 +323,14 @@ const AboutPage = () => {
                     darkOverlay.style.opacity = opacity;
                 }
 
-                // Marquee fade window — brief pass right after the circle wipe,
-                // before the first text section settles in
+                // Marquee fade window — brief pass right after the circle wipe
+                // (now finishing at p=0.032), before the first text section
+                // settles in at enter=8 (p=0.08)
                 if (marqueeWrap) {
                     let mOpacity = 0;
-                    if (p >= 0.03 && p < 0.05) mOpacity = (p - 0.03) / 0.02;
-                    else if (p >= 0.05 && p < 0.08) mOpacity = 1;
-                    else if (p >= 0.08 && p < 0.11) mOpacity = 1 - (p - 0.08) / 0.03;
+                    if (p >= 0.035 && p < 0.05) mOpacity = (p - 0.035) / 0.015;
+                    else if (p >= 0.05 && p < 0.065) mOpacity = 1;
+                    else if (p >= 0.065 && p < 0.078) mOpacity = 1 - (p - 0.065) / 0.013;
                     marqueeWrap.style.opacity = mOpacity;
                 }
             },
