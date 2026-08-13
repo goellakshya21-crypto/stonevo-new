@@ -511,12 +511,17 @@ const AboutPage = () => {
                 /* CTA SECTION */
                 /* position:sticky (not fixed) -- it's the only in-flow child of
                    the 1300vh scroll container (everything else is absolute), so
-                   margin-top pushes it down to roughly where its old enter=88%
-                   point was (0.88 * 1300vh). It then scrolls normally into view
-                   like every other section, and genuinely LOCKS at center once
-                   its top edge reaches the 50% threshold -- it cannot slide past
-                   it, unlike the absolute-positioned top:94% it used before. */
-                .section-cta { position: sticky; top: 50%; transform: translateY(-50%); margin-top: 1144vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 48px; }
+                   padding-top pushes it down to roughly where its old enter=88%
+                   point was (0.88 * 1300vh). PADDING, not margin: a first-child's
+                   top MARGIN collapses into the parent (no border/padding
+                   separating them), which silently shoved the entire 1300vh
+                   container ~11 screens down the page and desynced every scroll
+                   calculation on it. Padding is never subject to that collapse.
+                   It then scrolls normally into view like every other section,
+                   and genuinely LOCKS at center once its top edge reaches the
+                   50% threshold -- it cannot slide past it, unlike the
+                   absolute-positioned top:94% it used before. */
+                .section-cta { position: sticky; top: 50%; transform: translateY(-50%); padding-top: 1144vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-left: 48px; padding-right: 48px; }
                 .section-cta .section-inner {
                     max-width: 56ch; display: flex; flex-direction: column; align-items: center; gap: 24px;
                     padding: 70px 64px;
@@ -538,8 +543,8 @@ const AboutPage = () => {
                        but with enough runway that the video doesn't race. */
                     .ab-scroll-container { height: 1000vh; }
                     /* Mobile container is 1000vh, not 1300vh -- scale the sticky
-                       CTA's margin-top to match (0.88 * 1000vh) */
-                    .section-cta { margin-top: 880vh; }
+                       CTA's padding-top to match (0.88 * 1000vh) */
+                    .section-cta { padding-top: 880vh; }
                     .scroll-section { padding: 0 24px; }
                     .align-left, .align-right { padding-left: 6vw; padding-right: 6vw; text-align: center; }
                     .align-left .section-inner, .align-right .section-inner { width: auto; max-width: 100%; margin: 0 auto; padding: 28px 20px; }
