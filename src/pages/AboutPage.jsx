@@ -8,9 +8,9 @@ import StonWordmark from '../components/StonWordmark';
 gsap.registerPlugin(ScrollTrigger);
 
 const TOTAL_FRAMES = 361;
-// Skip the opening drone shot -- playback starts at frame_0036.webp instead
+// Skip the opening drone shot -- playback starts at frame_0037.webp instead
 // of frame_0001.webp. FRAME_COUNT is the USABLE frame count from that point.
-const FRAME_SKIP = 35;
+const FRAME_SKIP = 36;
 const FRAME_COUNT = TOTAL_FRAMES - FRAME_SKIP;
 const FRAME_PATH = (i) => `/about-frames/frame_${String(i + FRAME_SKIP).padStart(4, '0')}.webp`;
 const FRAME_SPEED = 1.3;
