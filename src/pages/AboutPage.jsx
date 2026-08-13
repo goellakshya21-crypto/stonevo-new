@@ -227,8 +227,15 @@ const AboutPage = () => {
             const persist = section.dataset.persist === 'true';
             const type = section.dataset.animation;
             const mid = (enterFrac + leaveFrac) / 2;
-            section.style.top = `${mid * 100}%`;
-            section.style.transform = 'translateY(-50%)';
+            // The CTA is the last section and is meant to settle and stay put --
+            // it's pinned via CSS (position:fixed) instead, so skip the normal
+            // absolute-within-document placement. Without this, "persist" only
+            // freezes its opacity, not its position: it would keep scrolling
+            // normally past its centered point and slide up behind the header.
+            if (!section.classList.contains('section-cta')) {
+                section.style.top = `${mid * 100}%`;
+                section.style.transform = 'translateY(-50%)';
+            }
 
             const children = section.querySelectorAll(
                 '.section-label, .section-heading, .section-body, .section-note, .cta-button, .stat'
@@ -503,7 +510,11 @@ const AboutPage = () => {
                 .help-list li { font-family: var(--serif); font-size: clamp(18px, 1.7vw, 24px); font-weight: 300; font-style: italic; color: #0d0c0a; line-height: 1.5; padding: 14px 0; border-top: 1px solid rgba(13,12,10,0.12); }
 
                 /* CTA SECTION */
-                .section-cta { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 48px; }
+                /* Pinned to the viewport (not the document) so it settles in the
+                   center and STAYS there for the rest of the scroll, instead of
+                   scrolling normally past its centered point like the other
+                   sections do. */
+                .section-cta { position: fixed; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 48px; }
                 .section-cta .section-inner {
                     max-width: 56ch; display: flex; flex-direction: column; align-items: center; gap: 24px;
                     padding: 70px 64px;
