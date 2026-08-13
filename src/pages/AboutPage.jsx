@@ -198,7 +198,6 @@ const AboutPage = () => {
 
         const scrollContainer = scrollContainerRef.current;
         const heroSection = heroRef.current;
-        const canvasWrap = canvasWrapRef.current;
         const darkOverlay = darkOverlayRef.current;
         const marqueeWrap = marqueeWrapRef.current;
 
@@ -282,15 +281,12 @@ const AboutPage = () => {
             onUpdate: (self) => {
                 const p = self.progress;
 
-                // Hero fade + circle-wipe canvas reveal
+                // Hero fade. The canvas underneath is fully visible from the very
+                // start of scroll (no clip-path reveal) so there's nothing to
+                // "catch up" -- the video is simply already there the moment the
+                // opaque hero starts fading, eliminating any black gap by
+                // construction rather than just outrunning it.
                 if (heroSection) heroSection.style.opacity = Math.max(0, 1 - p * 15);
-                if (canvasWrap) {
-                    // Reveal opens almost immediately and finishes BEFORE the hero
-                    // (which fades out by p=~0.067) is fully gone, so the video is
-                    // already visible underneath instead of a black gap between them.
-                    const wipe = Math.min(1, Math.max(0, (p - 0.002) / 0.03));
-                    canvasWrap.style.clipPath = `circle(${wipe * 75}% at 50% 50%)`;
-                }
 
                 // Frame playback
                 const accelerated = Math.min(p * frameSpeed, 1);
@@ -323,9 +319,8 @@ const AboutPage = () => {
                     darkOverlay.style.opacity = opacity;
                 }
 
-                // Marquee fade window — brief pass right after the circle wipe
-                // (now finishing at p=0.032), before the first text section
-                // settles in at enter=8 (p=0.08)
+                // Marquee fade window — brief pass shortly after scroll starts,
+                // before the first text section settles in at enter=8 (p=0.08)
                 if (marqueeWrap) {
                     let mOpacity = 0;
                     if (p >= 0.035 && p < 0.05) mOpacity = (p - 0.035) / 0.015;
@@ -464,7 +459,7 @@ const AboutPage = () => {
                 .ab-hero-scroll-line { width: 40px; height: 1px; background: var(--text-dim); }
 
                 /* CANVAS */
-                .ab-canvas-wrap { position: fixed; inset: 0; z-index: 1; clip-path: circle(0% at 50% 50%); }
+                .ab-canvas-wrap { position: fixed; inset: 0; z-index: 1; }
                 .ab-canvas-wrap canvas { width: 100%; height: 100%; display: block; }
 
                 .ab-dark-overlay { position: fixed; inset: 0; z-index: 5; background: var(--bg); pointer-events: none; opacity: 0; }
