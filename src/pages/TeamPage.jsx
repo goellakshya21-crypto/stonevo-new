@@ -16,18 +16,25 @@ import StonWordmark from '../components/StonWordmark';
 // subject UP in the card.
 //   Munish   face ~32% down a 1080x1074 frame
 //   Saurabh  face ~36% down a 1254x1254 frame
-//   Jashwant face ~29% down a 1086x1448 frame
+//   Jashwant face ~33% down a 1086x1448 frame, chin at ~56%. His head+chin
+//            spans almost exactly the visible band on a desktop-width card
+//            (~277x170 shows only ~46% of a 3:4 portrait), so Y is tuned to
+//            clear the chin, trading a sliver of hair at the top -- far less
+//            noticeable than a clipped jaw.
 //   Reno     face ~41% down a 1023x1537 frame, and sits ~67% to the RIGHT.
-//            Portrait images fill the card's width exactly, so there is no
-//            horizontal overflow for object-position to work against -- the
-//            only way to shift him left is to render the image wider than the
-//            card (width>100%) and pull it left, which zooms in as a side
-//            effect. Y is re-derived for that larger render.
+//            He CANNOT be shifted left here. Portrait images fill the card's
+//            width exactly under object-fit:cover, so there is no horizontal
+//            overflow for object-position X to act on; the only lever is
+//            rendering the image wider than the card, and any such zoom
+//            shrinks the vertical window. His head-to-chin spans ~42% of the
+//            photo while a desktop card shows ~41% at zero zoom -- there is
+//            no headroom to spend. A 130% zoom was tried and clipped his chin
+//            by 32px. Recentring him needs the SOURCE image re-cropped.
 const people = [
     ['Munish Goel', 'MG', 'Vision & Strategic Coordination', 'Founder', 'Creating a more structured ecosystem around stone selection, sourcing and project coordination — through advisory-led thinking and long-term industry relationships.', '/team/munish.jpeg', { objectPosition: 'center 0%' }],
     ['Saurabh Anand', 'SA', 'Building Relationships & Trust', '', 'Focused on creating strong relationships and long-term trust among clients, architects and project stakeholders.', '/team/anand.jpeg', { objectPosition: 'center 15%' }],
-    ['Jashwant Chauhan', 'JC', 'People & Operational Excellence', '', 'Advising on organizational strategy, operational excellence and leadership development — bringing 15+ years of global transformation experience and Six Sigma discipline to how Ston scales.', '/team/jashwant-chauhan.jpeg', { objectPosition: 'center 15%' }],
-    ['Reno K Subramaniam', 'RS', 'Content Strategy & Creative Technology', '', 'Shaping how Ston communicates — content strategy, learning experience design and AI-enabled tools, drawn from 23+ years across education, design and creative technology.', '/team/reno.jpeg', { objectPosition: 'center 36%', width: '130%', left: '-30%' }],
+    ['Jashwant Chauhan', 'JC', 'People & Operational Excellence', '', 'Advising on organizational strategy, operational excellence and leadership development — bringing 15+ years of global transformation experience and Six Sigma discipline to how Ston scales.', '/team/jashwant-chauhan.jpeg', { objectPosition: 'center 22%' }],
+    ['Reno K Subramaniam', 'RS', 'Content Strategy & Creative Technology', '', 'Shaping how Ston communicates — content strategy, learning experience design and AI-enabled tools, drawn from 23+ years across education, design and creative technology.', '/team/reno.jpeg', { objectPosition: 'center 37%' }],
 ];
 
 // Spelled-out count for the section label, derived from `people` so it can't
