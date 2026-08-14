@@ -11,8 +11,8 @@ import StonWordmark from '../components/StonWordmark';
 const people = [
     ['Munish Goel', 'MG', 'Vision & Strategic Coordination', 'Founder', 'Creating a more structured ecosystem around stone selection, sourcing and project coordination — through advisory-led thinking and long-term industry relationships.', ''],
     ['Saurabh Anand', 'SA', 'Building Relationships & Trust', '', 'Focused on creating strong relationships and long-term trust among clients, architects and project stakeholders.', ''],
-    ['Jashwant Chauhan', 'JC', 'People & Operational Excellence', '', 'Advising on organizational strategy, operational excellence and leadership development — bringing 15+ years of global transformation experience and Six Sigma discipline to how Ston scales.', '/team/jashwant-chauhan.jpg'],
-    ['Reno K Subramaniam', 'RS', 'Content Strategy & Creative Technology', '', 'Shaping how Ston communicates — content strategy, learning experience design and AI-enabled tools, drawn from 23+ years across education, design and creative technology.', ''],
+    ['Jashwant Chauhan', 'JC', 'People & Operational Excellence', '', 'Advising on organizational strategy, operational excellence and leadership development — bringing 15+ years of global transformation experience and Six Sigma discipline to how Ston scales.', '/team/jashwant-chauhan.jpeg'],
+    ['Reno K Subramaniam', 'RS', 'Content Strategy & Creative Technology', '', 'Shaping how Ston communicates — content strategy, learning experience design and AI-enabled tools, drawn from 23+ years across education, design and creative technology.', '/team/reno.jpeg'],
 ];
 
 // Spelled-out count for the section label, derived from `people` so it can't
