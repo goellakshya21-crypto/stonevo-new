@@ -2,17 +2,27 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import StonWordmark from '../components/StonWordmark';
 
-// [name, initials, role, badge, bio, photo]
+// [name, initials, role, badge, bio, photo, focusY]
 // Bios are deliberately ~20-30 words: the panel is capped at 150px with
 // overflow:hidden (~6 lines), and it's a hover-to-reveal interaction meant
 // for scanning, not reading. Longer text silently gets clipped.
-// photo is optional -- cards fall back to the initials treatment without it,
-// so people can be added before their headshot is ready.
+//
+// photo is optional -- cards fall back to the initials treatment without it.
+//
+// focusY is the vertical crop anchor (object-position Y). The cards are
+// landscape (~250x170) while every headshot is portrait or square, so
+// object-fit:cover always crops top/bottom -- and each photo frames the face
+// at a different height, so a single shared value cuts someone's head off.
+// Values below are calculated to centre each person's face in the card:
+//   Munish  face ~32% down a 1080x1074 frame -> anchor at the top
+//   Saurabh face ~36% down a 1254x1254 frame
+//   Jashwant face ~29% down a 1086x1448 frame
+//   Reno    face ~41% down a 1023x1537 frame (tallest crop, needs the most)
 const people = [
-    ['Munish Goel', 'MG', 'Vision & Strategic Coordination', 'Founder', 'Creating a more structured ecosystem around stone selection, sourcing and project coordination — through advisory-led thinking and long-term industry relationships.', ''],
-    ['Saurabh Anand', 'SA', 'Building Relationships & Trust', '', 'Focused on creating strong relationships and long-term trust among clients, architects and project stakeholders.', ''],
-    ['Jashwant Chauhan', 'JC', 'People & Operational Excellence', '', 'Advising on organizational strategy, operational excellence and leadership development — bringing 15+ years of global transformation experience and Six Sigma discipline to how Ston scales.', '/team/jashwant-chauhan.jpeg'],
-    ['Reno K Subramaniam', 'RS', 'Content Strategy & Creative Technology', '', 'Shaping how Ston communicates — content strategy, learning experience design and AI-enabled tools, drawn from 23+ years across education, design and creative technology.', '/team/reno.jpeg'],
+    ['Munish Goel', 'MG', 'Vision & Strategic Coordination', 'Founder', 'Creating a more structured ecosystem around stone selection, sourcing and project coordination — through advisory-led thinking and long-term industry relationships.', '/team/munish.jpeg', '0%'],
+    ['Saurabh Anand', 'SA', 'Building Relationships & Trust', '', 'Focused on creating strong relationships and long-term trust among clients, architects and project stakeholders.', '/team/anand.jpeg', '7%'],
+    ['Jashwant Chauhan', 'JC', 'People & Operational Excellence', '', 'Advising on organizational strategy, operational excellence and leadership development — bringing 15+ years of global transformation experience and Six Sigma discipline to how Ston scales.', '/team/jashwant-chauhan.jpeg', '8%'],
+    ['Reno K Subramaniam', 'RS', 'Content Strategy & Creative Technology', '', 'Shaping how Ston communicates — content strategy, learning experience design and AI-enabled tools, drawn from 23+ years across education, design and creative technology.', '/team/reno.jpeg', '34%'],
 ];
 
 // Spelled-out count for the section label, derived from `people` so it can't
@@ -27,7 +37,7 @@ export default function TeamPage() {
         `}</style>
         <nav className="team-nav"><Link to="/"><StonWordmark height={17} /></Link><div className="team-nav-links"><Link to="/about">About</Link><Link to="/stone-intelligence">Stone Intelligence</Link><Link to="/advisory">Audit &amp; Advisory</Link><Link className="current" to="/team">Our Team</Link></div></nav>
         <section className="team-hero"><div className="team-watermark">PEOPLE</div><div className="team-wrap"><p className="team-label">The People Behind Ston</p><h1>Built around<br /><em>relationships,</em><br />not transactions.</h1><p className="team-lead">Built on <em>years of experience</em> across premium natural stone projects, sourcing ecosystems and design-led collaborations — the Ston team brings together diverse industry perspectives with a <em>shared vision</em> of creating a more structured approach to stone selection and coordination.</p></div></section>
-        <section className="team-showcase"><div className="team-wrap"><div className="team-heading"><span className="team-label">{COUNT_WORD[people.length] || people.length} — Together</span><span className="team-hint">Hover any name to focus</span></div><div className="team-grid" onMouseLeave={() => setActive(0)}><div className="team-cards">{people.map((person, index) => <button key={person[0]} type="button" onMouseEnter={() => setActive(index)} className={`team-card ${active === index ? 'active' : 'dim'}`}>{person[3] && <small className="team-founder">{person[3]}</small>}{person[1]}{person[5] && <img className="team-photo" src={person[5]} alt="" loading="lazy" onError={e => { e.currentTarget.style.display = 'none'; }} />}</button>)}</div><div className="team-list">{people.map((person, index) => <article key={person[0]} onMouseEnter={() => setActive(index)} className={`team-person ${active === index ? 'active' : 'dim'}`}><div className="team-person-head"><span className="team-dot" /><span className="team-name">{person[0]}{person[3] && <em>{person[3]}</em>}</span></div><p className="team-role">{person[2]}</p><p className="team-bio">{person[4]}</p></article>)}</div></div></div></section>
+        <section className="team-showcase"><div className="team-wrap"><div className="team-heading"><span className="team-label">{COUNT_WORD[people.length] || people.length} — Together</span><span className="team-hint">Hover any name to focus</span></div><div className="team-grid" onMouseLeave={() => setActive(0)}><div className="team-cards">{people.map((person, index) => <button key={person[0]} type="button" onMouseEnter={() => setActive(index)} className={`team-card ${active === index ? 'active' : 'dim'}`}>{person[3] && <small className="team-founder">{person[3]}</small>}{person[1]}{person[5] && <img className="team-photo" src={person[5]} alt="" loading="lazy" style={person[6] ? { objectPosition: `center ${person[6]}` } : undefined} onError={e => { e.currentTarget.style.display = 'none'; }} />}</button>)}</div><div className="team-list">{people.map((person, index) => <article key={person[0]} onMouseEnter={() => setActive(index)} className={`team-person ${active === index ? 'active' : 'dim'}`}><div className="team-person-head"><span className="team-dot" /><span className="team-name">{person[0]}{person[3] && <em>{person[3]}</em>}</span></div><p className="team-role">{person[2]}</p><p className="team-bio">{person[4]}</p></article>)}</div></div></div></section>
         <section className="team-closing"><p className="team-label">Work With Us</p><h2>Have a project in mind?<br /><em>We'd love to hear from you.</em></h2><p>Reach out — whether you're early in design intent or deep into selection. We engage where we can add the most clarity.</p><Link className="team-cta" to="/">Enter the Platform →</Link></section>
     </main>;
 }
