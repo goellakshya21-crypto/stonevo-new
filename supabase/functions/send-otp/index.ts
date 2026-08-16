@@ -2,6 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const FAST2SMS_KEY     = Deno.env.get('FAST2SMS_API_KEY')!;
+const FAST2SMS_OTP_ID  = Deno.env.get('FAST2SMS_OTP_ID')!; // DLT-approved OTP template ID (Fast2SMS dashboard → OTP)
 const SUPABASE_URL     = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -46,10 +47,19 @@ serve(async (req) => {
         });
         if (insertErr) throw new Error('Failed to store OTP. Make sure otp_codes table exists.');
 
-        // Send via Fast2SMS Quick route (no website verification or DLT needed)
-        const message = encodeURIComponent(`Your Ston verification code is ${otp}. Valid for 10 minutes.`);
-        const url = `https://www.fast2sms.com/dev/bulkV2?authorization=${FAST2SMS_KEY}&message=${message}&language=english&route=q&numbers=${phone}`;
-        const res  = await fetch(url);
+        // Send via Fast2SMS Smart OTP (DLT) route — uses the pre-approved OTP template
+        const res = await fetch('https://www.fast2sms.com/dev/otp/send', {
+            method: 'POST',
+            headers: {
+                'Authorization': FAST2SMS_KEY,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                mobile: phone,
+                otp_id: FAST2SMS_OTP_ID,
+                otp,
+            }),
+        });
         const data = await res.json();
 
         const f2sMsg = Array.isArray(data.message) ? data.message[0] : (data.message || 'Fast2SMS failed to send OTP');
