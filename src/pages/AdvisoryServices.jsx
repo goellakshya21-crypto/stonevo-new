@@ -237,6 +237,15 @@ const AdvisoryServices = () => {
                     gap: 20px;
                     align-items: stretch;
                 }
+                .adv-tiers-price-note {
+                    text-align: center;
+                    margin-top: 36px;
+                    font-family: var(--sans);
+                    font-size: 12.5px;
+                    font-weight: 300;
+                    font-style: italic;
+                    color: var(--text-mid);
+                }
 
                 .adv-tier {
                     background: #1c1814;
@@ -701,6 +710,8 @@ const AdvisoryServices = () => {
                             </div>
                         </article>
                     </div>
+
+                    <p className="adv-tiers-price-note reveal">All three formats are custom-quoted — pricing depends on your project's scope, size and sourcing complexity.</p>
                 </div>
             </section>
 
