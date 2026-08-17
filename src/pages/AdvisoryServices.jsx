@@ -350,32 +350,6 @@ const AdvisoryServices = () => {
                     opacity: 0.7;
                 }
 
-                .adv-tier-includes {
-                    background: rgba(255,255,255,0.02);
-                    border: 1px solid rgba(255,255,255,0.05);
-                    border-radius: 16px;
-                    padding: 14px 16px;
-                    margin-bottom: 16px;
-                }
-                .adv-tier-includes-list { list-style: none; margin: 0; padding: 0; }
-                .adv-tier-includes-list li {
-                    font-family: var(--sans);
-                    font-size: 13px;
-                    font-weight: 400;
-                    line-height: 1.4;
-                    color: var(--cream);
-                    padding: 4px 0 4px 24px;
-                    position: relative;
-                }
-                .adv-tier-includes-list li::before {
-                    content: '✓';
-                    position: absolute;
-                    left: 0; top: 3px;
-                    color: var(--bronze);
-                    font-size: 12px;
-                    font-weight: 700;
-                }
-
                 .adv-tier-spacer { flex: 1; }
 
                 .adv-tier-pricing {
@@ -403,14 +377,6 @@ const AdvisoryServices = () => {
                     line-height: 1;
                 }
                 .adv-tier-price-value .plus { color: var(--bronze); }
-                .adv-tier-price-sub {
-                    font-family: var(--sans);
-                    font-size: 12px;
-                    font-weight: 400;
-                    font-style: italic;
-                    color: var(--text-mid);
-                    line-height: 1.4;
-                }
 
                 .adv-tier-note {
                     margin-top: 14px;
@@ -650,7 +616,7 @@ const AdvisoryServices = () => {
                             <h3 className="adv-tier-name">Stone Audit<br /><em>Advisory</em></h3>
                             <p className="adv-tier-for">For clients seeking clarity before making a material decision.</p>
 
-                            <p className="adv-tier-section-label">Clients can share</p>
+                            <p className="adv-tier-section-label">You share</p>
                             <ul className="adv-tier-list">
                                 <li>Slab photographs</li>
                                 <li>Stone references</li>
@@ -658,31 +624,19 @@ const AdvisoryServices = () => {
                                 <li>Site visuals</li>
                             </ul>
 
-                            <p className="adv-tier-section-label">Structured advisory feedback on</p>
+                            <p className="adv-tier-section-label">3 advisory responses covering</p>
                             <ul className="adv-tier-list">
                                 <li>Material suitability</li>
-                                <li>Visual harmony</li>
-                                <li>Application relevance</li>
-                                <li>Maintenance understanding</li>
-                                <li>Potential concerns</li>
+                                <li>Visual harmony &amp; application fit</li>
+                                <li>Maintenance expectations</li>
                                 <li>Alternative recommendations</li>
                             </ul>
-
-                            <div className="adv-tier-includes">
-                                <p className="adv-tier-section-label" style={{ marginBottom: 12 }}>Includes</p>
-                                <ul className="adv-tier-includes-list">
-                                    <li>3 structured advisory responses</li>
-                                    <li>Image-based material review</li>
-                                    <li>Expert guidance &amp; recommendations</li>
-                                </ul>
-                            </div>
 
                             <div className="adv-tier-spacer" />
 
                             <div className="adv-tier-pricing">
                                 <div className="adv-tier-price-row">
                                     <p className="adv-tier-price-label">Project quotation</p>
-                                    <p className="adv-tier-price-sub">Quoted according to your project scope and requirements.</p>
                                 </div>
                             </div>
 
@@ -702,22 +656,10 @@ const AdvisoryServices = () => {
                             <p className="adv-tier-section-label">Ston works closely with you to</p>
                             <ul className="adv-tier-list">
                                 <li>Understand project intent</li>
-                                <li>Curate suitable material directions</li>
-                                <li>Shortlist relevant slabs</li>
-                                <li>Coordinate sourcing journeys</li>
-                                <li>Simplify final selection decisions</li>
+                                <li>Curate &amp; shortlist suitable slabs</li>
+                                <li>Coordinate the sourcing journey</li>
+                                <li>Support your final selection</li>
                             </ul>
-
-                            <div className="adv-tier-includes">
-                                <p className="adv-tier-section-label" style={{ marginBottom: 12 }}>Includes</p>
-                                <ul className="adv-tier-includes-list">
-                                    <li>Guided stone sourcing</li>
-                                    <li>Curated slab selections</li>
-                                    <li>Vendor coordination</li>
-                                    <li>Project-aligned recommendations</li>
-                                    <li>Selection assistance</li>
-                                </ul>
-                            </div>
 
                             <p className="adv-tier-section-label">Designed for</p>
                             <ul className="adv-tier-list">
@@ -732,7 +674,6 @@ const AdvisoryServices = () => {
                             <div className="adv-tier-pricing">
                                 <div className="adv-tier-price-row">
                                     <p className="adv-tier-price-label">Project quotation</p>
-                                    <p className="adv-tier-price-sub">Quoted according to your project scope and requirements.</p>
                                 </div>
                             </div>
                         </article>
@@ -741,13 +682,7 @@ const AdvisoryServices = () => {
                         <article className="adv-tier reveal reveal-delay-2">
                             <p className="adv-tier-index">Format 03</p>
                             <h3 className="adv-tier-name">Private Stone<br /><em>Curation</em></h3>
-                            <p className="adv-tier-for">A highly personalized selection experience conducted at the client's location.</p>
-
-                            <p className="adv-tier-section-label">For projects requiring</p>
-                            <ul className="adv-tier-list">
-                                <li>Deeper privacy &amp; convenience</li>
-                                <li>Curated attention</li>
-                            </ul>
+                            <p className="adv-tier-for">A highly personalized, on-site experience — for projects needing deeper privacy and curated attention.</p>
 
                             <p className="adv-tier-section-label">Private slab presentations for</p>
                             <ul className="adv-tier-list">
@@ -757,23 +692,11 @@ const AdvisoryServices = () => {
                                 <li>Final material confidence</li>
                             </ul>
 
-                            <div className="adv-tier-includes">
-                                <p className="adv-tier-section-label" style={{ marginBottom: 12 }}>Includes</p>
-                                <ul className="adv-tier-includes-list">
-                                    <li>Private slab presentation</li>
-                                    <li>Curated material movement</li>
-                                    <li>On-site viewing experience</li>
-                                    <li>Premium coordination support</li>
-                                    <li>Guided selection assistance</li>
-                                </ul>
-                            </div>
-
                             <div className="adv-tier-spacer" />
 
                             <div className="adv-tier-pricing">
                                 <div className="adv-tier-price-row">
                                     <p className="adv-tier-price-label">Project quotation</p>
-                                    <p className="adv-tier-price-sub">Quoted according to your project scope and requirements.</p>
                                 </div>
                             </div>
                         </article>
