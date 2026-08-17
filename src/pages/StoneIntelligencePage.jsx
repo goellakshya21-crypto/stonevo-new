@@ -127,7 +127,7 @@ const StoneIntelligencePage = () => {
                     font-family: 'Manrope', sans-serif;
                     font-size: 16px; font-weight: 300;
                     line-height: 1.8; color: #a89e8d;
-                    max-width: 64ch; margin-bottom: 72px;
+                    max-width: 64ch; margin-bottom: 44px;
                 }
                 .si-section-intro strong { color: #FDFCF8; font-weight: 500; }
                 .si-section-intro em { color: #A37D4B; font-style: italic; }
@@ -147,8 +147,8 @@ const StoneIntelligencePage = () => {
 
                 /* Advisory note */
                 .si-advisory {
-                    max-width: 1100px; margin: 80px auto 0;
-                    padding: 48px 60px;
+                    max-width: 1100px; margin: 48px auto 0;
+                    padding: 36px 44px;
                     background: linear-gradient(135deg, rgba(163,125,75,0.08) 0%, rgba(163,125,75,0.02) 100%);
                     border: 1px solid rgba(163,125,75,0.3);
                     border-radius: 24px; position: relative;
@@ -256,9 +256,9 @@ const StoneIntelligencePage = () => {
                 }
                 .si-cat-card {
                     background: #1c1814;
-                    padding: 36px 28px 32px;
-                    display: flex; flex-direction: column; gap: 16px;
-                    min-height: 380px; transition: background 0.4s;
+                    padding: 26px 22px 24px;
+                    display: flex; flex-direction: column; gap: 12px;
+                    min-height: 320px; transition: background 0.4s;
                 }
                 .si-cat-card:hover { background: #221e18; }
                 .si-cat-swatch {
@@ -290,10 +290,10 @@ const StoneIntelligencePage = () => {
                     background: #1c1814;
                     border: 1px solid rgba(255,255,255,0.05);
                     border-radius: 20px;
-                    padding: 44px 40px;
+                    padding: 32px 30px;
                     transition: border-color 0.4s, background 0.4s;
                     display: grid; grid-template-columns: 80px 1fr;
-                    gap: 32px; align-items: start;
+                    gap: 24px; align-items: start;
                 }
                 .si-mood-card:hover { border-color: rgba(163,125,75,0.3); background: #211d18; }
                 .si-mood-icon {
@@ -321,7 +321,7 @@ const StoneIntelligencePage = () => {
                 .si-mistake-list { counter-reset: si-mistake; list-style: none; border-top: 1px solid rgba(255,255,255,0.06); padding: 0; margin: 0; }
                 .si-mistake-item {
                     display: grid; grid-template-columns: 100px 1fr 2fr;
-                    gap: 48px; padding: 44px 0;
+                    gap: 48px; padding: 30px 0;
                     border-bottom: 1px solid rgba(255,255,255,0.06);
                     align-items: start; counter-increment: si-mistake;
                 }
@@ -415,7 +415,7 @@ const StoneIntelligencePage = () => {
                 </nav>
 
                 {/* HERO */}
-                <section id="si-hero" className="si-hero" style={{ position: 'relative', minHeight: '80vh', display: 'flex', alignItems: 'center', padding: '110px 48px 50px', background: '#0d0c0a', overflow: 'hidden' }}>
+                <section id="si-hero" className="si-hero" style={{ position: 'relative', minHeight: '58vh', display: 'flex', alignItems: 'center', padding: '96px 48px 40px', background: '#0d0c0a', overflow: 'hidden' }}>
                     <div className="si-hero-watermark">INTELLIGENCE</div>
                     <div className="si-hero-inner" style={{ position: 'relative', zIndex: 1, maxWidth: 1400, margin: '0 auto', width: '100%', display: 'grid', gridTemplateColumns: '6fr 5fr', gap: 80, alignItems: 'center' }}>
                         <div>
@@ -448,7 +448,7 @@ const StoneIntelligencePage = () => {
                 </section>
 
                 {/* UNDERSTANDING */}
-                <section className="si-section" style={{ padding: '120px 48px', background: '#171410', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                <section className="si-section" style={{ padding: '72px 48px', background: '#171410', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                     <div style={{ maxWidth: 1400, margin: '0 auto' }}>
                         <p className="si si-eyebrow" style={{ marginBottom: 24 }}>Understanding Natural Stone</p>
                         <div className="si-und-grid" style={{ maxWidth: 1400, margin: '0 auto', display: 'grid', gridTemplateColumns: '5fr 7fr', gap: 100, alignItems: 'start' }}>
@@ -481,7 +481,7 @@ const StoneIntelligencePage = () => {
                 </section>
 
                 {/* APPLICATIONS */}
-                <section className="si-section" style={{ padding: '120px 48px', background: '#0d0c0a' }}>
+                <section className="si-section" style={{ padding: '72px 48px', background: '#0d0c0a' }}>
                     <div style={{ maxWidth: 1400, margin: '0 auto' }}>
                         <p className="si si-eyebrow" style={{ marginBottom: 24 }}>Stone by Application</p>
                         <h2 className="si si-d1 si-section-title">
@@ -622,7 +622,7 @@ const StoneIntelligencePage = () => {
                 </section>
 
                 {/* CATEGORIES */}
-                <section className="si-section" style={{ padding: '120px 48px', background: '#171410', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                <section className="si-section" style={{ padding: '72px 48px', background: '#171410', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                     <div style={{ maxWidth: 1400, margin: '0 auto' }}>
                         <p className="si si-eyebrow" style={{ marginBottom: 24 }}>Understanding Stone Categories</p>
                         <h2 className="si si-d1 si-section-title">
@@ -670,7 +670,7 @@ const StoneIntelligencePage = () => {
                 </section>
 
                 {/* MOODS */}
-                <section className="si-section" style={{ padding: '120px 48px', background: '#0d0c0a' }}>
+                <section className="si-section" style={{ padding: '72px 48px', background: '#0d0c0a' }}>
                     <div style={{ maxWidth: 1400, margin: '0 auto' }}>
                         <p className="si si-eyebrow" style={{ marginBottom: 24 }}>Material Personality Guide</p>
                         <h2 className="si si-d1 si-section-title">
@@ -701,7 +701,7 @@ const StoneIntelligencePage = () => {
                 </section>
 
                 {/* MISTAKES */}
-                <section className="si-section" style={{ padding: '120px 48px', background: '#171410', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                <section className="si-section" style={{ padding: '72px 48px', background: '#171410', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                     <div style={{ maxWidth: 1400, margin: '0 auto' }}>
                         <p className="si si-eyebrow" style={{ marginBottom: 24 }}>Common Mistakes</p>
                         <h2 className="si si-d1 si-section-title">
@@ -742,7 +742,7 @@ const StoneIntelligencePage = () => {
                 </section>
 
                 {/* CHECKLIST */}
-                <section className="si-section" style={{ padding: '120px 48px', background: '#0d0c0a' }}>
+                <section className="si-section" style={{ padding: '72px 48px', background: '#0d0c0a' }}>
                     <div style={{ maxWidth: 1400, margin: '0 auto' }}>
                         <div className="si-checklist-grid">
                             <div>
@@ -771,7 +771,7 @@ const StoneIntelligencePage = () => {
                             </div>
                         </div>
 
-                        <div className="si si-advisory" style={{ marginTop: 80 }}>
+                        <div className="si si-advisory" style={{ marginTop: 48 }}>
                             <p className="si-advisory-label">Ston Advisory Note</p>
                             <p className="si-advisory-body">
                                 Stone selection becomes significantly easier when viewed within the context of <em>architecture, application, lighting, continuity, and execution realities.</em>
@@ -781,7 +781,7 @@ const StoneIntelligencePage = () => {
                 </section>
 
                 {/* WHY ADVISORY */}
-                <section className="si-section" style={{ padding: '120px 48px', background: '#171410', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                <section className="si-section" style={{ padding: '72px 48px', background: '#171410', borderTop: '1px solid rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                     <div style={{ maxWidth: 1400, margin: '0 auto' }}>
                         <p className="si si-eyebrow" style={{ marginBottom: 24 }}>Why Stone Advisory Matters</p>
                         <h2 className="si si-d1 si-section-title">
@@ -795,7 +795,7 @@ const StoneIntelligencePage = () => {
                 </section>
 
                 {/* CLOSING */}
-                <section className="si-closing" style={{ padding: '140px 48px', textAlign: 'center', background: '#0d0c0a' }}>
+                <section className="si-closing" style={{ padding: '90px 48px', textAlign: 'center', background: '#0d0c0a' }}>
                     <div style={{ maxWidth: 820, margin: '0 auto' }}>
                         <div className="si si-closing-rule" />
                         <p className="si si-d1 si-eyebrow" style={{ marginBottom: 24, opacity: 0.8 }}>The Ston Perspective</p>
