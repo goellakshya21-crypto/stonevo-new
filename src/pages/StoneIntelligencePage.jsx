@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import StonWordmark from '../components/StonWordmark';
 
@@ -53,7 +53,16 @@ const NavTab = ({ to, active, children }) => (
 const StoneIntelligencePage = () => {
     const navigate = useNavigate();
     const [activeApp, setActiveApp] = useState('flooring');
+    const appPanelRef = useRef(null);
     useScrollReveal();
+
+    const selectApp = (id) => {
+        setActiveApp(id);
+        // Tabs can be clicked while the panel below them is off-screen (short
+        // viewports, or scrolled position) — guarantee the changed content is
+        // actually visible instead of silently updating out of view.
+        appPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
 
     const enter = () => {
         sessionStorage.setItem('sv_enter', '1');
@@ -491,7 +500,7 @@ const StoneIntelligencePage = () => {
                             Different applications demand different thinking. Flooring is not feature wall. A washroom is not a staircase. Each context has its own logic — and the right stone is the one that respects it.
                         </p>
 
-                        <div className="si si-d2" style={{ display: 'flex', gap: 8, marginBottom: 48, flexWrap: 'wrap' }}>
+                        <div className="si si-d2" style={{ display: 'flex', gap: 8, marginBottom: 32, flexWrap: 'wrap' }}>
                             {[
                                 ['flooring', 'Flooring'],
                                 ['washrooms', 'Washrooms'],
@@ -501,13 +510,14 @@ const StoneIntelligencePage = () => {
                                 <button
                                     key={id}
                                     className={`si-app-tab ${activeApp === id ? 'active' : ''}`}
-                                    onClick={() => setActiveApp(id)}
+                                    onClick={() => selectApp(id)}
                                 >
                                     {label}
                                 </button>
                             ))}
                         </div>
 
+                        <div ref={appPanelRef} style={{ scrollMarginTop: 110 }}>
                         {activeApp === 'flooring' && (
                             <div className="si-app-panel">
                                 <div>
@@ -618,6 +628,7 @@ const StoneIntelligencePage = () => {
                                 </div>
                             </div>
                         )}
+                        </div>
                     </div>
                 </section>
 
