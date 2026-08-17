@@ -187,7 +187,7 @@ const AdvisoryServices = () => {
 
                 /* TIERS */
                 .adv-tiers {
-                    padding: 110px 48px;
+                    padding: 80px 48px;
                     background: #171410;
                     border-top: 1px solid rgba(255,255,255,0.04);
                     border-bottom: 1px solid rgba(255,255,255,0.04);
@@ -198,7 +198,7 @@ const AdvisoryServices = () => {
                     align-items: flex-end;
                     justify-content: space-between;
                     gap: 40px;
-                    margin-bottom: 64px;
+                    margin-bottom: 40px;
                     flex-wrap: wrap;
                 }
                 .adv-section-eyebrow {
@@ -242,7 +242,7 @@ const AdvisoryServices = () => {
                     background: #1c1814;
                     border: 1px solid rgba(255,255,255,0.07);
                     border-radius: 24px;
-                    padding: 44px 40px;
+                    padding: 30px 28px;
                     display: flex;
                     flex-direction: column;
                     position: relative;
@@ -304,17 +304,17 @@ const AdvisoryServices = () => {
                     letter-spacing: -0.015em;
                     line-height: 1.1;
                     color: var(--cream);
-                    margin-bottom: 14px;
+                    margin-bottom: 10px;
                 }
                 .adv-tier-name em { font-style: italic; color: var(--bronze); }
                 .adv-tier-for {
                     font-family: var(--serif);
                     font-size: 15px;
                     font-style: italic;
-                    line-height: 1.5;
+                    line-height: 1.4;
                     color: var(--text-mid);
-                    margin-bottom: 32px;
-                    min-height: 44px;
+                    margin-bottom: 20px;
+                    min-height: 36px;
                 }
 
                 .adv-tier-section-label {
@@ -325,17 +325,17 @@ const AdvisoryServices = () => {
                     text-transform: uppercase;
                     color: var(--bronze);
                     opacity: 0.7;
-                    margin-bottom: 16px;
+                    margin-bottom: 10px;
                 }
 
-                .adv-tier-list { list-style: none; margin: 0 0 28px 0; padding: 0; }
+                .adv-tier-list { list-style: none; margin: 0 0 16px 0; padding: 0; }
                 .adv-tier-list li {
                     font-family: var(--sans);
                     font-size: 13.5px;
                     font-weight: 300;
-                    line-height: 1.5;
+                    line-height: 1.4;
                     color: var(--text-mid);
-                    padding: 9px 0 9px 24px;
+                    padding: 6px 0 6px 22px;
                     position: relative;
                     border-bottom: 1px solid rgba(255,255,255,0.04);
                 }
@@ -343,7 +343,7 @@ const AdvisoryServices = () => {
                 .adv-tier-list li::before {
                     content: '';
                     position: absolute;
-                    left: 2px; top: 16px;
+                    left: 2px; top: 13px;
                     width: 5px; height: 5px;
                     border-radius: 50%;
                     background: var(--bronze);
@@ -354,23 +354,23 @@ const AdvisoryServices = () => {
                     background: rgba(255,255,255,0.02);
                     border: 1px solid rgba(255,255,255,0.05);
                     border-radius: 16px;
-                    padding: 22px 24px;
-                    margin-bottom: 28px;
+                    padding: 14px 16px;
+                    margin-bottom: 16px;
                 }
                 .adv-tier-includes-list { list-style: none; margin: 0; padding: 0; }
                 .adv-tier-includes-list li {
                     font-family: var(--sans);
                     font-size: 13px;
                     font-weight: 400;
-                    line-height: 1.5;
+                    line-height: 1.4;
                     color: var(--cream);
-                    padding: 7px 0 7px 26px;
+                    padding: 4px 0 4px 24px;
                     position: relative;
                 }
                 .adv-tier-includes-list li::before {
                     content: '✓';
                     position: absolute;
-                    left: 0; top: 6px;
+                    left: 0; top: 3px;
                     color: var(--bronze);
                     font-size: 12px;
                     font-weight: 700;
@@ -380,10 +380,10 @@ const AdvisoryServices = () => {
 
                 .adv-tier-pricing {
                     border-top: 1px solid rgba(255,255,255,0.08);
-                    padding-top: 26px;
+                    padding-top: 16px;
                     margin-top: 4px;
                 }
-                .adv-tier-price-row { margin-bottom: 18px; }
+                .adv-tier-price-row { margin-bottom: 12px; }
                 .adv-tier-price-row:last-of-type { margin-bottom: 0; }
                 .adv-tier-price-label {
                     font-family: var(--sans);
@@ -413,8 +413,8 @@ const AdvisoryServices = () => {
                 }
 
                 .adv-tier-note {
-                    margin-top: 24px;
-                    padding: 18px 20px;
+                    margin-top: 14px;
+                    padding: 14px 16px;
                     background: rgba(163,125,75,0.07);
                     border: 1px solid rgba(163,125,75,0.22);
                     border-radius: 14px;
