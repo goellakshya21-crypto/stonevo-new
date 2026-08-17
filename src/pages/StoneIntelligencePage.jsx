@@ -415,7 +415,7 @@ const StoneIntelligencePage = () => {
                 </nav>
 
                 {/* HERO */}
-                <section id="si-hero" className="si-hero" style={{ position: 'relative', minHeight: '58vh', display: 'flex', alignItems: 'center', padding: '96px 48px 40px', background: '#0d0c0a', overflow: 'hidden' }}>
+                <section id="si-hero" className="si-hero" style={{ position: 'relative', minHeight: '92vh', display: 'flex', alignItems: 'center', padding: '110px 48px 60px', background: '#0d0c0a', overflow: 'hidden' }}>
                     <div className="si-hero-watermark">INTELLIGENCE</div>
                     <div className="si-hero-inner" style={{ position: 'relative', zIndex: 1, maxWidth: 1400, margin: '0 auto', width: '100%', display: 'grid', gridTemplateColumns: '6fr 5fr', gap: 80, alignItems: 'center' }}>
                         <div>
