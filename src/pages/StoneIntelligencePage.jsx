@@ -634,17 +634,25 @@ const StoneIntelligencePage = () => {
 
                         <div className="si-cat-grid">
                             {[
-                                { sw: 'si-sw-marble', name: 'Marble', num: '01', tag: 'Not luxury. Emotion.', body: 'Softness, depth, timelessness, quiet elegance. Natural movement gives spaces warmth and individuality impossible to replicate.', best: 'flooring · premium interiors · washrooms · feature spaces', delay: '' },
-                                { sw: 'si-sw-quartzite', name: 'Quartzite', num: '02', tag: 'Beauty with strength.', body: 'Marble-like movement with better durability for high-use applications. Architectural, confident, contemporary, refined.', best: 'kitchen countertops · flooring · high-traffic areas', delay: 'si-d1' },
-                                { sw: 'si-sw-granite', name: 'Granite', num: '03', tag: 'Performance over poetry.', body: 'Visually controlled, structurally reliable. Long-term practicality and durability — strong, dependable, structured.', best: 'kitchens · commercial spaces · outdoor applications', delay: 'si-d2' },
-                                { sw: 'si-sw-onyx', name: 'Onyx', num: '04', tag: 'Not subtle. Expressive luxury.', body: 'Translucency and dramatic formations make it one of the most visually striking natural stones. Artistic, dramatic, bold.', best: 'feature walls · backlit panels · statement areas', delay: 'si-d3' },
-                                { sw: 'si-sw-limestone', name: 'Limestone', num: '05', tag: 'Calm architecture.', body: 'Selected for balance, not attention. Minimal, calm, earthy, timeless — understated sophistication.', best: 'contemporary homes · muted interiors · soft architectural spaces', delay: '' },
-                                { sw: 'si-sw-travertine', name: 'Travertine', num: '06', tag: 'Warmth, character, time.', body: 'Natural texture grounds the space architecturally. Warm, earthy, timeless, natural.', best: 'luxury hospitality aesthetics · wall cladding · warm minimal interiors', delay: 'si-d1' },
-                                { sw: 'si-sw-sandstone', name: 'Sandstone', num: '07', tag: 'Architecture meets nature.', body: 'Texture and earthy character — ideal for spaces requiring warmth and tactility. Textured, grounded, natural.', best: 'outdoor applications · facades · landscape areas', delay: 'si-d2' },
-                                { sw: 'si-sw-quartz', name: 'Quartz', num: '08', tag: 'Designed consistency.', body: 'Unlike natural stone, quartz offers controlled patterns and lower maintenance. Clean, modern, practical, controlled.', best: 'kitchens · modern interiors · low-maintenance spaces', delay: 'si-d3' }
+                                { sw: 'si-sw-marble', img: '/stones/marble.png', name: 'Marble', num: '01', tag: 'Not luxury. Emotion.', body: 'Softness, depth, timelessness, quiet elegance. Natural movement gives spaces warmth and individuality impossible to replicate.', best: 'flooring · premium interiors · washrooms · feature spaces', delay: '' },
+                                { sw: 'si-sw-quartzite', img: '/stones/quartzite.png', name: 'Quartzite', num: '02', tag: 'Beauty with strength.', body: 'Marble-like movement with better durability for high-use applications. Architectural, confident, contemporary, refined.', best: 'kitchen countertops · flooring · high-traffic areas', delay: 'si-d1' },
+                                { sw: 'si-sw-granite', img: '/stones/granite.png', name: 'Granite', num: '03', tag: 'Performance over poetry.', body: 'Visually controlled, structurally reliable. Long-term practicality and durability — strong, dependable, structured.', best: 'kitchens · commercial spaces · outdoor applications', delay: 'si-d2' },
+                                { sw: 'si-sw-onyx', img: '/stones/onyx.jpg', name: 'Onyx', num: '04', tag: 'Not subtle. Expressive luxury.', body: 'Translucency and dramatic formations make it one of the most visually striking natural stones. Artistic, dramatic, bold.', best: 'feature walls · backlit panels · statement areas', delay: 'si-d3' },
+                                { sw: 'si-sw-limestone', img: '/stones/limestone.png', name: 'Limestone', num: '05', tag: 'Calm architecture.', body: 'Selected for balance, not attention. Minimal, calm, earthy, timeless — understated sophistication.', best: 'contemporary homes · muted interiors · soft architectural spaces', delay: '' },
+                                { sw: 'si-sw-travertine', img: '/stones/travertine.png', name: 'Travertine', num: '06', tag: 'Warmth, character, time.', body: 'Natural texture grounds the space architecturally. Warm, earthy, timeless, natural.', best: 'luxury hospitality aesthetics · wall cladding · warm minimal interiors', delay: 'si-d1' },
+                                { sw: 'si-sw-sandstone', img: '/stones/sandstone.png', name: 'Sandstone', num: '07', tag: 'Architecture meets nature.', body: 'Texture and earthy character — ideal for spaces requiring warmth and tactility. Textured, grounded, natural.', best: 'outdoor applications · facades · landscape areas', delay: 'si-d2' },
+                                { sw: 'si-sw-quartz', img: null, name: 'Quartz', num: '08', tag: 'Designed consistency.', body: 'Unlike natural stone, quartz offers controlled patterns and lower maintenance. Clean, modern, practical, controlled.', best: 'kitchens · modern interiors · low-maintenance spaces', delay: 'si-d3' }
                             ].map(c => (
                                 <div key={c.name} className={`si si-cat-card ${c.delay}`}>
-                                    <div className={`si-cat-swatch ${c.sw}`} />
+                                    <div className={`si-cat-swatch ${c.sw}`}>
+                                        {c.img && (
+                                            <img
+                                                src={c.img}
+                                                alt={c.name}
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                                            />
+                                        )}
+                                    </div>
                                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
                                         <span className="si-cat-name">{c.name}</span>
                                         <span className="si-cat-num">{c.num}</span>
