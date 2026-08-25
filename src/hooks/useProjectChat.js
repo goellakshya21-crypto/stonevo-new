@@ -31,7 +31,9 @@ const requestNotifPermission = () => {
 
 const showBrowserNotif = (title, body) => {
     if ('Notification' in window && Notification.permission === 'granted') {
-        const n = new Notification(title, { body, icon: '/favicon.ico', tag: 'stonevo-chat' });
+        // /favicon.ico never existed in public/ -- notifications were rendering
+        // with the browser's generic fallback icon.
+        const n = new Notification(title, { body, icon: '/favicon.svg', tag: 'stonevo-chat' });
         n.onclick = () => { window.focus(); n.close(); };
     }
 };
