@@ -680,8 +680,11 @@ function Home({ role }) {
 
             <section className="relative min-h-[60vh] md:min-h-[85vh] flex flex-col items-center justify-center pt-16 md:pt-20 pb-20 md:pb-32">
                 <div className="absolute inset-0 z-0 overflow-hidden">
-                    <img alt="background" className="w-full h-full object-cover transform scale-110 motion-safe:animate-[pulse_10s_ease-in-out_infinite]" src="/about-hero-marble.jpg" />
-                    <div className="absolute inset-0 bg-black/30" />
+                    <img alt="background" className="w-full h-full object-cover transform scale-110 motion-safe:animate-[pulse_10s_ease-in-out_infinite]" src="/home-hero.webp" />
+                    {/* /40 rather than /30: this slab is full-bleed marble with bright
+                        white-and-gold veining right through the centre, where the
+                        wordmark and tagline sit. The previous image was darker overall. */}
+                    <div className="absolute inset-0 bg-black/40" />
                     <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-stone-950" />
                 </div>
                 <div className="max-w-7xl mx-auto px-6 text-center space-y-6 md:space-y-8 relative z-40 w-full">
