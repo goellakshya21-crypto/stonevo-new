@@ -46,6 +46,15 @@ export const useProjectChat = (projectId, userRole, userName) => {
     // Normalize ID for database operations
     const dbProjectId = toUUID(projectId);
 
+    // Latest values mirrored into refs so the realtime handler can read them
+    // WITHOUT these being subscription dependencies. Putting isPanelOpen in the
+    // effect's dep array previously tore down and rebuilt the channel on every
+    // open/close of the chat panel.
+    const isPanelOpenRef = useRef(isPanelOpen);
+    const identityRef = useRef({ userName, userRole });
+    useEffect(() => { isPanelOpenRef.current = isPanelOpen; }, [isPanelOpen]);
+    useEffect(() => { identityRef.current = { userName, userRole }; }, [userName, userRole]);
+
     // Request browser notification permission on first use
     useEffect(() => { requestNotifPermission(); }, []);
 
@@ -216,10 +225,16 @@ export const useProjectChat = (projectId, userRole, userName) => {
     useEffect(() => {
         if (!dbProjectId) return;
 
+        // Declared in the EFFECT scope, not inside the timeout, so the effect's
+        // own cleanup can actually reach it. Previously the cleanup was returned
+        // from the setTimeout callback -- setTimeout discards its callback's
+        // return value, so removeChannel never ran and channels leaked.
+        let channel = null;
+
         const initTimer = setTimeout(() => {
             fetchMessages();
 
-            const channel = supabase
+            channel = supabase
                 .channel(`project_chat_${dbProjectId}`)
                 .on(
                     'postgres_changes',
@@ -246,13 +261,14 @@ export const useProjectChat = (projectId, userRole, userName) => {
 
                             // Browser notification for messages from other senders
                             const msg = payload.new;
-                            const isFromMe = msg.sender_name === userName && msg.sender_role === userRole;
+                            const { userName: myName, userRole: myRole } = identityRef.current;
+                            const isFromMe = msg.sender_name === myName && msg.sender_role === myRole;
                             if (!isFromMe) {
                                 const body = msg.message || (msg.file_name ? `Sent a file: ${msg.file_name}` : 'New message');
                                 showBrowserNotif(`${msg.sender_name} on Ston`, body);
                             }
 
-                            if (!isPanelOpen) {
+                            if (!isPanelOpenRef.current) {
                                 setUnreadCount(c => c + 1);
                             }
                         } catch (subErr) {
@@ -261,14 +277,16 @@ export const useProjectChat = (projectId, userRole, userName) => {
                     }
                 )
                 .subscribe();
-
-            return () => {
-                supabase.removeChannel(channel);
-            };
         }, 1500);
 
-        return () => clearTimeout(initTimer);
-    }, [dbProjectId, fetchMessages, isPanelOpen]);
+        return () => {
+            clearTimeout(initTimer);
+            if (channel) {
+                supabase.removeChannel(channel);
+                channel = null;
+            }
+        };
+    }, [dbProjectId, fetchMessages]);
 
     // Reset unread when panel opens
     useEffect(() => {

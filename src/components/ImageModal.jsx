@@ -44,10 +44,9 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
         return { w: Math.round(fw), h: Math.round(fh) };
     };
 
-    if (!stone || !isOpen) return null;
+    const isClosed = !stone || !isOpen;
 
-    const currentIndex = allStones.findIndex(s => s.id === stone.id);
-    const hasMultiple = allStones.length > 1;
+    const currentIndex = allStones.findIndex(s => s.id === stone?.id);
 
     const handlePrev = (e) => {
         e?.stopPropagation();
@@ -67,8 +66,14 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
         }
     };
 
-    // Keyboard navigation
+    // Keyboard navigation.
+    // MUST stay above the early return: this hook used to sit below it, so a
+    // parent that keeps the modal mounted while toggling `isOpen`/`stone`
+    // (BuilderPortal does exactly that) changed the hook count between renders
+    // and crashed React with "Rendered more hooks than during the previous
+    // render". The listener is a no-op while closed instead.
     useEffect(() => {
+        if (isClosed) return;
         const handleKeyDown = (e) => {
             if (isVisualizing) return; // Disable gallery nav while AI modal is open
             if (e.key === 'ArrowLeft') handlePrev();
@@ -77,7 +82,11 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [currentIndex, isVisualizing]);
+    }, [currentIndex, isVisualizing, isClosed]);
+
+    if (isClosed) return null;
+
+    const hasMultiple = allStones.length > 1;
 
     const handleDownload = async (e) => {
         e.stopPropagation();
