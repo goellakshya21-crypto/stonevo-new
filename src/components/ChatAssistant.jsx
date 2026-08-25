@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Send, Loader2, MessageSquare, X, ArrowRight, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { logActivity } from '../utils/activityTracker';
 import { resolveAlias } from '../lib/stoneAliases';
 

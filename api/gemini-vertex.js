@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { message, history, model: modelId = 'gemini-1.5-flash', imageBase64, mimeType } = req.body;
+        const { message, history, model: modelId = 'gemini-1.5-flash', imageBase64, mimeType, imageUrl } = req.body;
 
         // Secure Service Account Loading
         let keyData;
@@ -52,15 +52,32 @@ export default async function handler(req, res) {
 
         console.log(`[Vertex AI] Using model: ${modelId}`);
 
-        // If an image is supplied, use multimodal one-shot generation (no chat history)
+        // Resolve an inline image from EITHER raw base64 (existing callers) or a
+        // URL the server fetches itself. The URL path exists so the browser
+        // doesn't have to base64 a whole photo into the request body — Vercel
+        // caps bodies at ~4.5MB, which a large stone photo can exceed.
+        let inlineImage = null;
         if (imageBase64) {
-            console.log(`[Vertex AI] Multimodal request with image (${mimeType || 'image/jpeg'})`);
+            inlineImage = { mimeType: mimeType || 'image/jpeg', data: imageBase64 };
+        } else if (imageUrl) {
+            const imgResp = await fetch(imageUrl);
+            if (!imgResp.ok) throw new Error(`Image fetch failed: ${imgResp.status}`);
+            const buf = await imgResp.arrayBuffer();
+            inlineImage = {
+                mimeType: imgResp.headers.get('content-type') || 'image/jpeg',
+                data: Buffer.from(buf).toString('base64'),
+            };
+        }
+
+        // If an image is supplied, use multimodal one-shot generation (no chat history)
+        if (inlineImage) {
+            console.log(`[Vertex AI] Multimodal request with image (${inlineImage.mimeType})`);
             const result = await generativeModel.generateContent({
                 contents: [{
                     role: 'user',
                     parts: [
                         { text: message },
-                        { inlineData: { mimeType: mimeType || 'image/jpeg', data: imageBase64 } }
+                        { inlineData: inlineImage }
                     ]
                 }]
             });

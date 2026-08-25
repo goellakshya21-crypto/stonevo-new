@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { BatchProcessor } from '../utils/batchProcessor';
 import { exportToJSON, exportToCSV, exportRawData } from '../utils/exportHelpers';
 import { supabase } from '../lib/supabaseClient';
@@ -8,7 +7,6 @@ import AdminLeads from './AdminLeads';
 import { Users, Package, Shield, FolderOpen } from 'lucide-react';
 
 const AdminUpload = ({ onCancel }) => {
-    const [apiKey, setApiKey] = useState(import.meta.env.VITE_GEMINI_API_KEY || '');
     const [backupLoading, setBackupLoading] = useState(false);
     const [batchMode, setBatchMode] = useState(false);
     const [adminTab, setAdminTab] = useState('inventory'); // 'inventory', 'leads'
@@ -233,10 +231,6 @@ const AdminUpload = ({ onCancel }) => {
     };
 
     const handleAnalyze = async () => {
-        if (!apiKey) {
-            setError("Please enter your Google Gemini API Key.");
-            return;
-        }
         if (!image) {
             setError("Please select an image.");
             return;
@@ -534,10 +528,6 @@ const AdminUpload = ({ onCancel }) => {
     };
 
     const handleBatchProcess = async () => {
-        if (!apiKey) {
-            setError("Please enter your Google Gemini API Key.");
-            return;
-        }
         if (selectedImages.length === 0) {
             setError("Please select at least one image.");
             return;
@@ -548,7 +538,6 @@ const AdminUpload = ({ onCancel }) => {
         setError(null);
 
         const batchProcessor = new BatchProcessor(
-            apiKey,
             supabase, // Pass supabase client
             (progress) => {
                 setBatchProgress(progress);
@@ -857,18 +846,6 @@ const AdminUpload = ({ onCancel }) => {
                 <AdminLeads />
             ) : (
                 <div className="space-y-6">
-                    {/* API Key Input */}
-                    <div>
-                        <label className="block text-sm font-medium text-stone-700 mb-1">Google Gemini API Key</label>
-                        <input
-                            type="password"
-                            value={apiKey}
-                            onChange={(e) => setApiKey(e.target.value)}
-                            placeholder="Enter your API Key here"
-                            className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-stone-500"
-                        />
-                        <p className="text-xs text-stone-500 mt-1">Key is not saved and only used for this session.</p>
-                    </div>
 
                     {/* Mapping Mode / Folder Workspace */}
                     <div className="bg-stone-900 border border-stone-800 p-6 rounded-xl shadow-2xl overflow-hidden relative group">

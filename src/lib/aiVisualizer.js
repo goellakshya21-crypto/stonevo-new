@@ -1,7 +1,7 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
+// NOTE: no Gemini SDK / API key here on purpose. Anything prefixed VITE_ is
+// inlined into the public JS bundle by Vite, so a client-side key is readable
+// by anyone via DevTools and billable to us. Every AI call goes through the
+// /api/* proxies, which authenticate with a server-side Vertex service account.
 
 /**
  * AI Visualizer Service
@@ -17,29 +17,25 @@ export const aiVisualizer = {
      * isBookmatched = true  → image already shows two mirrored slabs; don't bookmatch again
      */
     async detectCustomStoneInfo(imageUrl) {
-        if (!genAI || !imageUrl) return { isBookmatched: false };
+        if (!imageUrl) return { isBookmatched: false };
         try {
-            // Fetch the image and convert to base64 for Gemini inline data
-            const resp = await fetch(imageUrl);
-            const blob = await resp.blob();
-            const base64 = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload  = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            });
-
-            const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-            const result = await model.generateContent([
-                {
-                    text: `Look at this stone/marble image carefully.
+            // The server fetches the image itself (imageUrl), so no key is needed
+            // client-side and no large base64 payload crosses the wire.
+            const response = await fetch('/api/gemini-vertex', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: 'gemini-2.5-flash',
+                    imageUrl,
+                    message: `Look at this stone/marble image carefully.
 Does it show a BOOKMATCH pattern — two slabs placed side by side (or top-to-bottom) that are mirror images of each other, with veining that meets symmetrically at a central seam?
 Answer with ONLY the word "yes" or "no".`
-                },
-                { inlineData: { mimeType: blob.type || 'image/jpeg', data: base64 } }
-            ]);
+                })
+            });
 
-            const answer = (result.response.text() || '').toLowerCase().trim();
+            if (!response.ok) return { isBookmatched: false };
+            const { text } = await response.json();
+            const answer = (text || '').toLowerCase().trim();
             console.log('[AI Visualizer] Bookmatch detection result:', answer);
             return { isBookmatched: answer.startsWith('yes') };
         } catch (err) {

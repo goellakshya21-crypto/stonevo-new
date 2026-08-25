@@ -1,8 +1,10 @@
 import { compressImage } from "./imageOptimizer";
 
 export class BatchProcessor {
-    constructor(apiKey, supabase, onProgress, onError, globalApplication = 'Auto-detect') {
-        this.apiKey = apiKey;
+    // No apiKey param: analysis goes through the /api/gemini-vertex proxy, which
+    // authenticates server-side. The key this used to take was never actually
+    // used for anything.
+    constructor(supabase, onProgress, onError, globalApplication = 'Auto-detect') {
         this.supabase = supabase;
         this.onProgress = onProgress;
         this.onError = onError;
