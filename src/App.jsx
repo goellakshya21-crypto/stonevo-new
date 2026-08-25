@@ -10,6 +10,7 @@ import TeamPage from './pages/TeamPage';
 import VendorPortal from './pages/VendorPortal';
 import PrivilegeCircle from './pages/PrivilegeCircle';
 import LeadGate from './components/LeadGate';
+import AdminGate from './components/AdminGate';
 import ScrollToTop from './components/ScrollToTop';
 
 import { RequirementsProvider } from './context/RequirementsContext';
@@ -33,7 +34,7 @@ function App() {
           <Route path="/team" element={<TeamPage />} />
           <Route path="/vendor" element={<VendorPortal />} />
           <Route path="/circle" element={<PrivilegeCircle />} />
-          <Route path="/internal-management-stonevo-9921" element={<AdminPage />} />
+          <Route path="/internal-management-stonevo-9921" element={<AdminGate><AdminPage /></AdminGate>} />
           <Route path="*" element={<div className="min-h-screen bg-black text-white p-10">404 - Page not found</div>} />
         </Routes>
       </Router>
