@@ -466,9 +466,13 @@ const AboutPage = () => {
                 .ab-hero {
                     position: relative; z-index: 20;
                     min-height: 100vh;
+                    /* The purple/gold slab already fades to pure black down its own
+                       left side, so the scrim is a touch lighter at the right edge
+                       than the old white-marble hero needed -- otherwise the veining
+                       gets double-darkened and reads as flat black. */
                     background:
-                        linear-gradient(100deg, rgba(13,12,10,0.95) 0%, rgba(13,12,10,0.86) 32%, rgba(13,12,10,0.5) 66%, rgba(13,12,10,0.32) 100%),
-                        url('/about-hero-marble.jpg') center right / cover no-repeat,
+                        linear-gradient(100deg, rgba(13,12,10,0.95) 0%, rgba(13,12,10,0.82) 35%, rgba(13,12,10,0.5) 68%, rgba(13,12,10,0.22) 100%),
+                        url('/about-hero-purple.webp') center right / cover no-repeat,
                         var(--bg);
                     display: flex; flex-direction: column; justify-content: center;
                     padding: 120px 48px 100px;
