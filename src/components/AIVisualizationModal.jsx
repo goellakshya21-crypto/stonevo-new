@@ -265,8 +265,14 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
             roomType = APP_ROOM_MAP[mappedRoom];
         }
 
-        // Contextual overrides (if roomName was passed by chat override)
-        if (roomName && !intendedApp) {
+        // Fallback only: use the passed-in roomName when the picked application
+        // couldn't be mapped to a proper environment. Must NOT fire whenever
+        // mappedRoom succeeded, or an explicit application choice (Flooring,
+        // Counter Top, etc.) gets silently overwritten by roomName -- which,
+        // from StoneSelectionForm, is the user's own project room label (e.g.
+        // "Washroom"), not a computed room type. That was locking the heading
+        // to that label regardless of which application was actually picked.
+        if (roomName && !intendedApp && !mappedRoom) {
             roomType = roomName;
         }
 
