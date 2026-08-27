@@ -681,10 +681,12 @@ function Home({ role }) {
             <section className="relative min-h-[60vh] md:min-h-[85vh] flex flex-col items-center justify-center pt-16 md:pt-20 pb-20 md:pb-32">
                 <div className="absolute inset-0 z-0 overflow-hidden">
                     <img alt="background" className="w-full h-full object-cover transform scale-110 motion-safe:animate-[pulse_10s_ease-in-out_infinite]" src="/home-hero.webp" />
-                    {/* /40 rather than /30: this slab is full-bleed marble with bright
-                        white-and-gold veining right through the centre, where the
-                        wordmark and tagline sit. The previous image was darker overall. */}
-                    <div className="absolute inset-0 bg-black/40" />
+                    {/* Was bumped to /40 when this image was first wired in, reasoning
+                        it needed more contrast than the old marble -- that overshot and
+                        made the hero read as too dim. /15 lets the purple/gold slab
+                        actually show through; the gradient below still darkens the top
+                        (behind the nav) and bottom (transition into the gallery). */}
+                    <div className="absolute inset-0 bg-black/15" />
                     <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-stone-950" />
                 </div>
                 <div className="max-w-7xl mx-auto px-6 text-center space-y-6 md:space-y-8 relative z-40 w-full">
