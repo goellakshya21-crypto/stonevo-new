@@ -9,9 +9,13 @@ export default async function handler(req, res) {
     }
 
     // Rate limit — this endpoint costs real money per call (Vertex AI image gen).
-    // 50 renders/hour per IP: generous for real use, blocks scripted abuse.
+    // 200 renders/hour per IP. Was 50, which proved too tight in practice for two
+    // reasons: the limit is per IP, so everyone on one office/venue connection
+    // shares a single bucket; and a custom-stone visualize spends TWO of them
+    // (generateCroppedStonePreview + generateRoomImage), not one. Still blocks
+    // scripted abuse, which is the actual point.
     const ip = clientIp(req);
-    if (!(await rateLimit(`genimg:${ip}`, 50, 3600))) {
+    if (!(await rateLimit(`genimg:${ip}`, 200, 3600))) {
         return res.status(429).json({ error: 'Too many image requests from this network. Please slow down and try again shortly.' });
     }
 
