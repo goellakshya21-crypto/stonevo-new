@@ -32,6 +32,11 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
     const [visualizationStep, setVisualizationStep] = useState('app'); // 'stone_upload' | 'app' | 'method' | 'upload'
     const [userRoomImage, setUserRoomImage] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
+    // Decoding/resizing a phone photo is async and can fail (HEIC, corrupt file,
+    // out-of-memory on a huge image). Without these the failure was completely
+    // silent -- the modal just sat on the upload screen forever.
+    const [preparingRoom, setPreparingRoom] = useState(false);
+    const [roomUploadError, setRoomUploadError] = useState(null);
 
     // Application Selection States
     const [selectedApp, setSelectedApp] = useState(intendedApp || null);
@@ -79,6 +84,8 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         setLocalStone(null);
         setUploadingStone(false);
         setStoneUploadError(null);
+        setPreparingRoom(false);
+        setRoomUploadError(null);
 
         // Custom stone mode: no stone provided, user must upload one first
         if (allowCustomStone && !stone) {
@@ -186,38 +193,78 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
 
     const handleImageUpload = async (file) => {
         if (!file) return;
-        
-        // Convert to Base64 with Resizing
+        setRoomUploadError(null);
+
+        // iPhone photos are frequently HEIC/HEIF. No browser can decode those via
+        // `new Image()`, so this used to fail silently and the modal just hung.
+        const name = (file.name || '').toLowerCase();
+        if (/\.(heic|heif)$/.test(name) || /heic|heif/.test(file.type || '')) {
+            setRoomUploadError('iPhone HEIC photos aren\'t supported. In Settings → Camera → Formats choose "Most Compatible", or re-save the photo as JPG and try again.');
+            return;
+        }
+        if (file.type && !file.type.startsWith('image/')) {
+            setRoomUploadError('That file isn\'t an image. Please upload a JPG or PNG photo.');
+            return;
+        }
+        // The UI promises "Max 10MB" but nothing enforced it.
+        if (file.size > 10 * 1024 * 1024) {
+            setRoomUploadError(`That photo is ${(file.size / 1024 / 1024).toFixed(1)}MB. Please use one under 10MB.`);
+            return;
+        }
+
+        setPreparingRoom(true);
+
+        const fail = (msg) => {
+            setPreparingRoom(false);
+            setRoomUploadError(msg);
+        };
+
         const reader = new FileReader();
+        reader.onerror = () => fail('Could not read that file. Please try another photo.');
         reader.onload = async (e) => {
             const img = new Image();
+            // Without onerror an undecodable image left the UI frozen with no message.
+            img.onerror = () => fail('That image could not be opened. Please try a different photo (JPG or PNG).');
             img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 1024;
-                const MAX_HEIGHT = 1024;
-                let width = img.width;
-                let height = img.height;
+                try {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 1024;
+                    const MAX_HEIGHT = 1024;
+                    let width = img.width;
+                    let height = img.height;
 
-                if (width > height) {
-                    if (width > MAX_WIDTH) {
-                        height *= MAX_WIDTH / width;
-                        width = MAX_WIDTH;
+                    if (!width || !height) { fail('That image appears to be empty. Please try a different photo.'); return; }
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
                     }
-                } else {
-                    if (height > MAX_HEIGHT) {
-                        width *= MAX_HEIGHT / height;
-                        height = MAX_HEIGHT;
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const resizedBase64 = canvas.toDataURL('image/jpeg', 0.85);
+
+                    if (!resizedBase64 || resizedBase64.length < 100) {
+                        fail('Could not process that photo. Please try a different one.');
+                        return;
                     }
+
+                    setPreparingRoom(false);
+                    setUserRoomImage(resizedBase64);
+                    handleVisualize(null, selectedApp, resizedBase64);
+                } catch (err) {
+                    console.error('[AI Modal] Room image processing failed:', err);
+                    fail('Could not process that photo. It may be too large — try a smaller one.');
                 }
-
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                const resizedBase64 = canvas.toDataURL('image/jpeg', 0.85);
-                
-                setUserRoomImage(resizedBase64);
-                handleVisualize(null, selectedApp, resizedBase64);
             };
             img.src = e.target.result;
         };
@@ -594,7 +641,21 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                                 Ensure the room is well-lit and the {selectedApp} surfaces are clearly visible.
                                             </p>
 
+                                            {preparingRoom && (
+                                                <div className="flex flex-col items-center gap-4 py-12">
+                                                    <div className="w-12 h-12 border-2 border-[#eca413]/20 border-t-[#eca413] rounded-full animate-spin" />
+                                                    <p className="text-white/40 text-xs uppercase tracking-widest">Preparing your photo…</p>
+                                                </div>
+                                            )}
+
+                                            {roomUploadError && (
+                                                <p className="mb-6 text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 leading-relaxed text-left">
+                                                    {roomUploadError}
+                                                </p>
+                                            )}
+
                                             <div
+                                                style={preparingRoom ? { display: 'none' } : undefined}
                                                 onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                                                 onDragLeave={() => setIsDragging(false)}
                                                 onDrop={(e) => {
@@ -623,6 +684,9 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                                                 className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                                                                 onChange={(e) => {
                                                                     const file = e.target.files?.[0];
+                                                                    // Clear the input so picking the SAME file again after an
+                                                                    // error still fires onChange.
+                                                                    e.target.value = '';
                                                                     if (file) handleImageUpload(file);
                                                                 }}
                                                             />
@@ -638,6 +702,9 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                                                 className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                                                                 onChange={(e) => {
                                                                     const file = e.target.files?.[0];
+                                                                    // Clear the input so picking the SAME file again after an
+                                                                    // error still fires onChange.
+                                                                    e.target.value = '';
                                                                     if (file) handleImageUpload(file);
                                                                 }}
                                                             />
