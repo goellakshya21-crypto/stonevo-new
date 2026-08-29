@@ -5,7 +5,7 @@ import { X, Sparkles, Box, Camera, Download, Share2, Expand, ArrowRight, Upload,
 import { aiVisualizer } from '../lib/aiVisualizer';
 import { supabase } from '../lib/supabaseClient';
 import FacadeRegionSelector from './FacadeRegionSelector';
-import { buildRegionMask, describeRegion } from '../utils/regionMask';
+import { buildRegionMask, describeRegion, compositeRegion } from '../utils/regionMask';
 
 // Room / application options shown during visualization
 const ALL_ROOM_APPS = ['Flooring', 'Washroom', 'Feature Wall', 'Counter Top', 'Outdoor', 'Facade'];
@@ -480,7 +480,22 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                 });
             };
 
-            const finalImageUrl = await loadImage(imageUrl);
+            let finalImageUrl = await loadImage(imageUrl);
+
+            // The model treats "leave everything outside the marked band alone"
+            // as advice, not a rule -- it will happily clad a neighbouring
+            // storey it thinks looks better. Clip the render back to the rect
+            // the user actually drew, so the promise the UI makes ("everything
+            // outside your selection stays untouched") is structurally true
+            // instead of merely requested.
+            if (regionToUse && userImgToUse) {
+                try {
+                    finalImageUrl = await compositeRegion(userImgToUse, finalImageUrl, regionToUse);
+                } catch (err) {
+                    console.warn('[AI Modal] Region clip skipped, showing raw render:', err.message);
+                }
+            }
+
             setRoomImage(finalImageUrl);
             setImageReady(true);
         } catch (error) {
