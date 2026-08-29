@@ -39,6 +39,10 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
     const [roomUploadError, setRoomUploadError] = useState(null);
     // Guards against paying for two concurrent image generations (see handleVisualize)
     const inFlightRef = useRef(false);
+    // The style the CURRENTLY VISIBLE render was generated with. Lets us show
+    // "apply this style" only when the dropdown has actually diverged from what
+    // is on screen, instead of billing a render on every dropdown change.
+    const [renderedStyle, setRenderedStyle] = useState(null);
 
     // Application Selection States
     const [selectedApp, setSelectedApp] = useState(intendedApp || null);
@@ -88,6 +92,10 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         setStoneUploadError(null);
         setPreparingRoom(false);
         setRoomUploadError(null);
+        // Otherwise a stale value from the previous stone could make the
+        // "Render in <style>" button appear before anything has been rendered.
+        setRenderedStyle(null);
+        inFlightRef.current = false;
 
         // Custom stone mode: no stone provided, user must upload one first
         if (allowCustomStone && !stone) {
@@ -290,6 +298,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         const userImgToUse = forcedUserImage !== undefined ? forcedUserImage : userRoomImage;
 
         console.log("[AI Modal] Starting visualization for:", effectiveStone?.name, "Application:", appToUse, "Custom Image:", !!userImgToUse);
+        setRenderedStyle(styleToUse);
         setLoading(true);
         setImageReady(false);
         setRoomImage(null);
@@ -817,11 +826,14 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                 <div className="mb-8">
                                     <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest block mb-3">Architectural Style</label>
                                     <div className="grid grid-cols-2 gap-2">
-                                        <select 
+                                        <select
                                             value={selectedStyle}
                                             onChange={(e) => {
+                                                // Only sets the choice. Rendering is an explicit
+                                                // action below -- this used to bill a full image
+                                                // generation on every dropdown change, so browsing
+                                                // 5 styles quietly cost 5 renders.
                                                 setSelectedStyle(e.target.value);
-                                                handleVisualize(e.target.value);
                                             }}
                                             disabled={loading}
                                             className="col-span-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white/80 focus:outline-none focus:border-[#eca413] transition-all cursor-pointer disabled:opacity-50"
@@ -831,6 +843,17 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                             ))}
                                         </select>
                                     </div>
+
+                                    {/* Appears only once the picked style differs from what's on
+                                        screen, so the dropdown never looks inert. */}
+                                    {imageReady && !loading && renderedStyle && selectedStyle !== renderedStyle && (
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleVisualize(selectedStyle); }}
+                                            className="mt-3 w-full py-3 bg-[#eca413] text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <Sparkles size={13} /> Render in {selectedStyle}
+                                        </button>
+                                    )}
                                 </div>
 
                                 {!imageReady ? (
