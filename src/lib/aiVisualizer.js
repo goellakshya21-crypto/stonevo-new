@@ -110,7 +110,7 @@ Answer with ONLY the word "yes" or "no".`
      * The server fetches the image (no CORS), then uses Gemini's image editing
      * to composite the EXACT stone texture into the room scene.
      */
-    async generateRoomImage(stoneName, roomType, stoneType, application, imageUrl, roomStyle = 'Modern', userRoomImage = null, stonePattern = '', bookmatchDir = null, bookmatchMode = null, isCustomStone = false, isAlreadyBookmatched = false) {
+    async generateRoomImage(stoneName, roomType, stoneType, application, imageUrl, roomStyle = 'Modern', userRoomImage = null, stonePattern = '', bookmatchDir = null, bookmatchMode = null, isCustomStone = false, isAlreadyBookmatched = false, regionMaskImage = null, regionDescription = null) {
         const isOutdoor = (roomType.toLowerCase().includes('exterior') ||
                           roomType.toLowerCase().includes('facade') ||
                           roomType.toLowerCase().includes('balcony') ||
@@ -174,9 +174,23 @@ CRITICAL — ABSOLUTELY NO LINES: Do NOT draw any grout lines, cross lines, kite
                 ? `SEAMLESS ARCHITECTURE: This is a large-format natural stone slab, NOT a floor tile. STRICTLY FORBIDDEN: Do NOT add any grout lines, grid patterns, square segregations, or tile seams. The entire ${application} must appear as one continuous, seamless mono-block surface with the uniform, consistent texture flowing uninterrupted from edge to edge.`
                 : `SEAMLESS ARCHITECTURE: This is a large-format natural stone slab, NOT a floor tile. STRICTLY FORBIDDEN: Do NOT add any grout lines, grid patterns, square segregations, or tile seams. The entire ${application} must appear as one continuous, seamless mono-block surface with uninterrupted natural veining and patterns flowing from edge to edge.`;
 
-        const contextShot = isOutdoor
-            ? `photorealistic, wide-angle residential exterior shot — luxury home architecture, bright natural daylight, 8K resolution, architectural magazine style.`
-            : `photorealistic, wide-angle architectural interior shot — high-end design, soft ambient lighting, 8K resolution, architectural magazine style.`;
+        // A facade is a specific shot: the whole building elevation, straight on.
+        // The generic "exterior" wording drifted toward balconies and patios,
+        // which is what made the Facade application unusable before.
+        const isFacade = roomType.toLowerCase().includes('facade') ||
+                         roomType.toLowerCase().includes('elevation');
+
+        const contextShot = isFacade
+            ? `photorealistic architectural photograph of the FULL EXTERIOR ELEVATION of a one-to-two storey private residence, photographed straight-on from across the street so the whole house is in frame from ground to roofline. Bright natural daylight, clear sky, 8K resolution, architectural magazine style. This is an EXTERIOR of a building — do NOT show any interior room, balcony interior, patio seating or terrace furniture.`
+            : isOutdoor
+                ? `photorealistic, wide-angle residential exterior shot — luxury home architecture, bright natural daylight, 8K resolution, architectural magazine style.`
+                : `photorealistic, wide-angle architectural interior shot — high-end design, soft ambient lighting, 8K resolution, architectural magazine style.`;
+
+        // Clad the walls, not the ground: without this the model tends to put the
+        // stone on the driveway or path instead of the building itself.
+        const facadeInstruction = isFacade
+            ? `FACADE APPLICATION: Clad the EXTERIOR WALLS of the house with this stone — the vertical wall surfaces of the elevation across its storeys. Windows, doors, roof, sky and landscaping must remain natural and untouched. Do NOT apply the stone to the driveway, path or ground.`
+            : '';
 
         const compositePrompt = `This is a high-resolution source photograph of the natural stone "${stoneName}".
 CRITICAL REQUIREMENT: Use the EXACT texture, grain, and colors from this specific image. ${fidelityRule}
@@ -186,6 +200,7 @@ Map this precise slab onto the ${application} in a ${roomStyle} ${roomType} usin
 The stone in the final render must be the IDENTICAL twin of the source image: same hue, same grain, same translucency.
 ${seamlessInstruction}
 ${bookmatchInstruction}
+${facadeInstruction}
 STRICTLY FORBIDDEN: Do NOT place any rugs, mats, carpets, or floor coverings in the scene. The entire ${application} MUST be 100% exposed and completely visible, from corner to corner. Do not obscure the stone with furniture unless strictly structural.
 The rest of the scene should be a ${contextShot}.
 Maintain 100% structural faithfulness to the material source.`;
@@ -195,6 +210,7 @@ The focal point is the ${application} made of "${stoneName}" — a natural ${sto
 ${backgroundExtractionInstruction}
 ${seamlessInstruction}
 ${bookmatchInstruction}
+${facadeInstruction}
 STRICTLY FORBIDDEN: Do NOT place any rugs, mats, carpets, or floor coverings in the scene. The entire ${application} MUST be completely exposed.
 Maintain strict adherence to the visual characteristics of this specific luxury material.
 ${isOutdoor ? 'Bright sunlight' : 'Soft architectural lighting'}, 8k resolution, architectural magazine style, realistic natural stone texture.`;
@@ -212,7 +228,9 @@ ${isOutdoor ? 'Bright sunlight' : 'Soft architectural lighting'}, 8k resolution,
                     application,
                     stoneName,
                     roomStyle,
-                    userRoomImage
+                    userRoomImage,
+                    regionMaskImage,
+                    regionDescription
                 })
             });
 

@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { stoneImageUrl, roomType, application, stoneName, roomStyle, promptText, userRoomImage, modelId = 'gemini-2.5-flash-image', cropMode = false } = req.body;
+        const { stoneImageUrl, roomType, application, stoneName, roomStyle, promptText, userRoomImage, regionMaskImage, regionDescription, modelId = 'gemini-2.5-flash-image', cropMode = false } = req.body;
 
         if (!stoneImageUrl) {
             return res.status(400).json({ error: 'Stone image URL is required.' });
@@ -56,6 +56,32 @@ Fill the ENTIRE image frame with just the stone material — no background, no h
 Preserve the EXACT colours, veining, grain, and natural patterns of the stone with 100% fidelity.
 The output must be a clean, flat, catalogue-quality stone texture swatch suitable for material selection.
 If the stone has natural veining, keep it exactly as it appears. Do not add or remove any patterns.`;
+        } else if (userRoomImage && regionMaskImage) {
+            // Facade region mode. The generic branch below finds surfaces
+            // semantically ("every instance of the flooring"), which cannot say
+            // "only the middle storey" -- so the target is given twice over: as a
+            // magenta-flooded guide image, and as worded bounds. Independent
+            // signals, so one under-weighted cue doesn't lose the region.
+            finalPrompt = `
+            CONTEXT: You are performing precise, region-limited architectural material replacement on a photograph of a building exterior.
+
+            IMAGE 1 - MATERIAL SOURCE: the natural stone slab "${stoneName}". Use this EXACT texture, vein structure and colour.
+            IMAGE 2 - THE PHOTOGRAPH: the user's real building. This is the image you edit and return.
+            IMAGE 3 - REGION GUIDE ONLY: an identical copy of image 2 with one area flooded and outlined in bright magenta. It marks WHERE to work. It is an instruction, NOT content.
+
+            TARGET REGION: ${regionDescription || 'the area marked in magenta in image 3'}.
+
+            INSTRUCTION:
+            1. Clad ONLY the wall surfaces inside the marked region with the stone from image 1.
+            2. ABSOLUTE REQUIREMENT: every pixel OUTSIDE the marked region must be returned completely unchanged -- other storeys, roof, sky, ground, landscaping and neighbouring buildings stay exactly as photographed.
+            3. STRICTLY FORBIDDEN: do NOT draw magenta, pink or any highlight colour anywhere in the output. Image 3 is a guide; its colour must never appear in the result.
+            4. Within the region, preserve windows, doors, balconies, drainpipes and trim -- clad the WALL around them, do not paint over them.
+            5. SEAMLESS FINISH: the stone reads as large-format cladding. STRICTLY FORBIDDEN: no grout lines, grid patterns, tile segments or visible seams.
+            6. TEXTURE PRESERVATION: STRICTLY FORBIDDEN: do NOT invent veins or patterns absent from image 1. If the source stone is plain, keep it plain.
+            7. Match the photograph's existing perspective, lighting direction, shadows and weathering so the cladding looks genuinely built, not pasted.
+            8. The boundary where the new cladding meets the untouched storeys must be a clean, believable architectural junction.
+            9. Return the edited photograph at full 8K photorealistic quality.
+            `;
         } else if (userRoomImage) {
             finalPrompt = `
             CONTEXT: You are performing high-end architectural inpainting and material replacement. 
@@ -110,6 +136,18 @@ If the stone has natural veining, keep it exactly as it appears. Do not add or r
                 parts.push({ inlineData: { mimeType: mimeMatch, data: base64Data } });
             } else {
                 console.warn('[Vertex AI Image] userRoomImage provided but regex match failed.');
+            }
+        }
+
+        // Facade region guide: same photo, target band flooded magenta. Must come
+        // AFTER the clean photo so "second image" / "third image" in the prompt
+        // line up with what the model actually receives.
+        if (userRoomImage && regionMaskImage) {
+            const [, maskMime, maskData] = regionMaskImage.match(/^data:(image\/\w+);base64,(.+)$/) || [];
+            if (maskMime && maskData) {
+                parts.push({ inlineData: { mimeType: maskMime, data: maskData } });
+            } else {
+                console.warn('[Vertex AI Image] regionMaskImage provided but regex match failed.');
             }
         }
 

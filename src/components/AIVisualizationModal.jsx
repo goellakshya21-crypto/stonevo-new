@@ -4,9 +4,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Box, Camera, Download, Share2, Expand, ArrowRight, Upload, Image as ImageIcon, Wand2, RefreshCw } from 'lucide-react';
 import { aiVisualizer } from '../lib/aiVisualizer';
 import { supabase } from '../lib/supabaseClient';
+import FacadeRegionSelector from './FacadeRegionSelector';
+import { buildRegionMask, describeRegion } from '../utils/regionMask';
 
 // Room / application options shown during visualization
-const ALL_ROOM_APPS = ['Flooring', 'Washroom', 'Feature Wall', 'Counter Top', 'Outdoor'];
+const ALL_ROOM_APPS = ['Flooring', 'Washroom', 'Feature Wall', 'Counter Top', 'Outdoor', 'Facade'];
+
+// Facade is the only application where the user marks a sub-region of their own
+// photo, because a building elevation has multiple storeys in different finishes.
+const isFacadeApplication = (app) => {
+    const a = (app || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    return a.includes('facade') || a.includes('elevation') || a.includes('cladding');
+};
 
 const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, intendedApp, allowCustomStone, onStoneUploaded, bookmatchMode = null, bookmatchDir = null }) => {
     const [loading, setLoading] = useState(false);
@@ -39,6 +48,8 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
     const [roomUploadError, setRoomUploadError] = useState(null);
     // Guards against paying for two concurrent image generations (see handleVisualize)
     const inFlightRef = useRef(false);
+    // Facade + own-photo only: which part of the elevation to clad, normalised 0..1
+    const [facadeRegion, setFacadeRegion] = useState(null);
     // The style the CURRENTLY VISIBLE render was generated with. Lets us show
     // "apply this style" only when the dropdown has actually diverged from what
     // is on screen, instead of billing a render on every dropdown change.
@@ -57,7 +68,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
     // Mapping: Application Category -> Default AI Room Type
     const APP_ROOM_MAP = {
         // High Priority / Specialized Residential Exteriors
-        'Facade': 'Luxury Home Balcony',
+        'Facade': 'Two-Storey Residential Facade',
         'Exterior': 'Modern Residential Exterior',
         'Outer Wall': 'High-end Villa Facade',
         'Driveway': 'Outdoor Entrance',
@@ -95,6 +106,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         // Otherwise a stale value from the previous stone could make the
         // "Render in <style>" button appear before anything has been rendered.
         setRenderedStyle(null);
+        setFacadeRegion(null);
         inFlightRef.current = false;
 
         // Custom stone mode: no stone provided, user must upload one first
@@ -270,6 +282,15 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
 
                     setPreparingRoom(false);
                     setUserRoomImage(resizedBase64);
+
+                    // A facade has several storeys, usually in different materials,
+                    // so don't clad the whole photo -- let the user mark the level
+                    // first. Every other application replaces its surface wholesale
+                    // as before.
+                    if (isFacadeApplication(selectedApp)) {
+                        setVisualizationStep('region');
+                        return;
+                    }
                     handleVisualize(null, selectedApp, resizedBase64);
                 } catch (err) {
                     console.error('[AI Modal] Room image processing failed:', err);
@@ -281,7 +302,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         reader.readAsDataURL(file);
     };
 
-    const handleVisualize = async (forcedStyle, forcedApp, forcedUserImage) => {
+    const handleVisualize = async (forcedStyle, forcedApp, forcedUserImage, forcedRegion) => {
         // Every call here bills a Vertex image generation, which dominates the
         // cost of this feature. There was no guard, so a double-click on
         // "Surprise Me" / "New Architecture" paid for two renders and threw one
@@ -345,30 +366,54 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
             roomType = roomName;
         }
 
-        // FINAL CRITICAL CHECK: Force Outdoor if it's a Facade or Exterior synonym
-        const isActuallyOutdoor =
+        // Outdoor routing, decided ONLY by the application the user picked.
+        //
+        // This deliberately no longer inspects the stone's own name/description.
+        // It used to, which meant a stone described "ideal for interior and
+        // exterior use" force-rendered a balcony even when the user had chosen
+        // Flooring -- the user's explicit choice was being overridden by
+        // marketing copy on the stone record.
+        const isFacadeApp =
             normalizedApp.includes('facade') ||
+            normalizedApp.includes('elevation') ||
+            normalizedApp.includes('cladding') ||
+            normalizedApp.includes('outer wall');
+
+        const isOtherOutdoorApp =
             normalizedApp.includes('exterior') ||
             normalizedApp.includes('balcony') ||
-            normalizedApp.includes('cladding') ||
-            normalizedApp.includes('elevation') ||
             normalizedApp.includes('landscape') ||
             normalizedApp.includes('paving') ||
             normalizedApp.includes('entrance') ||
-            normalizedApp.includes('outdoor') ||
-            normalize(effectiveStone?.name).includes('facade') ||
-            normalize(effectiveStone?.name).includes('exterior') ||
-            normalize(effectiveStone?.description).includes('exterior') ||
-            normalize(effectiveStone?.description).includes('facade') ||
-            normalize(effectiveStone?.description).includes('balcony');
+            normalizedApp.includes('outdoor');
 
-        if (isActuallyOutdoor && !userImgToUse) {
-            console.log("[AI Modal] CRITICAL: Outdoor specimen detected (normalized)! Locking to Residential Balcony.");
+        // Facade is checked FIRST: it must resolve to a building elevation, not
+        // the balcony scene. Mapping it to a balcony is exactly why 'Facade' was
+        // pulled from the picker in d518dd5.
+        if (isFacadeApp && !userImgToUse) {
+            roomType = 'Two-Storey Residential Facade';
+        } else if (isOtherOutdoorApp && !userImgToUse) {
             roomType = 'Luxury Residential Balcony with Outdoor View';
         }
 
         console.log("[AI Modal] FINAL Determined environment:", roomType, "for:", appToUse);
         setFinalRoomType(roomType);
+
+        // Facade + own photo + a marked level: build the magenta guide image that
+        // tells the model where to work. Best-effort -- if it fails we still
+        // render, just without the region limit, rather than dead-ending the user.
+        let regionMaskImage = null;
+        let regionDescription = null;
+        const regionToUse = forcedRegion !== undefined ? forcedRegion : facadeRegion;
+        if (userImgToUse && regionToUse) {
+            try {
+                regionMaskImage = await buildRegionMask(userImgToUse, regionToUse);
+                regionDescription = describeRegion(regionToUse);
+                console.log('[AI Modal] Region guide built for', regionDescription);
+            } catch (err) {
+                console.error('[AI Modal] Region mask failed, rendering without it:', err);
+            }
+        }
 
         try {
             console.log("[AI Modal] Calling aiVisualizer API...");
@@ -379,7 +424,9 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                 aiVisualizer.generateRoomImage(
                     effectiveStone?.name || 'Natural Stone', roomType, effectiveStone?.colour || 'Natural', appToUse, effectiveStone?.image_url, styleToUse, userImgToUse, '', bookmatchDir, bookmatchMode,
                     !!localStone,            // isCustomStone
-                    uploadedStoneIsBookmatched // isAlreadyBookmatched
+                    uploadedStoneIsBookmatched, // isAlreadyBookmatched
+                    regionMaskImage,           // facade region guide (null otherwise)
+                    regionDescription
                 )
             ]);
 
@@ -477,7 +524,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                 <motion.div 
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="max-w-xl w-full"
+                                    className={visualizationStep === 'region' ? "max-w-3xl w-full" : "max-w-xl w-full"}
                                 >
                                     {visualizationStep === 'stone_upload' && (
                                         <div className="text-center">
@@ -655,6 +702,19 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                                 <RefreshCw size={10} /> Change Application
                                             </button>
                                         </div>
+                                    )}
+
+                                    {visualizationStep === 'region' && (
+                                        <FacadeRegionSelector
+                                            imageSrc={userRoomImage}
+                                            onBack={() => { setFacadeRegion(null); setVisualizationStep('upload'); }}
+                                            onConfirm={(rect) => {
+                                                setFacadeRegion(rect);
+                                                // Pass the rect explicitly: setState is async and
+                                                // handleVisualize would otherwise read the previous value.
+                                                handleVisualize(null, selectedApp, userRoomImage, rect);
+                                            }}
+                                        />
                                     )}
 
                                     {visualizationStep === 'upload' && (
