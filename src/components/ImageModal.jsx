@@ -332,7 +332,12 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
                         name: stone.name,
                         type: stone?.physical_properties?.type || stone?.type || 'Natural Stone',
                         image_url: stone.imageUrl || stone.image_url,
-                        application: stone?.physical_properties?.application || []
+                        application: stone?.physical_properties?.application || [],
+                        // physical_properties.color is stored as an array (e.g. ['Black']).
+                        // This object used to drop colour entirely, so every render from
+                        // the gallery's main "Visualize" button silently fell back to the
+                        // AI modal's hardcoded 'Natural' regardless of the actual stone.
+                        colour: [].concat(stone?.physical_properties?.color || stone?.colour || stone?.color || []).filter(Boolean).join(', ')
                     }}
                     roomName={null}
                     onClose={() => setIsVisualizing(false)}
