@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Box, Camera, Download, Share2, Expand, ArrowRight, Upload, Image as ImageIcon, Wand2, RefreshCw } from 'lucide-react';
@@ -37,6 +37,8 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
     // silent -- the modal just sat on the upload screen forever.
     const [preparingRoom, setPreparingRoom] = useState(false);
     const [roomUploadError, setRoomUploadError] = useState(null);
+    // Guards against paying for two concurrent image generations (see handleVisualize)
+    const inFlightRef = useRef(false);
 
     // Application Selection States
     const [selectedApp, setSelectedApp] = useState(intendedApp || null);
@@ -272,10 +274,21 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
     };
 
     const handleVisualize = async (forcedStyle, forcedApp, forcedUserImage) => {
+        // Every call here bills a Vertex image generation, which dominates the
+        // cost of this feature. There was no guard, so a double-click on
+        // "Surprise Me" / "New Architecture" paid for two renders and threw one
+        // away. A ref (not `loading` state) because state updates are async and
+        // wouldn't be visible to a second click in the same tick.
+        if (inFlightRef.current) {
+            console.log('[AI Modal] Render already in flight — ignoring duplicate request.');
+            return;
+        }
+        inFlightRef.current = true;
+
         const styleToUse = forcedStyle || selectedStyle;
         const appToUse = forcedApp || selectedApp || 'Surface';
         const userImgToUse = forcedUserImage !== undefined ? forcedUserImage : userRoomImage;
-        
+
         console.log("[AI Modal] Starting visualization for:", effectiveStone?.name, "Application:", appToUse, "Custom Image:", !!userImgToUse);
         setLoading(true);
         setImageReady(false);
@@ -425,6 +438,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
             setRoomImage("https://images.unsplash.com/photo-1556911220-e15595b6a981?auto=format&fit=crop&q=80&w=1200");
         } finally {
             setLoading(false);
+            inFlightRef.current = false;
         }
     };
 
