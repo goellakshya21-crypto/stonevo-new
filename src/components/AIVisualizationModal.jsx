@@ -377,6 +377,9 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
 
         console.log("[AI Modal] Starting visualization for:", effectiveStone?.name, "Application:", appToUse, "Custom Image:", !!userImgToUse);
         setRenderedStyle(styleToUse);
+        // Otherwise the previous style's caption sits under the new render for
+        // the second or two before its replacement arrives.
+        setVisualData(null);
         setLoading(true);
         setImageReady(false);
         setRoomImage(null);
@@ -509,29 +512,41 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
 
         try {
             console.log("[AI Modal] Calling aiVisualizer API...");
-            const [aiData, imageUrl] = await Promise.all([
-                aiVisualizer.generateVisualDescription(
-                    effectiveStone?.name || 'Natural Stone', roomType, effectiveStone?.colour || 'Natural', appToUse, styleToUse
-                ),
-                aiVisualizer.generateRoomImage({
-                    stoneName: effectiveStone?.name || 'Natural Stone',
-                    roomType,
-                    stoneType: effectiveStone?.colour || 'Natural',
-                    application: appToUse,
-                    imageUrl: effectiveStone?.image_url,
-                    roomStyle: styleToUse,
-                    userRoomImage: userImgToUse,
-                    isCustomStone: !!localStone,
-                    regionMaskImage,           // facade region guide (null otherwise)
-                    regionDescription,
-                    slabPanelImage,
-                    slabGrid,
-                    slabDescription,
-                })
-            ]);
+
+            // The image goes FIRST and ALONE.
+            //
+            // These two used to race in a Promise.all, which meant every
+            // visualize spent two Vertex calls simultaneously -- doubling the
+            // burst at exactly the moment the per-project quota is tightest, and
+            // trip that quota and the whole render fails. The description is a
+            // decorative two-sentence blurb that already has a hardcoded
+            // fallback and is only ever read beside a finished render, so it has
+            // no business competing with the thing the user is waiting for.
+            const imageUrl = await aiVisualizer.generateRoomImage({
+                stoneName: effectiveStone?.name || 'Natural Stone',
+                roomType,
+                stoneType: effectiveStone?.colour || 'Natural',
+                application: appToUse,
+                imageUrl: effectiveStone?.image_url,
+                roomStyle: styleToUse,
+                userRoomImage: userImgToUse,
+                isCustomStone: !!localStone,
+                regionMaskImage,           // facade region guide (null otherwise)
+                regionDescription,
+                slabPanelImage,
+                slabGrid,
+                slabDescription,
+            });
 
             console.log("[AI Modal] API Response received. URL exists:", !!imageUrl);
-            setVisualData(aiData);
+
+            // Fetched after the image, and deliberately NOT awaited: making the
+            // render wait on a caption would trade a quota problem for a latency
+            // one. It lands a second or two later and the panel fills itself in;
+            // the copy below tolerates it being absent until then.
+            aiVisualizer.generateVisualDescription(
+                effectiveStone?.name || 'Natural Stone', roomType, effectiveStone?.colour || 'Natural', appToUse, styleToUse
+            ).then(setVisualData).catch(() => { /* has its own fallback; never block the render */ });
 
             if (!imageUrl) {
                 console.warn("[AI Modal] No image URL returned, using fallback.");
@@ -1066,9 +1081,20 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                 ) : (
                                     <div className="space-y-8">
                                         <div>
-                                            <p className="text-white/90 font-serif italic text-base leading-relaxed mb-6">
-                                                "{visualData?.description?.split('.').slice(0, 2).join('.') + '.'}"
-                                            </p>
+                                            {/* The description now arrives AFTER the image rather
+                                                than alongside it, so it is legitimately absent for a
+                                                second or two. Without this guard that gap rendered
+                                                the string "undefined." in quotation marks. */}
+                                            {visualData?.description ? (
+                                                <p className="text-white/90 font-serif italic text-base leading-relaxed mb-6">
+                                                    "{visualData.description.split('.').slice(0, 2).join('.') + '.'}"
+                                                </p>
+                                            ) : (
+                                                <div className="space-y-2 mb-6" aria-hidden="true">
+                                                    <div className="h-3 bg-white/5 rounded animate-pulse" />
+                                                    <div className="h-3 bg-white/5 rounded animate-pulse w-4/5" />
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="space-y-3">
