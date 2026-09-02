@@ -13,7 +13,10 @@ import StonWordmark from './StonWordmark';
 // Flip GALLERY_LOCKED to false (or delete this + the check in the approved
 // branch) on launch day.
 const GALLERY_LOCKED = true;
-const LAUNCH_ALLOWED_PHONES = ['9910978887'];
+// Both numbers belong to the team. They still have to pass a real SMS OTP to
+// get in -- this list only decides who the gate lets THROUGH afterwards, so
+// adding a number here grants early access to the gallery, not a login bypass.
+const LAUNCH_ALLOWED_PHONES = ['9910978887', '7678320944'];
 
 const PreLaunchNotice = () => (
     <div className="fixed inset-0 z-[150] bg-stone-950 flex items-center justify-center px-6 overflow-y-auto">
@@ -195,11 +198,17 @@ const LeadGate = ({ children }) => {
         }
     };
 
-    // ── Numbers that skip SMS entirely — no charge, use OTP 000000 ────────────
-    const DEV_NUMBERS = ['7678320944', '7042353166'];
-
     // Localhost dev mode: any phone number skips SMS, accepts OTP "000000".
-    // Production is unaffected (real SMS + real OTP).
+    // Every DEPLOYED environment — production and preview alike — sends a real
+    // SMS and verifies a real code.
+    //
+    // This used to skip the SMS for a hardcoded DEV_NUMBERS list on every
+    // environment, while handleVerifyOTP below only ever accepted "000000" on
+    // localhost. The two halves disagreed, so those numbers could not log in
+    // anywhere except localhost: no code was ever sent to them, yet a real one
+    // was demanded. The fix narrows the skip rather than widening the bypass —
+    // making a fixed passcode valid on a public URL against the live database
+    // would be a genuine auth hole, not a convenience.
     const IS_LOCAL_DEV = typeof window !== 'undefined'
         && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
 
@@ -213,8 +222,8 @@ const LeadGate = ({ children }) => {
             if (digits.length < 10) throw new Error('Please enter a valid 10-digit phone number');
             const cleanPhone = digits.slice(-10);
 
-            // Dev numbers — skip SMS, go straight to OTP screen
-            if (DEV_NUMBERS.includes(cleanPhone) || IS_LOCAL_DEV) {
+            // Localhost only — skip SMS, go straight to the OTP screen
+            if (IS_LOCAL_DEV) {
                 setStep('OTP');
                 return;
             }

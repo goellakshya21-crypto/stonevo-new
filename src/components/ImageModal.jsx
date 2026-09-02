@@ -340,6 +340,15 @@ function ImageModal({ stone, allStones = [], onClose, onNavigate, isOpen = true,
                         colour: [].concat(stone?.physical_properties?.color || stone?.colour || stone?.color || []).filter(Boolean).join(', ')
                     }}
                     roomName={null}
+                    // Carry the bookmatch the user is currently looking at into
+                    // the render, so opening Visualize from a 4-way preview
+                    // doesn't silently drop back to a single slab. The preview's
+                    // 2-way and 4-way are the 2×1 and 2×2 slab grids.
+                    initialSlabPreset={
+                        bookmatchMode === '2way' ? { count: 2, cols: 2, rows: 1, originRow: 'top' }
+                        : bookmatchMode === '4way' ? { count: 4, cols: 2, rows: 2, originRow: flipDir === 'up' ? 'bottom' : 'top' }
+                        : null
+                    }
                     onClose={() => setIsVisualizing(false)}
                 />
             )}
