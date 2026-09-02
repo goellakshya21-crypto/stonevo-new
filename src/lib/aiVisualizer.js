@@ -109,8 +109,36 @@ Answer with ONLY the word "yes" or "no".`
      * Generate room image by sending the stone imageUrl to the server.
      * The server fetches the image (no CORS), then uses Gemini's image editing
      * to composite the EXACT stone texture into the room scene.
+     *
+     * Takes an OPTIONS OBJECT. It used to take fourteen positional arguments,
+     * which meant callers passing '' as a placeholder and trailing comments to
+     * say which boolean was which — and any caller that wanted only the last
+     * parameter had to type eight nulls to reach it.
      */
-    async generateRoomImage(stoneName, roomType, stoneType, application, imageUrl, roomStyle = 'Modern', userRoomImage = null, stonePattern = '', bookmatchDir = null, bookmatchMode = null, isCustomStone = false, isAlreadyBookmatched = false, regionMaskImage = null, regionDescription = null) {
+    async generateRoomImage(options = {}) {
+        // Migration guard. The failure mode being caught here is silent, not
+        // loud: a stale positional caller passes a string, every field below
+        // destructures to undefined, and we go on to make a billed Vertex call
+        // for a garbage render. Better to throw.
+        if (typeof options === 'string') {
+            throw new Error('generateRoomImage: takes an options object now, not positional args');
+        }
+
+        const {
+            stoneName, roomType, stoneType, application, imageUrl,
+            roomStyle = 'Modern',
+            userRoomImage = null,
+            stonePattern = '',
+            isCustomStone = false,
+            regionMaskImage = null,
+            regionDescription = null,
+            // Pre-composed bookmatched slab panel (utils/slabGrid.js) plus its
+            // shape and a worded description. See the slab layout block below.
+            slabPanelImage = null,
+            slabGrid = null,
+            slabDescription = null,
+        } = options;
+
         const isOutdoor = (roomType.toLowerCase().includes('exterior') ||
                           roomType.toLowerCase().includes('facade') ||
                           roomType.toLowerCase().includes('balcony') ||
@@ -118,7 +146,6 @@ Answer with ONLY the word "yes" or "no".`
 
         const name = (stoneName || '').toLowerCase();
         const type = (stoneType || '').toLowerCase();
-        const appLower = (application || '').toLowerCase();
 
         const isPlain = name.includes('plain') || name.includes('solid') || name.includes('uniform') ||
                         type.includes('plain') || name.includes('pure') || name.includes('limestone') ||
@@ -127,49 +154,40 @@ Answer with ONLY the word "yes" or "no".`
                         (stonePattern || '').toLowerCase().includes('solid') ||
                         (stonePattern || '').toLowerCase().includes('uniform');
 
-        // ── Bookmatch rendering logic ──────────────────────────────────────
-        const isWallApp =
-            appLower.includes('wall') ||
-            appLower.includes('cladding') ||
-            appLower.includes('feature');
-
-        const isSmallBathroom =
-            appLower.includes('powder') ||
-            appLower.includes('vanity');
-
-        // Direction detail for 4-way floor bookmatch
-        const directionDetail = bookmatchDir === 'up'
-            ? `The original slab sits at the BOTTOM; its mirror reflection fans UPWARD — the veining opens upward like a fountain or cathedral arch, creating a vertical symmetry where patterns rise toward the ceiling.`
-            : `The original slab sits at the TOP; its mirror reflection fans DOWNWARD — the veining opens downward like a reflection in still water, creating a grounded, downward symmetry.`;
-
         // When the user uploaded their own stone photo, tell the AI to strip the background
         const backgroundExtractionInstruction = isCustomStone
             ? `STONE ISOLATION: The source image is a photo taken by a user and may contain background surfaces, hands, floors, walls, or other surroundings. Extract and use ONLY the pure stone/marble texture from the centre of the image. Completely ignore and discard any non-stone background elements, shadows cast by surroundings, or edges where the stone meets other surfaces.`
             : '';
 
-        let bookmatchInstruction = '';
+        // ── Slab layout ────────────────────────────────────────────────────
+        // The material source is a panel this app already composed on canvas:
+        // the architect's chosen number of slabs, mirrored in place. So the
+        // model is never asked to COUNT anything — only to reproduce an
+        // arrangement it can see. That is the whole reason the panel is built
+        // client-side rather than described in words.
+        //
+        // Gated on the panel image actually being present, never on the grid
+        // alone: telling the model "this is eight slabs" while handing it one
+        // slab is the exact bug this feature exists to avoid, in reverse.
+        const gridActive = !!(slabPanelImage && slabGrid && slabGrid.count > 1);
 
-        // If the uploaded stone image already shows a bookmatch, don't bookmatch again
-        const effectiveBookmatchMode = isAlreadyBookmatched ? null : bookmatchMode;
-
-        if (!isSmallBathroom && effectiveBookmatchMode) {
-            if (isWallApp || effectiveBookmatchMode === '2way') {
-                bookmatchInstruction = `2-WAY BOOKMATCH: The ${application} surface MUST show two mirrored slabs placed side by side — the right half is the exact horizontal mirror of the left half, veining meeting symmetrically at the centre. STRICTLY FORBIDDEN: Do NOT draw any grout line, seam line, or visible joint at the mirror axis — the join must be invisible, with only the natural stone veining showing the symmetry. This is MANDATORY.`;
-            } else if (effectiveBookmatchMode === '4way') {
-                bookmatchInstruction = `4-WAY BOOKMATCH FLOOR: The floor must show a 4-way book-match — the stone's veining mirrors both horizontally and vertically from the centre point, forming a natural diamond/butterfly symmetry. ${directionDetail}
-CRITICAL — ABSOLUTELY NO LINES: Do NOT draw any grout lines, cross lines, kite outlines, tile borders, seam marks, grid marks, or any visible joints where the four quadrants meet. The only visible pattern at the joins must be the natural stone veining meeting symmetrically — nothing else. The floor must look like one large seamless stone surface whose veining happens to be symmetrical, NOT four separate tiles with borders.`;
-            }
-        }
-        // If bookmatchMode is null → no instruction → single slab as-is
+        const slabLayoutInstruction = gridActive
+            ? `SLAB LAYOUT — REPRODUCE, DO NOT REDESIGN: The source image is already a finished bookmatched panel: ${slabDescription || `${slabGrid.count} slabs, ${slabGrid.cols} by ${slabGrid.rows}`}. Treat it as ONE ready-made piece of artwork, not as a texture to be tiled.
+Map the ENTIRE panel onto the ${application} exactly once, edge to edge, in correct perspective. Do NOT crop it, do NOT repeat it, do NOT tile it, do NOT rearrange it, and do NOT change how many slabs it contains.
+The joints between slabs are TIGHT BUTT JOINTS: at most a hairline, the same tone as the stone, narrowing with the perspective of the surface. STRICTLY FORBIDDEN: grout lines, mortar, dark or light joint fills, tile borders, grid overlays, kite outlines, cross lines, bevelled edges, or any joint that is wider or darker than a hairline. The symmetry of the veining is what reveals where the slabs meet — not a drawn line.
+STRICTLY FORBIDDEN: do NOT add any additional seams, subdivisions, repeats or panel edges beyond the arrangement already present in the source image.`
+            : '';
         // ──────────────────────────────────────────────────────────────────
 
         const fidelityRule = isPlain
             ? `TEXTURE FIDELITY: This stone is a solid, uniform material. STRICTLY FORBIDDEN: Do NOT add any synthetic veins, patterns, grain, or textures. Maintain the smooth, consistent, and mono-chromatic appearance of the source image exactly.`
             : `TEXTURE FIDELITY: Respect the natural vein structure and grain. Do NOT add extra synthetic veins that are not in the source image.`;
 
-        // When bookmatch is active the surface IS multiple slabs — use a join-aware instruction instead
-        const seamlessInstruction = effectiveBookmatchMode
-            ? `SURFACE CONTINUITY: The ${application} must appear as one large, continuous stone surface. STRICTLY FORBIDDEN: Do NOT add grout lines, tile seams, grid marks, kite outlines, cross lines, or any borders of any kind. The only visual variation across the surface must come from the natural stone texture and its mirrored veining pattern.`
+        // With a slab grid the surface IS several slabs with real joints, so the
+        // "one seamless mono-block" wording would directly contradict
+        // slabLayoutInstruction. Suppress it and let that block speak alone.
+        const seamlessInstruction = gridActive
+            ? ''
             : isPlain
                 ? `SEAMLESS ARCHITECTURE: This is a large-format natural stone slab, NOT a floor tile. STRICTLY FORBIDDEN: Do NOT add any grout lines, grid patterns, square segregations, or tile seams. The entire ${application} must appear as one continuous, seamless mono-block surface with the uniform, consistent texture flowing uninterrupted from edge to edge.`
                 : `SEAMLESS ARCHITECTURE: This is a large-format natural stone slab, NOT a floor tile. STRICTLY FORBIDDEN: Do NOT add any grout lines, grid patterns, square segregations, or tile seams. The entire ${application} must appear as one continuous, seamless mono-block surface with uninterrupted natural veining and patterns flowing from edge to edge.`;
@@ -199,7 +217,7 @@ ${backgroundExtractionInstruction}
 Map this precise slab onto the ${application} in a ${roomStyle} ${roomType} using pixel-perfect perspective.
 The stone in the final render must be the IDENTICAL twin of the source image: same hue, same grain, same translucency.
 ${seamlessInstruction}
-${bookmatchInstruction}
+${slabLayoutInstruction}
 ${facadeInstruction}
 STRICTLY FORBIDDEN: Do NOT place any rugs, mats, carpets, or floor coverings in the scene. The entire ${application} MUST be 100% exposed and completely visible, from corner to corner. Do not obscure the stone with furniture unless strictly structural.
 The rest of the scene should be a ${contextShot}.
@@ -209,13 +227,13 @@ Maintain 100% structural faithfulness to the material source.`;
 The focal point is the ${application} made of "${stoneName}" — a natural ${stoneType} with authentic textures and patterns. ${fidelityRule}
 ${backgroundExtractionInstruction}
 ${seamlessInstruction}
-${bookmatchInstruction}
+${slabLayoutInstruction}
 ${facadeInstruction}
 STRICTLY FORBIDDEN: Do NOT place any rugs, mats, carpets, or floor coverings in the scene. The entire ${application} MUST be completely exposed.
 Maintain strict adherence to the visual characteristics of this specific luxury material.
 ${isOutdoor ? 'Bright sunlight' : 'Soft architectural lighting'}, 8k resolution, architectural magazine style, realistic natural stone texture.`;
 
-        console.log(`[AI Visualizer] Sending stone image URL to server for compositing... Custom Image: ${!!userRoomImage}`);
+        console.log(`[AI Visualizer] Sending stone image URL to server for compositing... Custom Image: ${!!userRoomImage}, Slab grid: ${gridActive ? `${slabGrid.cols}x${slabGrid.rows}` : 'none'}`);
 
         try {
             const response = await fetch('/api/generate-image', {
@@ -224,6 +242,13 @@ ${isOutdoor ? 'Bright sunlight' : 'Soft architectural lighting'}, 8k resolution,
                 body: JSON.stringify({
                     promptText: imageUrl ? compositePrompt : fallbackPrompt,
                     stoneImageUrl: imageUrl || null,   // Server will fetch this — no CORS issue
+                    // The composed slab panel, when there is one. Sent ALONGSIDE
+                    // stoneImageUrl rather than in place of it: the server prefers
+                    // this when present and falls back to fetching the URL when it
+                    // can't be parsed, so one field never has to mean two things.
+                    stoneImageData: gridActive ? slabPanelImage : null,
+                    slabGrid: gridActive ? slabGrid : null,
+                    slabDescription: gridActive ? slabDescription : null,
                     roomType,
                     application,
                     stoneName,

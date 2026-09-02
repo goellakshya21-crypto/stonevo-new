@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { stoneImageUrl, roomType, application, stoneName, roomStyle, promptText, userRoomImage, regionMaskImage, regionDescription, modelId = 'gemini-2.5-flash-image', cropMode = false } = req.body;
+        const { stoneImageUrl, roomType, application, stoneName, roomStyle, promptText, userRoomImage, regionMaskImage, regionDescription, stoneImageData, slabGrid, slabDescription, modelId = 'gemini-2.5-flash-image', cropMode = false } = req.body;
 
         if (!stoneImageUrl) {
             return res.status(400).json({ error: 'Stone image URL is required.' });
@@ -44,6 +44,47 @@ export default async function handler(req, res) {
             location: 'us-central1',
             googleAuthOptions: { credentials: { client_email: keyData.client_email, private_key: keyData.private_key } } 
         });
+
+        // ── Resolve the material source BEFORE building the prompt ──────────
+        // The client may send a pre-composed bookmatched slab panel
+        // (stoneImageData) instead of a single slab. It still sends the real
+        // stoneImageUrl too, so the required-field guard above keeps its
+        // original meaning and we always have something to fall back to.
+        //
+        // This has to happen before the prompt is written, because the prompt
+        // must describe what we ACTUALLY ended up sending. If a malformed
+        // stoneImageData drops us back to the single-slab URL while the prompt
+        // still claims "this is an eight-slab panel", we have reintroduced the
+        // very mismatch the client-side compositing exists to prevent.
+        let stoneBase64, stoneMime, usedPanel = false;
+
+        if (stoneImageData) {
+            // Same parsing idiom as userRoomImage and regionMaskImage below.
+            const [, panelMime, panelData] = stoneImageData.match(/^data:(image\/\w+);base64,(.+)$/) || [];
+            if (panelMime && panelData) {
+                stoneMime = panelMime;
+                stoneBase64 = panelData;
+                usedPanel = true;
+            } else {
+                console.warn('[Vertex AI Image] stoneImageData provided but regex match failed — falling back to stoneImageUrl.');
+            }
+        }
+
+        if (!usedPanel) {
+            const imgResp = await fetch(stoneImageUrl);
+            if (!imgResp.ok) throw new Error(`Stone image fetch failed: ${imgResp.status}`);
+            const arrayBuffer = await imgResp.arrayBuffer();
+            stoneBase64 = Buffer.from(arrayBuffer).toString('base64');
+            stoneMime = imgResp.headers.get('content-type') || 'image/jpeg';
+        }
+
+        // Gated on the OUTCOME, not the request: slab wording only applies if a
+        // slab panel is genuinely what we're about to send.
+        const gridActive = !!(slabGrid && slabGrid.count > 1 && usedPanel);
+        // Empty unless the grid is genuinely active, so it can't leak a slab
+        // count into a prompt whose image is a single slab.
+        const panelPhrase = !gridActive ? ''
+            : (slabDescription || `a finished bookmatched panel of ${slabGrid.count} slabs, ${slabGrid.cols} by ${slabGrid.rows}`);
 
         // Refined Prompt for Multi-Modal Inpainting
         let finalPrompt;
@@ -76,7 +117,9 @@ If the stone has natural veining, keep it exactly as it appears. Do not add or r
             2. ABSOLUTE REQUIREMENT: every pixel OUTSIDE the marked region must be returned completely unchanged -- other storeys, roof, sky, ground, landscaping and neighbouring buildings stay exactly as photographed.
             3. STRICTLY FORBIDDEN: do NOT draw magenta, pink or any highlight colour anywhere in the output. Image 3 is a guide; its colour must never appear in the result.
             4. Within the region, preserve windows, doors, balconies, drainpipes and trim -- clad the WALL around them, do not paint over them.
-            5. SEAMLESS FINISH: the stone reads as large-format cladding. STRICTLY FORBIDDEN: no grout lines, grid patterns, tile segments or visible seams.
+            5. ${gridActive
+                ? `PANEL LAYOUT: image 1 is ${panelPhrase}. Clad the marked region with that panel applied ONCE, at architectural scale, with tight hairline butt joints at the slab boundaries and nowhere else. Do NOT tile, repeat or crop it, and do NOT change how many slabs it contains. STRICTLY FORBIDDEN: grout lines, mortar, grid patterns, tile segments, or any joint not already present in image 1.`
+                : `SEAMLESS FINISH: the stone reads as large-format cladding. STRICTLY FORBIDDEN: no grout lines, grid patterns, tile segments or visible seams.`}
             6. TEXTURE PRESERVATION: STRICTLY FORBIDDEN: do NOT invent veins or patterns absent from image 1. If the source stone is plain, keep it plain.
             7. Match the photograph's existing perspective, lighting direction, shadows and weathering so the cladding looks genuinely built, not pasted.
             8. The boundary where the new cladding meets the untouched storeys must be a clean, believable architectural junction.
@@ -91,9 +134,13 @@ If the stone has natural veining, keep it exactly as it appears. Do not add or r
             INSTRUCTION: 
             1. Identify every instance of the ${application || 'primary surface'} in the second (user) image.
             2. Replace the identified ${application || 'primary surface'} with the stone texture from the first image.
-            3. SEAMLESS FINISH: The stone must be applied as a single, continuous, and uninterrupted slab. 
+            3. ${gridActive
+                ? `PANEL LAYOUT: the first image is ${panelPhrase}. Apply that panel to the ${application || 'primary surface'} as ONE piece, exactly once, edge to edge, in the surface's own perspective. Do NOT tile it, repeat it, crop it, or change the number of slabs it contains.`
+                : `SEAMLESS FINISH: The stone must be applied as a single, continuous, and uninterrupted slab.`}
             4. TEXTURE PRESERVATION: STRICTLY FORBIDDEN: Do NOT add any synthetic veins, patterns, or textures that do not exist in the first (source) image. If the source stone is solid or uniform, maintain that exact plain appearance.
-            5. STRICTLY FORBIDDEN: Do NOT add any grout lines, grid patterns, square tile segments, or visible seams.
+            5. ${gridActive
+                ? `JOINTS: reproduce ONLY the joints already present in the first image, rendered as tight hairline butt joints following the surface's perspective. STRICTLY FORBIDDEN: grout lines, mortar, dark joint fills, tile grids, extra subdivisions, panel outlines, or any joint wider or darker than a hairline.`
+                : `STRICTLY FORBIDDEN: Do NOT add any grout lines, grid patterns, square tile segments, or visible seams.`}
             6. Apply realistic perspective, depth, and specular highlights based on the original room's geometry.
             7. IMPORTANT: Maintain the original lighting, shadows cast by furniture, and environmental reflections perfectly.
             8. The resulting image must be an 8K photorealistic composite where ONLY the ${application} has been updated.
@@ -105,23 +152,22 @@ If the stone has natural veining, keep it exactly as it appears. Do not add or r
             ${promptText || ''}
             You are a master architectural photographer. Generate a photorealistic 8K interior of a luxury ${roomType} in a ${roomStyle} style.
             Map the EXACT colors and vein patterns of the attached stone slab "${stoneName}" onto the ${application}.
-            SEAMLESS SLAB: The ${application} MUST be one continuous, monolithic piece of stone. 
+            ${gridActive
+                ? `PANEL LAYOUT: the attached image is ${panelPhrase}. Apply it to the ${application} as ONE piece, exactly once, edge to edge. Do NOT tile, repeat, crop or rearrange it, and do NOT change how many slabs it contains.
             TEXTURE INTEGRITY: STRICTLY FORBIDDEN: Do NOT hallucinate extra veins or patterns. If the reference stone is plain or uniform, the final render must be equally plain and uniform.
-            STRICTLY FORBIDDEN: Do NOT add any grout lines, grid patterns, tile joins, or repeating segments. Use large-format slab logic.
+            JOINTS: reproduce ONLY the joints already present in the attached image, as tight hairline butt joints in correct perspective. STRICTLY FORBIDDEN: grout lines, mortar, grid patterns, tile joins, repeating segments, or any joint wider or darker than a hairline.`
+                : `SEAMLESS SLAB: The ${application} MUST be one continuous, monolithic piece of stone.
+            TEXTURE INTEGRITY: STRICTLY FORBIDDEN: Do NOT hallucinate extra veins or patterns. If the reference stone is plain or uniform, the final render must be equally plain and uniform.
+            STRICTLY FORBIDDEN: Do NOT add any grout lines, grid patterns, tile joins, or repeating segments. Use large-format slab logic.`}
             The stone must be a 1:1 identical match to the reference image.
             No rugs or furniture should obscure the stone surface. High-contrast architectural lighting.
             `;
         }
 
-        // Fetch stone image as base64
-        const imgResp = await fetch(stoneImageUrl);
-        if (!imgResp.ok) throw new Error(`Stone image fetch failed: ${imgResp.status}`);
-        const arrayBuffer = await imgResp.arrayBuffer();
-        const stoneBase64 = Buffer.from(arrayBuffer).toString('base64');
-        const stoneMime = imgResp.headers.get('content-type') || 'image/jpeg';
+        // (The stone image was resolved above, before the prompt was built.)
 
         const model = vertexAI.preview.getGenerativeModel({ model: modelId });
-        console.log(`[Vertex AI Image] Generating render. Custom Room: ${!!userRoomImage}`);
+        console.log(`[Vertex AI Image] Generating render. Custom Room: ${!!userRoomImage}, Slab panel: ${usedPanel ? `${slabGrid?.cols}x${slabGrid?.rows}` : 'no'}`);
 
         const parts = [
             { text: finalPrompt },

@@ -5,19 +5,48 @@ import { X, Sparkles, Box, Camera, Download, Share2, Expand, ArrowRight, Upload,
 import { aiVisualizer } from '../lib/aiVisualizer';
 import { supabase } from '../lib/supabaseClient';
 import FacadeRegionSelector from './FacadeRegionSelector';
+import SlabGridSelector from './SlabGridSelector';
 import { buildRegionMask, describeRegion, compositeRegion } from '../utils/regionMask';
+import { composeSlabGrid, describeSlabGrid, findPreset } from '../utils/slabGrid';
+import { urlToDataUrl } from '../utils/urlToDataUrl';
 
 // Room / application options shown during visualization
 const ALL_ROOM_APPS = ['Flooring', 'Washroom', 'Feature Wall', 'Counter Top', 'Outdoor', 'Facade'];
 
+const normalizeApp = (app) => (app || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
 // Facade is the only application where the user marks a sub-region of their own
 // photo, because a building elevation has multiple storeys in different finishes.
 const isFacadeApplication = (app) => {
-    const a = (app || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const a = normalizeApp(app);
     return a.includes('facade') || a.includes('elevation') || a.includes('cladding');
 };
 
-const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, intendedApp, allowCustomStone, onStoneUploaded, bookmatchMode = null, bookmatchDir = null }) => {
+/**
+ * Which applications get to choose a slab count, and what to default to.
+ *
+ * Only surfaces that are genuinely clad in multiple slabs. A worktop is one
+ * slab plus a mitred return; a staircase is treads and risers; terraces and
+ * driveways are laid in small units and the model already fights us on ground
+ * planes. Offering a 4x2 grid for those would be nonsense dressed as precision.
+ *
+ * Returns the default slab count, or null when the step should be skipped.
+ */
+const slabGridDefaultFor = (app) => {
+    const a = normalizeApp(app);
+    if (!a) return null;
+    if (a.includes('counter') || a.includes('vanity') || a.includes('table') ||
+        a.includes('kitchen') || a.includes('stair')) return null;
+    if (a.includes('outdoor') || a.includes('terrace') || a.includes('paving') ||
+        a.includes('driveway') || a.includes('entrance') || a.includes('balcony')) return null;
+    // A whole elevation takes the most stone, so it starts at the largest grid.
+    if (isFacadeApplication(app)) return 8;
+    if (a.includes('wall') || a.includes('feature') || a.includes('washroom') ||
+        a.includes('bathroom') || a.includes('floor')) return 4;
+    return null;
+};
+
+const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, intendedApp, allowCustomStone, onStoneUploaded, initialSlabPreset = null }) => {
     const [loading, setLoading] = useState(false);
     const [visualData, setVisualData] = useState(null);
     const [roomImage, setRoomImage] = useState(null);
@@ -37,6 +66,21 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
     // The stone to use for visualization (custom upload takes priority)
     const effectiveStone = localStone || stone;
 
+    // The image the slab panel is tiled from. Prefer the AI-isolated swatch: it
+    // is background-stripped, so it repeats cleanly, where a raw phone photo
+    // would tile its own countertop and fingers along with the stone.
+    const slabSourceImage = effectiveStone?.cropped_image_url || effectiveStone?.image_url;
+
+    // Which step follows the application choice.
+    //
+    // Skipped when the sample ALREADY shows a bookmatched pair: mirroring it
+    // again doubles everything, so a 4x2 would read as sixteen slabs. Same
+    // reasoning as the existing suppression in aiVisualizer for custom stones.
+    const stepAfterApp = (app) =>
+        (!uploadedStoneIsBookmatched && slabSourceImage && slabGridDefaultFor(app))
+            ? 'slabs'
+            : 'method';
+
     // Lifecycle Steps
     const [visualizationStep, setVisualizationStep] = useState('app'); // 'stone_upload' | 'app' | 'method' | 'upload'
     const [userRoomImage, setUserRoomImage] = useState(null);
@@ -50,6 +94,11 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
     const inFlightRef = useRef(false);
     // Facade + own-photo only: which part of the elevation to clad, normalised 0..1
     const [facadeRegion, setFacadeRegion] = useState(null);
+    // How many slabs the surface is made of, and how they're arranged. Drives a
+    // canvas-composed bookmatched panel that becomes the material source, so the
+    // count is a property of what the model receives rather than a request in
+    // the prompt (which it would ignore).
+    const [slabPreset, setSlabPreset] = useState(null);
     // The style the CURRENTLY VISIBLE render was generated with. Lets us show
     // "apply this style" only when the dropdown has actually diverged from what
     // is on screen, instead of billing a render on every dropdown change.
@@ -103,10 +152,16 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         setStoneUploadError(null);
         setPreparingRoom(false);
         setRoomUploadError(null);
+        // Left set from a previous stone this would wrongly suppress the slab
+        // step for the next one.
+        setUploadedStoneIsBookmatched(false);
         // Otherwise a stale value from the previous stone could make the
         // "Render in <style>" button appear before anything has been rendered.
         setRenderedStyle(null);
         setFacadeRegion(null);
+        // Seeded from the caller when the user was already looking at a
+        // bookmatch preview, so their choice carries into the render.
+        setSlabPreset(initialSlabPreset);
         inFlightRef.current = false;
 
         // Custom stone mode: no stone provided, user must upload one first
@@ -123,9 +178,10 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         setNormalizedApps(ALL_ROOM_APPS);
 
         if (intendedApp) {
-            // Pre-select the intended application and skip straight to method step
+            // Pre-select the intended application, then follow the same slab-step
+            // rule the manual picker uses below.
             setSelectedApp(intendedApp);
-            setVisualizationStep('method');
+            setVisualizationStep(stepAfterApp(intendedApp));
         } else {
             // Let the user pick from all room options
             setVisualizationStep('app');
@@ -302,7 +358,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         reader.readAsDataURL(file);
     };
 
-    const handleVisualize = async (forcedStyle, forcedApp, forcedUserImage, forcedRegion) => {
+    const handleVisualize = async (forcedStyle, forcedApp, forcedUserImage, forcedRegion, forcedSlab) => {
         // Every call here bills a Vertex image generation, which dominates the
         // cost of this feature. There was no guard, so a double-click on
         // "Surprise Me" / "New Architecture" paid for two renders and threw one
@@ -317,6 +373,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         const styleToUse = forcedStyle || selectedStyle;
         const appToUse = forcedApp || selectedApp || 'Surface';
         const userImgToUse = forcedUserImage !== undefined ? forcedUserImage : userRoomImage;
+        const slabToUse = forcedSlab !== undefined ? forcedSlab : slabPreset;
 
         console.log("[AI Modal] Starting visualization for:", effectiveStone?.name, "Application:", appToUse, "Custom Image:", !!userImgToUse);
         setRenderedStyle(styleToUse);
@@ -335,6 +392,10 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                 application: appToUse,
                 style: styleToUse,
                 used_custom_room: !!userImgToUse,
+                // Kept for later: how much stone an architect pictures on a
+                // surface is exactly the signal a procurement view would want.
+                slab_count: slabToUse?.count || 1,
+                slab_layout: slabToUse ? `${slabToUse.cols}x${slabToUse.rows}` : '1x1',
                 stone_id: effectiveStone?.id
             });
         });
@@ -415,19 +476,58 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
             }
         }
 
+        // Slab grid: compose the bookmatched panel HERE, so the number of slabs
+        // is a property of the image the model receives rather than an
+        // instruction it can ignore. The model cannot count; it can copy.
+        //
+        // Best-effort, on the same contract as the region guide above: any
+        // failure falls back to the raw single slab -- i.e. exactly the
+        // behaviour before this feature -- rather than dead-ending the user.
+        //
+        // INVARIANT: slabGrid is set only where slabPanelImage is. Sending the
+        // grid wording without the panel would tell the model "this is eight
+        // slabs" while handing it one, which is the very mismatch this whole
+        // approach exists to prevent.
+        let slabPanelImage = null;
+        let slabGrid = null;
+        let slabDescription = null;
+        if (slabToUse && slabToUse.count > 1 && slabSourceImage) {
+            try {
+                // urlToDataUrl resolves null (never throws) if the image won't
+                // load or the canvas came back tainted.
+                const src = await urlToDataUrl(slabSourceImage);
+                if (!src) throw new Error('slab source unreadable (canvas tainted or image load failed)');
+                const panel = await composeSlabGrid(src, slabToUse);
+                slabPanelImage = panel.dataUrl;
+                slabGrid = { cols: panel.cols, rows: panel.rows, count: panel.count };
+                slabDescription = describeSlabGrid(panel);
+                console.log('[AI Modal] Slab panel composed:', slabDescription);
+            } catch (err) {
+                console.error('[AI Modal] Slab compositing failed, rendering a single slab:', err);
+            }
+        }
+
         try {
             console.log("[AI Modal] Calling aiVisualizer API...");
             const [aiData, imageUrl] = await Promise.all([
                 aiVisualizer.generateVisualDescription(
                     effectiveStone?.name || 'Natural Stone', roomType, effectiveStone?.colour || 'Natural', appToUse, styleToUse
                 ),
-                aiVisualizer.generateRoomImage(
-                    effectiveStone?.name || 'Natural Stone', roomType, effectiveStone?.colour || 'Natural', appToUse, effectiveStone?.image_url, styleToUse, userImgToUse, '', bookmatchDir, bookmatchMode,
-                    !!localStone,            // isCustomStone
-                    uploadedStoneIsBookmatched, // isAlreadyBookmatched
+                aiVisualizer.generateRoomImage({
+                    stoneName: effectiveStone?.name || 'Natural Stone',
+                    roomType,
+                    stoneType: effectiveStone?.colour || 'Natural',
+                    application: appToUse,
+                    imageUrl: effectiveStone?.image_url,
+                    roomStyle: styleToUse,
+                    userRoomImage: userImgToUse,
+                    isCustomStone: !!localStone,
                     regionMaskImage,           // facade region guide (null otherwise)
-                    regionDescription
-                )
+                    regionDescription,
+                    slabPanelImage,
+                    slabGrid,
+                    slabDescription,
+                })
             ]);
 
             console.log("[AI Modal] API Response received. URL exists:", !!imageUrl);
@@ -539,7 +639,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                 <motion.div 
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className={visualizationStep === 'region' ? "max-w-3xl w-full" : "max-w-xl w-full"}
+                                    className={(visualizationStep === 'region' || visualizationStep === 'slabs') ? "max-w-3xl w-full" : "max-w-xl w-full"}
                                 >
                                     {visualizationStep === 'stone_upload' && (
                                         <div className="text-center">
@@ -642,7 +742,9 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                                         key={app}
                                                         onClick={() => {
                                                             setSelectedApp(app);
-                                                            setVisualizationStep('method');
+                                                            // Surfaces that are actually clad in multiple slabs
+                                                            // get to choose how many; the rest go straight on.
+                                                            setVisualizationStep(stepAfterApp(app));
                                                         }}
                                                         className="group relative p-4 md:p-6 bg-white/[0.03] border border-white/10 rounded-xl md:rounded-2xl text-left hover:bg-white/[0.08] hover:border-[#eca413]/50 transition-all duration-300"
                                                     >
@@ -717,6 +819,20 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                                 <RefreshCw size={10} /> Change Application
                                             </button>
                                         </div>
+                                    )}
+
+                                    {visualizationStep === 'slabs' && (
+                                        <SlabGridSelector
+                                            imageSrc={slabSourceImage}
+                                            application={selectedApp}
+                                            initialPreset={slabPreset || findPreset(slabGridDefaultFor(selectedApp))}
+                                            originRow={slabPreset?.originRow || 'top'}
+                                            onBack={() => setVisualizationStep('app')}
+                                            onConfirm={(preset) => {
+                                                setSlabPreset(preset);
+                                                setVisualizationStep('method');
+                                            }}
+                                        />
                                     )}
 
                                     {visualizationStep === 'region' && (

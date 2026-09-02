@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import { aiVisualizer } from './aiVisualizer';
+import { urlToDataUrl } from '../utils/urlToDataUrl';
 
 // ─── Application options — identical to AIVisualizationModal ─────────────────
 export const APPLICATION_OPTIONS = [
@@ -16,14 +17,14 @@ export const APPLICATION_OPTIONS = [
 // ─── Generate one render — exact same method as architect visualizer ──────────
 export async function generateRender(stoneImageUrl, stoneName, application) {
     const appObj = APPLICATION_OPTIONS.find(a => a.value === application) || APPLICATION_OPTIONS[0];
-    return aiVisualizer.generateRoomImage(
+    return aiVisualizer.generateRoomImage({
         stoneName,
-        appObj.room,
-        'Natural Stone',
-        appObj.value,
-        stoneImageUrl,
-        appObj.style
-    );
+        roomType: appObj.room,
+        stoneType: 'Natural Stone',
+        application: appObj.value,
+        imageUrl: stoneImageUrl,
+        roomStyle: appObj.style,
+    });
 }
 
 // ─── Helper: load image as base64 from File or URL ───────────────────────────
@@ -183,25 +184,8 @@ export async function buildPDF(stones) {
         try { pdf.addImage(dataUrl, fmt, x, y, w, h); } catch (e) { console.warn('addImage failed', e); }
     };
 
-    // Fetch an image URL → dataURL via canvas (so jsPDF can embed it).
-    const urlToDataUrl = async (url) => {
-        if (!url) return null;
-        if (url.startsWith('data:')) return url;
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-                const c = document.createElement('canvas');
-                c.width = img.naturalWidth;
-                c.height = img.naturalHeight;
-                c.getContext('2d').drawImage(img, 0, 0);
-                try { resolve(c.toDataURL('image/jpeg', 0.92)); }
-                catch { resolve(null); }
-            };
-            img.onerror = () => resolve(null);
-            img.src = url;
-        });
-    };
+    // urlToDataUrl (image URL → dataURL via canvas, so jsPDF can embed it) now
+    // lives in utils/urlToDataUrl.js — the slab compositor needs it too.
 
     // Tracking text — jsPDF doesn't support letter-spacing natively, so for
     // mono labels we manually space characters by drawing word-by-word with
