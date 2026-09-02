@@ -14,7 +14,6 @@ import StoneSelectionForm from '../components/StoneSelectionForm';
 import { useRequirements } from '../context/RequirementsContext';
 import ProjectChat from '../components/ProjectChat';
 import ClientManager from '../components/ClientManager';
-import StonDebugPanel from '../components/StonDebugPanel';
 import StonWordmark from '../components/StonWordmark';
 import ArchitectDossier from '../components/ArchitectDossier';
 import { PowerOff, ChevronDown, Link as LinkIcon, Upload, Sparkles, Trash2, Pencil, Check, X as XIcon, Phone } from 'lucide-react';
@@ -935,9 +934,6 @@ function Home({ role }) {
             {chatRole === 'builder' && !isLinked && leadId && (
                 <LinkArchitectPrompt leadId={leadId} onLinked={() => window.location.reload()} />
             )}
-
-            {/* Diagnostic panel — click the bug icon in the bottom-left to open */}
-            <StonDebugPanel chatRole={chatRole} />
         </div>
     );
 }
