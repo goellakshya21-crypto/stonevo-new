@@ -3,6 +3,43 @@ import fs from 'fs';
 import path from 'path';
 import { rateLimit, clientIp } from './_rateLimit.js';
 
+// Vertex enforces a per-project quota on the image model and answers 429
+// RESOURCE_EXHAUSTED when a burst crosses it. Two renders in quick succession --
+// exactly what changing the architectural style does -- trips it reliably, and
+// the user was left clicking Retry by hand to wait out a window the server can
+// wait out for them. Each visualize also spends TWO Vertex calls (this one plus
+// the description in gemini-vertex.js), which doubles the pressure.
+const isQuotaError = (err) => {
+    const s = String(err?.message || err);
+    return s.includes('429') || /RESOURCE_EXHAUSTED|resource exhausted/i.test(s);
+};
+
+// Bounded by this function's own maxDuration (60s, see vercel.json). A render is
+// 13-20s, so there is room for about one more attempt, not three. The elapsed
+// check is what stops a retry being killed mid-flight, which would turn a clear
+// quota message into an opaque gateway timeout.
+const RETRY_BUDGET_MS = 32000;
+const MAX_QUOTA_RETRIES = 2;
+
+async function generateWithQuotaRetry(model, request, startedAt) {
+    for (let attempt = 0; ; attempt++) {
+        try {
+            return await model.generateContent(request);
+        } catch (err) {
+            const elapsed = Date.now() - startedAt;
+            // Only quota errors are worth retrying -- a bad prompt or a missing
+            // credential fails the same way every time, so retrying just burns
+            // the caller's time before giving them the same message.
+            if (!isQuotaError(err) || attempt >= MAX_QUOTA_RETRIES || elapsed > RETRY_BUDGET_MS) throw err;
+            // Jittered, or several clients that hit the quota together would
+            // come back in lockstep and trip it again.
+            const wait = Math.round((attempt === 0 ? 3000 : 7000) * (0.75 + Math.random() * 0.5));
+            console.warn(`[Vertex AI Image] Quota 429 (attempt ${attempt + 1}), retrying in ${wait}ms`);
+            await new Promise((r) => setTimeout(r, wait));
+        }
+    }
+}
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
@@ -18,6 +55,8 @@ export default async function handler(req, res) {
     if (!(await rateLimit(`genimg:${ip}`, 200, 3600))) {
         return res.status(429).json({ error: 'Too many image requests from this network. Please slow down and try again shortly.' });
     }
+
+    const startedAt = Date.now();
 
     try {
         const { stoneImageUrl, roomType, application, stoneName, roomStyle, promptText, userRoomImage, regionMaskImage, regionDescription, stoneImageData, slabGrid, slabDescription, modelId = 'gemini-2.5-flash-image', cropMode = false } = req.body;
@@ -197,9 +236,9 @@ If the stone has natural veining, keep it exactly as it appears. Do not add or r
             }
         }
 
-        const result = await model.generateContent({
+        const result = await generateWithQuotaRetry(model, {
             contents: [{ role: 'user', parts }]
-        });
+        }, startedAt);
 
         const response = await result.response;
         const candidate = response.candidates?.[0];
@@ -218,6 +257,16 @@ If the stone has natural veining, keep it exactly as it appears. Do not add or r
 
     } catch (error) {
         console.error('[Vertex AI Image Error]:', error);
+        // A quota error survived the retries above, so it is genuinely busy
+        // rather than momentarily bursty. Say so plainly -- 500 with a raw SDK
+        // string told the user nothing about whether waiting would help.
+        if (isQuotaError(error)) {
+            return res.status(429).json({
+                error: 'The image service is busy right now. Please wait a few seconds and try again.',
+                canRetry: true,
+                quota: true,
+            });
+        }
         res.status(500).json({ error: error.message, canRetry: true });
     }
 }

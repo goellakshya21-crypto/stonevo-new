@@ -953,6 +953,16 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                                 <Camera className="text-amber-400" size={24} md:size={32} />
                                             </div>
                                             <h3 className="text-white font-serif text-lg md:text-xl mb-2">Rendering Incomplete</h3>
+                                            {/* The reason used to be dropped on the floor: a busy
+                                                image service, a rate limit and a misconfigured
+                                                deployment all showed this same blank heading, so
+                                                there was no way to tell whether retrying would
+                                                help. The prefix is stripped because "Proxy error:"
+                                                describes our plumbing, not anything the reader
+                                                can act on. */}
+                                            <p className="text-white/50 text-xs leading-relaxed mb-4 max-w-xs">
+                                                {String(error).replace(/^Proxy error:\s*/i, '')}
+                                            </p>
                                             <button 
                                                 onClick={(e) => { e.stopPropagation(); setError(null); handleVisualize(); }}
                                                 className="px-6 py-2.5 bg-[#eca413] text-black text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-white transition-all shadow-xl active:scale-95 flex items-center gap-2"
