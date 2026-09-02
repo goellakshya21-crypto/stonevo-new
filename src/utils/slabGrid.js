@@ -17,6 +17,13 @@
  *
  * This generalises makeBookmatch() in lib/dossierPdf.js (a fixed 2-way mirror)
  * to an arbitrary N x M grid.
+ *
+ * CONFIRMED WORKING against live renders at 6 and 8 slabs -- the two hardest
+ * cases, being the widest panels and so the most tempting for the model to
+ * re-tile. Beware of checking this with an automated joint-counter: a stone with
+ * strong straight vertical grain (travertine especially) reads as a joint at
+ * every vein, which will tell you the panel was doubled when it was not. Count
+ * by eye, or use a stone with irregular veining.
  */
 
 /**
