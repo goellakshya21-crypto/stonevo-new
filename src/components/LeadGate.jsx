@@ -13,7 +13,13 @@ import StonWordmark from './StonWordmark';
 // Flip GALLERY_LOCKED to false (or delete this + the check in the approved
 // branch) on launch day.
 const GALLERY_LOCKED = true;
-const LAUNCH_ALLOWED_PHONES = ['9910978887'];
+// 7678320944 is here to make the slab-grid preview deploy testable end to end;
+// without it the branch deploy dead-ends on the notice below and the new
+// Visualize step is unreachable. It is already a DEV_NUMBER (000000 OTP bypass)
+// and a super-whitelist number elsewhere in the app, so this grants nothing new
+// in kind -- but it is preview scaffolding: drop it before this branch merges,
+// or fold it into whatever the real launch allowlist ends up being.
+const LAUNCH_ALLOWED_PHONES = ['9910978887', '7678320944'];
 
 const PreLaunchNotice = () => (
     <div className="fixed inset-0 z-[150] bg-stone-950 flex items-center justify-center px-6 overflow-y-auto">
