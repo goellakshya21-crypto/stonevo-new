@@ -15,10 +15,10 @@ import StonWordmark from './StonWordmark';
 const GALLERY_LOCKED = true;
 // 7678320944 is here to make the slab-grid preview deploy testable end to end;
 // without it the branch deploy dead-ends on the notice below and the new
-// Visualize step is unreachable. It is already a DEV_NUMBER (000000 OTP bypass)
-// and a super-whitelist number elsewhere in the app, so this grants nothing new
-// in kind -- but it is preview scaffolding: drop it before this branch merges,
-// or fold it into whatever the real launch allowlist ends up being.
+// Visualize step is unreachable. It is already a super-whitelist number
+// elsewhere in the app, and it still has to pass a real SMS OTP to get in --
+// but it is preview scaffolding: drop it before this branch merges, or fold it
+// into whatever the real launch allowlist ends up being.
 const LAUNCH_ALLOWED_PHONES = ['9910978887', '7678320944'];
 
 const PreLaunchNotice = () => (
@@ -201,11 +201,17 @@ const LeadGate = ({ children }) => {
         }
     };
 
-    // ── Numbers that skip SMS entirely — no charge, use OTP 000000 ────────────
-    const DEV_NUMBERS = ['7678320944', '7042353166'];
-
     // Localhost dev mode: any phone number skips SMS, accepts OTP "000000".
-    // Production is unaffected (real SMS + real OTP).
+    // Every DEPLOYED environment — production and preview alike — sends a real
+    // SMS and verifies a real code.
+    //
+    // This used to skip the SMS for a hardcoded DEV_NUMBERS list on every
+    // environment, while handleVerifyOTP below only ever accepted "000000" on
+    // localhost. The two halves disagreed, so those numbers could not log in
+    // anywhere except localhost: no code was ever sent to them, yet a real one
+    // was demanded. The fix narrows the skip rather than widening the bypass —
+    // making a fixed passcode valid on a public URL against the live database
+    // would be a genuine auth hole, not a convenience.
     const IS_LOCAL_DEV = typeof window !== 'undefined'
         && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
 
@@ -219,8 +225,8 @@ const LeadGate = ({ children }) => {
             if (digits.length < 10) throw new Error('Please enter a valid 10-digit phone number');
             const cleanPhone = digits.slice(-10);
 
-            // Dev numbers — skip SMS, go straight to OTP screen
-            if (DEV_NUMBERS.includes(cleanPhone) || IS_LOCAL_DEV) {
+            // Localhost only — skip SMS, go straight to the OTP screen
+            if (IS_LOCAL_DEV) {
                 setStep('OTP');
                 return;
             }
