@@ -106,6 +106,46 @@ Answer with ONLY the word "yes" or "no".`
     },
 
     /**
+     * Adjust a render the user is already looking at: "add a rug", "warmer
+     * light", "remove the chairs".
+     *
+     * Separate from generateRoomImage because the inputs are genuinely
+     * different -- there is no stone to map and no room to invent, only an
+     * existing image and one instruction -- and because conflating them would
+     * mean threading a mode flag through fourteen fields that no longer apply.
+     *
+     * @param {string} baseImage    the current render, as a data URL
+     * @param {string} instruction  what the user typed
+     * @returns {Promise<string>} data URL of the edited render
+     */
+    async refineRender({ baseImage, instruction }) {
+        if (!baseImage || !String(baseImage).startsWith('data:')) {
+            throw new Error('This render cannot be refined.');
+        }
+        if (!instruction || !instruction.trim()) {
+            throw new Error('Describe the change you want.');
+        }
+
+        const response = await fetch('/api/generate-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                refineMode: true,
+                baseImage,
+                refineInstruction: instruction.trim(),
+            })
+        });
+
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || `Proxy error: ${response.statusText}`);
+        }
+        const data = await response.json();
+        if (!data.url) throw new Error('No image came back from the edit.');
+        return data.url;
+    },
+
+    /**
      * Generate room image by sending the stone imageUrl to the server.
      * The server fetches the image (no CORS), then uses Gemini's image editing
      * to composite the EXACT stone texture into the room scene.
