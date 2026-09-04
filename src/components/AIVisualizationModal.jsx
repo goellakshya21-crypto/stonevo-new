@@ -6,7 +6,7 @@ import { aiVisualizer } from '../lib/aiVisualizer';
 import { supabase } from '../lib/supabaseClient';
 import FacadeRegionSelector from './FacadeRegionSelector';
 import SlabGridSelector from './SlabGridSelector';
-import { buildRegionMask, describeRegion, compositeRegion } from '../utils/regionMask';
+import { buildRegionMask, describeRegion, compositeRegion, measureRegionEdit } from '../utils/regionMask';
 import { composeSlabGrid, describeSlabGrid, findPreset } from '../utils/slabGrid';
 import { urlToDataUrl } from '../utils/urlToDataUrl';
 
@@ -522,7 +522,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
             // decorative two-sentence blurb that already has a hardcoded
             // fallback and is only ever read beside a finished render, so it has
             // no business competing with the thing the user is waiting for.
-            const imageUrl = await aiVisualizer.generateRoomImage({
+            const requestRender = (insist) => aiVisualizer.generateRoomImage({
                 stoneName: effectiveStone?.name || 'Natural Stone',
                 roomType,
                 stoneType: effectiveStone?.colour || 'Natural',
@@ -533,10 +533,41 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                 isCustomStone: !!localStone,
                 regionMaskImage,           // facade region guide (null otherwise)
                 regionDescription,
+                regionInsist: insist,      // second pass after a detected no-op
                 slabPanelImage,
                 slabGrid,
                 slabDescription,
             });
+
+            let imageUrl = await requestRender(false);
+
+            // The facade edit silently no-ops perhaps one render in three: the
+            // model hands the photograph back essentially untouched. That was
+            // invisible, because compositeRegion below rebuilds the output from
+            // the original photo -- so a no-op and a successful edit of the
+            // WRONG storey both arrive looking like a pristine upload, and the
+            // user is left guessing whether to press Retry.
+            //
+            // So measure it. One retry only, and only when the miss is actually
+            // detected, so a render that worked never costs a second call.
+            if (regionToUse && userImgToUse && imageUrl) {
+                const check = await measureRegionEdit(userImgToUse, imageUrl, regionToUse);
+                if (check.measured && !check.applied) {
+                    console.warn(`[AI Modal] Region looks unclad (inside ${check.inside} vs outside ${check.outside}, ratio ${check.ratio}) -- retrying once.`);
+                    const second = await requestRender(true).catch((err) => {
+                        // Keep the first render rather than failing outright: an
+                        // unclad photo still beats an error screen.
+                        console.error('[AI Modal] Region retry failed, keeping first render:', err.message);
+                        return null;
+                    });
+                    if (second) {
+                        const recheck = await measureRegionEdit(userImgToUse, second, regionToUse);
+                        console.log(`[AI Modal] Retry ratio ${recheck.ratio} (was ${check.ratio}).`);
+                        // Take whichever pass actually touched the band.
+                        if (!recheck.measured || recheck.ratio >= check.ratio) imageUrl = second;
+                    }
+                }
+            }
 
             console.log("[AI Modal] API Response received. URL exists:", !!imageUrl);
 

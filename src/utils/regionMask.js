@@ -157,3 +157,87 @@ export const compositeRegion = (originalDataUrl, renderedDataUrl, rect) =>
             resolve(canvas.toDataURL('image/jpeg', 0.92));
         }).catch(reject);
     });
+
+/**
+ * Did the model actually clad the region the user marked?
+ *
+ * The facade edit silently no-ops perhaps one time in three: the model returns
+ * the photograph essentially untouched. That used to be invisible, because
+ * compositeRegion rebuilds the output from the original photo, so a no-op and a
+ * miss both arrive looking like a pristine upload. The user sees "nothing
+ * happened" and cannot tell whether to retry.
+ *
+ * Measured, not guessed: mean absolute pixel difference against the original,
+ * inside the rect versus outside it.
+ *
+ * The RATIO is what decides it, never the absolute difference. These models
+ * re-render the whole frame -- lighting, compression, a pixel of drift -- so
+ * "outside" sits around 20/255 even on a perfect edit, and a pale stone over a
+ * pale facade can legitimately move "inside" very little. Comparing the two
+ * normalises out both the global noise and the stone-to-wall contrast.
+ *
+ * Calibrated against three renders of the same request (black marble onto a
+ * travertine elevation), scored by eye:
+ *   inside 14.3, outside 21.1 -> ratio 0.68  visually untouched
+ *   inside 46.7, outside 20.3 -> ratio 2.30  partially clad
+ *   inside 97.4, outside 28.1 -> ratio 3.47  fully clad
+ * 1.5 sits in the empty space between a no-op and a partial hit.
+ *
+ * @returns {Promise<{inside:number, outside:number, ratio:number, applied:boolean, measured:boolean}>}
+ *          measured:false means we could not tell -- treat as applied, never retry on ignorance.
+ */
+export const REGION_EDIT_MIN_RATIO = 1.5;
+
+export const measureRegionEdit = (originalDataUrl, renderedDataUrl, rect) =>
+    new Promise((resolve) => {
+        const unknown = { inside: 0, outside: 0, ratio: Infinity, applied: true, measured: false };
+        // A cross-origin render (the Unsplash fallback) taints the canvas and
+        // makes getImageData throw. Same guard as compositeRegion.
+        if (!originalDataUrl || !renderedDataUrl || !rect || !renderedDataUrl.startsWith('data:')) {
+            resolve(unknown);
+            return;
+        }
+        const load = (src) => new Promise((res, rej) => {
+            const im = new Image();
+            im.onload = () => res(im);
+            im.onerror = () => rej(new Error('decode failed'));
+            im.src = src;
+        });
+        Promise.all([load(originalDataUrl), load(renderedDataUrl)]).then(([a, b]) => {
+            // Sampled small: this is a coarse "did anything happen" question, and
+            // running it at full size on every render would cost more than it tells us.
+            const W = 256;
+            const H = Math.max(1, Math.round(W * a.naturalHeight / a.naturalWidth));
+            const grab = (im) => {
+                const c = document.createElement('canvas');
+                c.width = W; c.height = H;
+                c.getContext('2d').drawImage(im, 0, 0, W, H);
+                return c.getContext('2d').getImageData(0, 0, W, H).data;
+            };
+            const da = grab(a), db = grab(b);
+            let inSum = 0, inN = 0, outSum = 0, outN = 0;
+            for (let y = 0; y < H; y++) {
+                const fy = y / H;
+                const insideY = fy >= rect.y && fy < rect.y + rect.h;
+                for (let x = 0; x < W; x++) {
+                    const i = (y * W + x) * 4;
+                    const d = (Math.abs(da[i] - db[i]) + Math.abs(da[i + 1] - db[i + 1]) + Math.abs(da[i + 2] - db[i + 2])) / 3;
+                    const fx = x / W;
+                    if (insideY && fx >= rect.x && fx < rect.x + rect.w) { inSum += d; inN++; }
+                    else { outSum += d; outN++; }
+                }
+            }
+            const inside = inN ? inSum / inN : 0;
+            const outside = outN ? outSum / outN : 0;
+            // Floor the denominator: a byte-identical render would otherwise
+            // divide by ~0 and report an infinite ratio, i.e. a perfect edit.
+            const ratio = inside / Math.max(outside, 1);
+            resolve({
+                inside: +inside.toFixed(2),
+                outside: +outside.toFixed(2),
+                ratio: +ratio.toFixed(2),
+                applied: ratio >= REGION_EDIT_MIN_RATIO,
+                measured: true,
+            });
+        }).catch(() => resolve(unknown));
+    });

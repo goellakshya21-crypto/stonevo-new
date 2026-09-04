@@ -132,6 +132,9 @@ Answer with ONLY the word "yes" or "no".`
             isCustomStone = false,
             regionMaskImage = null,
             regionDescription = null,
+            // Set only on a second pass, after the client measured that the
+            // marked band came back unclad. Makes the server lean on the edit.
+            regionInsist = false,
             // Pre-composed bookmatched slab panel (utils/slabGrid.js) plus its
             // shape and a worded description. See the slab layout block below.
             slabPanelImage = null,
@@ -255,7 +258,8 @@ ${isOutdoor ? 'Bright sunlight' : 'Soft architectural lighting'}, 8k resolution,
                     roomStyle,
                     userRoomImage,
                     regionMaskImage,
-                    regionDescription
+                    regionDescription,
+                    regionInsist
                 })
             });
 

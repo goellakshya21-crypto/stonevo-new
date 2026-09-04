@@ -59,7 +59,7 @@ export default async function handler(req, res) {
     const startedAt = Date.now();
 
     try {
-        const { stoneImageUrl, roomType, application, stoneName, roomStyle, promptText, userRoomImage, regionMaskImage, regionDescription, stoneImageData, slabGrid, slabDescription, modelId = 'gemini-2.5-flash-image', cropMode = false } = req.body;
+        const { stoneImageUrl, roomType, application, stoneName, roomStyle, promptText, userRoomImage, regionMaskImage, regionDescription, regionInsist, stoneImageData, slabGrid, slabDescription, modelId = 'gemini-2.5-flash-image', cropMode = false } = req.body;
 
         if (!stoneImageUrl) {
             return res.status(400).json({ error: 'Stone image URL is required.' });
@@ -142,9 +142,19 @@ If the stone has natural veining, keep it exactly as it appears. Do not add or r
             // "only the middle storey" -- so the target is given twice over: as a
             // magenta-flooded guide image, and as worded bounds. Independent
             // signals, so one under-weighted cue doesn't lose the region.
+            // The prompt LEADS with the edit and states the failure condition.
+            // It previously opened with context and then ran eight prohibitions
+            // against a single positive instruction -- and rule 2's "ABSOLUTE
+            // REQUIREMENT" was about NOT changing things. Read as a whole, the
+            // safest response to that was to change nothing, which is exactly
+            // what the model did roughly one render in three.
             finalPrompt = `
             CONTEXT: You are performing precise, region-limited architectural material replacement on a photograph of a building exterior.
 
+            THIS IS AN EDIT TASK. The image you return MUST visibly differ from image 2 inside the marked region -- that difference IS the deliverable. Returning image 2 unchanged, or changed only slightly, is a FAILED response.
+${regionInsist ? `
+            RETRY NOTICE: a previous attempt returned this photograph with the marked region still showing its original material. That attempt was rejected. The new stone must this time be unmistakable and cover the entire marked area.
+` : ''}
             IMAGE 1 - MATERIAL SOURCE: the natural stone slab "${stoneName}". Use this EXACT texture, vein structure and colour.
             IMAGE 2 - THE PHOTOGRAPH: the user's real building. This is the image you edit and return.
             IMAGE 3 - REGION GUIDE ONLY: an identical copy of image 2 with one area flooded and outlined in bright magenta. It marks WHERE to work. It is an instruction, NOT content.
@@ -152,7 +162,7 @@ If the stone has natural veining, keep it exactly as it appears. Do not add or r
             TARGET REGION: ${regionDescription || 'the area marked in magenta in image 3'}.
 
             INSTRUCTION:
-            1. Clad ONLY the wall surfaces inside the marked region with the stone from image 1.
+            1. MANDATORY: clad every wall surface inside the marked region with the stone from image 1. Those walls must end up unmistakably made of that stone -- its colour, its veining, its finish -- and must no longer resemble the material currently there. This is the point of the task; rules 2 to 9 only constrain HOW, they never license skipping it.
             2. ABSOLUTE REQUIREMENT: every pixel OUTSIDE the marked region must be returned completely unchanged -- other storeys, roof, sky, ground, landscaping and neighbouring buildings stay exactly as photographed.
             3. STRICTLY FORBIDDEN: do NOT draw magenta, pink or any highlight colour anywhere in the output. Image 3 is a guide; its colour must never appear in the result.
             4. Within the region, preserve windows, doors, balconies, drainpipes and trim -- clad the WALL around them, do not paint over them.
