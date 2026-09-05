@@ -59,16 +59,9 @@ export default async function handler(req, res) {
     const startedAt = Date.now();
 
     try {
-        const { stoneImageUrl, roomType, application, stoneName, roomStyle, promptText, userRoomImage, regionMaskImage, regionDescription, regionInsist, stoneImageData, refineMode = false, baseImage, refineInstruction, slabGrid, slabDescription, modelId = 'gemini-2.5-flash-image', cropMode = false } = req.body;
+        const { stoneImageUrl, roomType, application, stoneName, roomStyle, promptText, userRoomImage, regionMaskImage, regionDescription, regionInsist, stoneImageData, slabGrid, slabDescription, modelId = 'gemini-2.5-flash-image', cropMode = false } = req.body;
 
-        // Refining edits an image we already produced, so it needs that image
-        // rather than a stone to map. Every other mode still requires the stone.
-        if (refineMode) {
-            if (!baseImage) return res.status(400).json({ error: 'Base image is required to refine.' });
-            if (!refineInstruction || !String(refineInstruction).trim()) {
-                return res.status(400).json({ error: 'Describe the change you want.' });
-            }
-        } else if (!stoneImageUrl) {
+        if (!stoneImageUrl) {
             return res.status(400).json({ error: 'Stone image URL is required.' });
         }
 
@@ -104,17 +97,7 @@ export default async function handler(req, res) {
         // very mismatch the client-side compositing exists to prevent.
         let stoneBase64, stoneMime, usedPanel = false;
 
-        // Refine mode swaps WHICH image is primary -- the previous render instead
-        // of the slab -- so everything downstream (parts assembly, the Vertex
-        // call, the response handling) works unchanged.
-        if (refineMode) {
-            const [, baseMime, baseData] = String(baseImage).match(/^data:(image\/\w+);base64,(.+)$/) || [];
-            if (!baseMime || !baseData) {
-                return res.status(400).json({ error: 'Base image must be a data URL.' });
-            }
-            stoneMime = baseMime;
-            stoneBase64 = baseData;
-        } else if (stoneImageData) {
+        if (stoneImageData) {
             // Same parsing idiom as userRoomImage and regionMaskImage below.
             const [, panelMime, panelData] = stoneImageData.match(/^data:(image\/\w+);base64,(.+)$/) || [];
             if (panelMime && panelData) {
@@ -126,7 +109,7 @@ export default async function handler(req, res) {
             }
         }
 
-        if (!refineMode && !usedPanel) {
+        if (!usedPanel) {
             const imgResp = await fetch(stoneImageUrl);
             if (!imgResp.ok) throw new Error(`Stone image fetch failed: ${imgResp.status}`);
             const arrayBuffer = await imgResp.arrayBuffer();
@@ -145,25 +128,7 @@ export default async function handler(req, res) {
         // Refined Prompt for Multi-Modal Inpainting
         let finalPrompt;
 
-        if (refineMode) {
-            // Deliberately narrow. The user is adjusting a render they already
-            // like, so the default must be "change one thing", not "reimagine" --
-            // and above all the stone must survive, since re-interpreting it
-            // would undo the entire point of the visualiser.
-            const wanted = String(refineInstruction).trim().slice(0, 400);
-            finalPrompt = `You are editing an existing architectural render.
-
-APPLY EXACTLY THIS CHANGE, AND NOTHING ELSE:
-"${wanted}"
-
-RULES:
-1. This is an EDIT of the attached image. Keep the same space, the same camera angle, the same framing and the same lighting direction. The result must read as the same photograph with one change made, not as a new render of a similar scene.
-2. PRESERVE THE STONE. The natural stone surfaces already in the image keep their exact colour, veining, layout, joints and finish. They are the subject of this image. Do NOT re-texture, re-colour, re-light or re-interpret them, and do NOT cover them beyond what the requested change strictly needs.
-3. Change nothing that was not asked for. Do not add, remove or reposition furniture, fittings, decor or architecture beyond the request.
-4. If the request would hide a stone surface, keep the covering minimal so the stone stays the focus.
-5. Photorealistic, 8K, architectural photography quality, matching the existing image's realism and grain.
-6. Return the edited image.`;
-        } else if (cropMode) {
+        if (cropMode) {
             // Stone isolation mode — extract only the stone surface, remove all background
             finalPrompt = `You are given a photograph of a natural stone or marble sample taken by a user.
 Your task: Extract and display ONLY the pure stone/marble surface texture.

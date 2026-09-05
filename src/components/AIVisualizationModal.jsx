@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Box, Camera, Download, Share2, Expand, ArrowRight, Upload, Image as ImageIcon, Wand2, RefreshCw, RotateCcw } from 'lucide-react';
+import { X, Sparkles, Box, Camera, Download, Share2, Expand, ArrowRight, Upload, Image as ImageIcon, Wand2, RefreshCw } from 'lucide-react';
 import { aiVisualizer } from '../lib/aiVisualizer';
 import { supabase } from '../lib/supabaseClient';
 import FacadeRegionSelector from './FacadeRegionSelector';
@@ -99,13 +99,6 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
     // count is a property of what the model receives rather than a request in
     // the prompt (which it would ignore).
     const [slabPreset, setSlabPreset] = useState(null);
-    // Iterating on a finished render: "add a rug", "warmer light". History is
-    // kept so a refinement that goes wrong is one click from being undone --
-    // otherwise the only way back is a fresh render, which costs another call.
-    const [refineText, setRefineText] = useState('');
-    const [refining, setRefining] = useState(false);
-    const [refineError, setRefineError] = useState(null);
-    const [imageHistory, setImageHistory] = useState([]);
     // The style the CURRENTLY VISIBLE render was generated with. Lets us show
     // "apply this style" only when the dropdown has actually diverged from what
     // is on screen, instead of billing a render on every dropdown change.
@@ -169,10 +162,6 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         // Seeded from the caller when the user was already looking at a
         // bookmatch preview, so their choice carries into the render.
         setSlabPreset(initialSlabPreset);
-        setRefineText('');
-        setRefining(false);
-        setRefineError(null);
-        setImageHistory([]);
         inFlightRef.current = false;
 
         // Custom stone mode: no stone provided, user must upload one first
@@ -212,38 +201,6 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-    };
-
-    const handleRefine = async () => {
-        const instruction = refineText.trim();
-        if (!instruction || refining) return;
-        // The Unsplash fallback is a remote URL, not ours to edit.
-        if (!roomImage || !roomImage.startsWith('data:')) {
-            setRefineError('This render cannot be adjusted. Generate a new one first.');
-            return;
-        }
-        setRefining(true);
-        setRefineError(null);
-        try {
-            const next = await aiVisualizer.refineRender({ baseImage: roomImage, instruction });
-            setImageHistory(h => [...h, roomImage]);
-            setRoomImage(next);
-            setRefineText('');
-        } catch (err) {
-            console.error('[AI Modal] Refine failed:', err.message);
-            setRefineError(err.message);
-        } finally {
-            setRefining(false);
-        }
-    };
-
-    const handleUndoRefine = () => {
-        setImageHistory(h => {
-            if (!h.length) return h;
-            setRoomImage(h[h.length - 1]);
-            setRefineError(null);
-            return h.slice(0, -1);
-        });
     };
 
     // Upload user's own stone image to storage → proceed to app selection
@@ -423,10 +380,6 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         // Otherwise the previous style's caption sits under the new render for
         // the second or two before its replacement arrives.
         setVisualData(null);
-        // A new render is a new subject; undoing back into the previous one
-        // would be baffling.
-        setImageHistory([]);
-        setRefineError(null);
         setLoading(true);
         setImageReady(false);
         setRoomImage(null);
@@ -1087,12 +1040,6 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                             e.target.src = "https://images.unsplash.com/photo-1556911220-e15595b6a981?auto=format&fit=crop&q=80&w=1200";
                                         }}
                                     />
-                                    {refining && (
-                                        <div className="absolute inset-0 z-30 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
-                                            <div className="w-12 h-12 border-2 border-[#eca413]/20 border-t-[#eca413] rounded-full animate-spin" />
-                                            <p className="text-white/50 text-[10px] uppercase tracking-widest">Applying your change…</p>
-                                        </div>
-                                    )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
                                     <div className="absolute bottom-4 md:bottom-8 left-4 md:left-8 flex items-end gap-4 md:gap-6">
                                         <div className="size-16 md:size-24 rounded-lg overflow-hidden border-2 border-white/20 shadow-2xl">
@@ -1179,54 +1126,6 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                                     <div className="h-3 bg-white/5 rounded animate-pulse w-4/5" />
                                                 </div>
                                             )}
-                                        </div>
-
-                                        {/* Adjust the render in place. Cheaper and far less
-                                            frustrating than re-rolling a whole scene to change
-                                            one thing -- "New Architecture" discards a render the
-                                            user may already be happy with. */}
-                                        <div className="space-y-2">
-                                            <div className="flex items-center justify-between">
-                                                <label htmlFor="refine-input" className="text-[9px] font-bold text-white/30 uppercase tracking-widest">
-                                                    Adjust this render
-                                                </label>
-                                                {imageHistory.length > 0 && !refining && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={handleUndoRefine}
-                                                        className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-white/30 hover:text-[#eca413] transition-colors"
-                                                    >
-                                                        <RotateCcw size={10} /> Undo
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <textarea
-                                                id="refine-input"
-                                                rows={2}
-                                                value={refineText}
-                                                disabled={refining}
-                                                onChange={(e) => { setRefineText(e.target.value); setRefineError(null); }}
-                                                onKeyDown={(e) => {
-                                                    // Enter sends; Shift+Enter for a second line.
-                                                    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleRefine(); }
-                                                }}
-                                                placeholder="e.g. add a large rug, warmer lighting, remove the chairs"
-                                                maxLength={400}
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white/80 placeholder:text-white/25 focus:outline-none focus:border-[#eca413] transition-all resize-none disabled:opacity-50"
-                                            />
-                                            {refineError && (
-                                                <p className="text-red-400 text-[10px] leading-relaxed bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-                                                    {refineError}
-                                                </p>
-                                            )}
-                                            <button
-                                                type="button"
-                                                onClick={handleRefine}
-                                                disabled={refining || !refineText.trim()}
-                                                className="w-full py-3 bg-white/[0.06] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#eca413] hover:text-black transition-all flex items-center justify-center gap-2 border border-white/10 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/[0.06] disabled:hover:text-white"
-                                            >
-                                                <Wand2 size={13} /> {refining ? 'Applying…' : 'Apply Change'}
-                                            </button>
                                         </div>
 
                                         <div className="space-y-3">
