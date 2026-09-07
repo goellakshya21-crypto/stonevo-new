@@ -12,7 +12,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import StoneSelectionForm from '../components/StoneSelectionForm';
 import { useRequirements } from '../context/RequirementsContext';
-import ProjectChat from '../components/ProjectChat';
 import ClientManager from '../components/ClientManager';
 import StonWordmark from '../components/StonWordmark';
 import ArchitectDossier from '../components/ArchitectDossier';
@@ -245,17 +244,15 @@ function Home({ role }) {
         loadCustomStones();
     }, [customStonesKey, leadId]);
 
-    // Resolve Chat Identity Safely
+    // chatRole drives the architect controls and the client-linking effects
+    // below; it outlived the chat widget it was named for.
     let isAdmin = false;
-    let userPhone = null;
     try {
         isAdmin = localStorage.getItem('stonevo_admin') === 'true';
-        userPhone = localStorage.getItem('stonevo_user_phone');
-    } catch (e) {
-        console.warn("[Chat] Storage access restricted");
+    } catch {
+        console.warn("[Ston] Storage access restricted");
     }
     const chatRole = isAdmin ? 'admin' : role;
-    const chatName = isAdmin ? 'Ston Team' : (activeProjectName || userPhone || 'User');
     
     const [filters, setFilters] = useState({
         name: '',
@@ -890,15 +887,6 @@ function Home({ role }) {
                 initialData={activeDraft}
                 inventory={stoneContextList.length > 0 ? stoneContextList : marbles}
             />
-            {/* Project Room Chat (Safety Shielded) */}
-            <ProjectChat
-                key={activeRoomId || leadId || 'personal_workspace'}
-                projectId={activeRoomId || leadId || 'personal_workspace'}
-                role={chatRole}
-                userName={chatName}
-                isLinked={chatRole === 'builder' ? !!leadId : isLinked}
-            />
-
             <ClientManager
                 isOpen={isClientManagerOpen}
                 onClose={() => setIsClientManagerOpen(false)}
