@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Check } from 'lucide-react';
-import { SLAB_PRESETS, slabParity } from '../utils/slabGrid';
+import { Check, RotateCw } from 'lucide-react';
+import { SLAB_PRESETS, slabParity, quarterTurnsOf } from '../utils/slabGrid';
 
 /**
  * Pick how many slabs go on the surface.
@@ -34,6 +34,10 @@ const SlabGridSelector = ({ imageSrc, application, initialPreset, originRow = 't
     const [preset, setPreset] = useState(
         initialPreset || SLAB_PRESETS.find(p => p.count === 4) || SLAB_PRESETS[0]
     );
+    // Which way the slab itself sits. Turning it does not turn the panel: the
+    // mirror axes stay put and the stone rotates underneath them, so the veining
+    // meets each seam at a different angle and the bookmatch reads differently.
+    const [rotation, setRotation] = useState(initialPreset?.rotation || 0);
 
     useEffect(() => {
         const el = boxRef.current;
@@ -52,9 +56,12 @@ const SlabGridSelector = ({ imageSrc, application, initialPreset, originRow = 't
         img.src = imageSrc;
     }, [imageSrc]);
 
-    // The panel's aspect ratio is the slab's, stretched by the grid shape — the
-    // same figure composeSlabGrid derives. Contain-fit it into the box.
-    const panelAR = imgAR * (preset.cols / preset.rows);
+    // A quarter turn swaps the slab's width and height, so it changes the panel's
+    // aspect too — a 4x2 of a landscape slab is a wide strip, the same slab
+    // turned 90 degrees is nearly square. Mirrors composeSlabGrid's unit maths.
+    const turns = quarterTurnsOf(rotation);
+    const unitAR = (turns % 2) ? 1 / imgAR : imgAR;
+    const panelAR = unitAR * (preset.cols / preset.rows);
     const fitted = (() => {
         const { w, h } = box;
         if (!w || !h) return { w: 0, h: 0, left: 0, top: 0 };
@@ -63,31 +70,46 @@ const SlabGridSelector = ({ imageSrc, application, initialPreset, originRow = 't
         return { w: fw, h: fh, left: (w - fw) / 2, top: (h - fh) / 2 };
     })();
 
+    // Cells are laid out in PIXELS rather than percentages. Percentages give
+    // fractional boxes, which is why this used to need a +1px fudge to hide
+    // sub-pixel gaps; exact pixels also let a rotated slab be centred precisely.
+    const cellW = fitted.w / preset.cols;
+    const cellH = fitted.h / preset.rows;
     const cells = [];
     for (let r = 0; r < preset.rows; r++) {
         for (let c = 0; c < preset.cols; c++) {
             const { sx, sy } = slabParity(c, r, originRow);
+            // Pre-rotation size that fills the cell once turned.
+            const iw = (turns % 2) ? cellH : cellW;
+            const ih = (turns % 2) ? cellW : cellH;
             cells.push(
                 <div
                     key={`${c}-${r}`}
                     className="absolute overflow-hidden"
                     style={{
-                        left: `${(c / preset.cols) * 100}%`,
-                        top: `${(r / preset.rows) * 100}%`,
-                        // The +1px is the CSS sub-pixel gap hack from ImageModal:
-                        // percentage layout produces fractional boxes and leaves a
-                        // hairline between cells without it. The canvas compositor
-                        // uses integer cells and needs no such thing.
-                        width: `calc(${100 / preset.cols}% + 1px)`,
-                        height: `calc(${100 / preset.rows}% + 1px)`,
+                        left: c * cellW,
+                        top: r * cellH,
+                        // A hair of overlap so neighbouring cells never show a
+                        // seam when the container height lands on a fraction.
+                        width: cellW + 1,
+                        height: cellH + 1,
                     }}
                 >
                     <img
                         src={imageSrc}
                         alt=""
                         draggable={false}
-                        className="w-full h-full"
-                        style={{ objectFit: 'fill', transform: `scale(${sx}, ${sy})` }}
+                        className="absolute max-w-none"
+                        style={{
+                            width: iw,
+                            height: ih,
+                            left: (cellW - iw) / 2,
+                            top: (cellH - ih) / 2,
+                            transformOrigin: 'center',
+                            // Right-to-left: rotate the slab FIRST, then mirror it
+                            // — the same order the compositor draws in.
+                            transform: `scale(${sx}, ${sy}) rotate(${turns * 90}deg)`,
+                        }}
                     />
                 </div>
             );
@@ -142,6 +164,19 @@ const SlabGridSelector = ({ imageSrc, application, initialPreset, originRow = 't
                 })}
             </div>
 
+            <div className="flex items-center justify-center gap-3 mb-4">
+                <button
+                    type="button"
+                    onClick={() => setRotation(r => (r + 90) % 360)}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] text-white/60 hover:border-[#eca413]/50 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest"
+                >
+                    <RotateCw size={12} /> Rotate slab
+                </button>
+                <span className="text-[10px] uppercase tracking-widest text-white/30 tabular-nums">
+                    {turns * 90}°
+                </span>
+            </div>
+
             <div
                 ref={boxRef}
                 className="relative w-full h-[34vh] md:h-[38vh] bg-black/40 rounded-2xl overflow-hidden border border-white/10"
@@ -173,7 +208,7 @@ const SlabGridSelector = ({ imageSrc, application, initialPreset, originRow = 't
                 </button>
                 <button
                     type="button"
-                    onClick={() => onConfirm({ ...preset, originRow })}
+                    onClick={() => onConfirm({ ...preset, originRow, rotation: turns * 90 })}
                     className="flex items-center gap-2 px-7 py-3 bg-[#eca413] text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all"
                 >
                     <Check size={13} /> Continue

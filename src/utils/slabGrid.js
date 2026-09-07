@@ -65,6 +65,44 @@ export const slabParity = (col, row, originRow = 'top') => ({
 });
 
 /**
+ * Normalise any angle to 0..3 quarter turns clockwise.
+ * Shared so the CSS preview and the canvas compositor can never disagree about
+ * what "180" means.
+ */
+export const quarterTurnsOf = (rotation) => ((Math.round((rotation || 0) / 90) % 4) + 4) % 4;
+
+export const SLAB_ROTATIONS = [0, 90, 180, 270];
+
+/**
+ * Draw the slab into a w x h box, turned by `turns` quarter turns.
+ *
+ * Rotating the slab is not the same as rotating the finished panel: the mirror
+ * axes stay put and the stone turns underneath them, so the veining meets the
+ * seam at a different angle and the bookmatch reads completely differently.
+ * That is the point of the control.
+ *
+ * On an odd number of turns the source is drawn with its width and height
+ * swapped, because after the rotation the canvas's x axis runs down the box.
+ */
+export const drawRotatedSlab = (ctx, img, w, h, turns) => {
+    if (turns === 1) {
+        ctx.translate(w, 0);
+        ctx.rotate(Math.PI / 2);
+        ctx.drawImage(img, 0, 0, h, w);
+    } else if (turns === 2) {
+        ctx.translate(w, h);
+        ctx.rotate(Math.PI);
+        ctx.drawImage(img, 0, 0, w, h);
+    } else if (turns === 3) {
+        ctx.translate(0, h);
+        ctx.rotate(-Math.PI / 2);
+        ctx.drawImage(img, 0, 0, h, w);
+    } else {
+        ctx.drawImage(img, 0, 0, w, h);
+    }
+};
+
+/**
  * Build the panel.
  *
  * @param {string} sourceDataUrl  the slab image, as a data URL. Must already be
@@ -74,11 +112,12 @@ export const slabParity = (col, row, originRow = 'top') => ({
  * @param {number} opts.maxEdge   cap on the composite's longest side (see below)
  * @param {number} opts.quality   JPEG quality
  * @param {string} opts.originRow 'top' | 'bottom'
- * @returns {Promise<{dataUrl,cols,rows,count,cellW,cellH,aspect,slabAspect}>}
+ * @param {number} opts.rotation  degrees clockwise; snapped to a quarter turn
+ * @returns {Promise<{dataUrl,cols,rows,count,cellW,cellH,rotation,aspect,slabAspect}>}
  */
 export const composeSlabGrid = (sourceDataUrl, opts = {}) =>
     new Promise((resolve, reject) => {
-        const { cols, rows, maxEdge = 2048, quality = 0.92, originRow = 'top' } = opts;
+        const { cols, rows, maxEdge = 2048, quality = 0.92, originRow = 'top', rotation = 0 } = opts;
 
         if (!sourceDataUrl) { reject(new Error('composeSlabGrid: missing image')); return; }
         if (!Number.isInteger(cols) || !Number.isInteger(rows) || cols < 1 || rows < 1) {
@@ -111,7 +150,15 @@ export const composeSlabGrid = (sourceDataUrl, opts = {}) =>
                 // are integers, so a cell of 341.33px becomes 341 and the panel
                 // aspect drifts by well under a percent. Visually nil, but don't
                 // assert exact equality on it.
-                let cellW = sw, cellH = sh;
+                // The grid's unit is the slab AS IT WILL SIT, so a quarter turn
+                // swaps its width and height -- and with them the panel's whole
+                // aspect ratio. A 4x2 of a landscape slab is a wide strip; the
+                // same slab turned 90 degrees is nearly square.
+                const turns = quarterTurnsOf(rotation);
+                const unitW = (turns % 2) ? sh : sw;
+                const unitH = (turns % 2) ? sw : sh;
+
+                let cellW = unitW, cellH = unitH;
 
                 // Downscale guard. This is load-bearing, not defensive: an 8-slab
                 // grid off a 3000x2000 photo is a 12000x4000 canvas, past iOS
@@ -119,11 +166,11 @@ export const composeSlabGrid = (sourceDataUrl, opts = {}) =>
                 // Vercel request limit that also has to carry userRoomImage and
                 // regionMaskImage on the facade path. Do not raise maxEdge
                 // without re-checking that budget.
-                const fullW = sw * cols, fullH = sh * rows;
+                const fullW = unitW * cols, fullH = unitH * rows;
                 if (fullW > maxEdge || fullH > maxEdge) {
                     const scale = maxEdge / Math.max(fullW, fullH);
-                    cellW = Math.max(1, Math.round(sw * scale));
-                    cellH = Math.max(1, Math.round(sh * scale));
+                    cellW = Math.max(1, Math.round(unitW * scale));
+                    cellH = Math.max(1, Math.round(unitH * scale));
                 }
 
                 const canvas = document.createElement('canvas');
@@ -154,7 +201,10 @@ export const composeSlabGrid = (sourceDataUrl, opts = {}) =>
                             r * cellH + (sy < 0 ? cellH : 0),
                         );
                         ctx.scale(sx, sy);
-                        ctx.drawImage(img, 0, 0, cellW, cellH);
+                        // Rotate INSIDE the mirrored frame, so the slab is turned
+                        // first and the bookmatch mirror is applied to the turned
+                        // slab -- which is the order the user is thinking in.
+                        drawRotatedSlab(ctx, img, cellW, cellH, turns);
                         ctx.restore();
                     }
                 }
@@ -176,8 +226,11 @@ export const composeSlabGrid = (sourceDataUrl, opts = {}) =>
                     cols, rows,
                     count: cols * rows,
                     cellW, cellH,
+                    rotation: turns * 90,
                     aspect: (cellW * cols) / (cellH * rows),
-                    slabAspect: sw / sh,
+                    // The ROTATED unit's aspect, so aspect === slabAspect * cols/rows
+                    // still holds whichever way the slab is turned.
+                    slabAspect: unitW / unitH,
                 });
             } catch (err) {
                 reject(err);
