@@ -176,7 +176,6 @@ function Home({ role }) {
         addToRequirements,
         saveRequirements,
         updateActiveDraft,
-        stoneCount,
         activeDraft,
         activeRoomId,
         leadId,
@@ -640,27 +639,9 @@ function Home({ role }) {
                     </button>
                 </div>
                 <nav className="flex items-center gap-4">
-                    <Link to="/advisory" className="text-[10px] uppercase tracking-widest text-stone-400 hover:text-white transition-colors font-bold py-2 px-4 border border-stone-800/50 rounded-full bg-stone-900/50 backdrop-blur-sm">Audit & Advisory</Link>
-                    <button
-                        onClick={() => setIsConfiguratorOpen(true)}
-                        className="group flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] text-white font-bold py-2 px-6 rounded-full bg-luxury-bronze hover:bg-bronze transition-all shadow-lg shadow-luxury-bronze/20"
-                    >
-                        {stoneCount > 0 ? (
-                            <>
-                                <span className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-stone-950 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-stone-950"></span>
-                                </span>
-                                <span>Requirements ({stoneCount})</span>
-                            </>
-                        ) : (
-                            <span>Add Requirement</span>
-                        )}
-                    </button>
-
                     {/* Logged-in identity — always visible so users know which account is active */}
                     {(loggedInName || loggedInPhone) && (
-                        <div className="flex items-center gap-2 pl-2 border-l border-white/10">
+                        <div className="flex items-center gap-2">
                             <div className="flex flex-col items-end">
                                 {loggedInName && <span className="text-[9px] text-stone-300 font-semibold leading-tight">{loggedInName}</span>}
                                 {loggedInPhone && <span className="text-[8px] text-stone-600 leading-tight">+91 {loggedInPhone}</span>}
