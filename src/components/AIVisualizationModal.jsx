@@ -52,7 +52,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
     const [roomImage, setRoomImage] = useState(null);
     const [imageReady, setImageReady] = useState(false);
     const [finalRoomType, setFinalRoomType] = useState(roomName || 'Luxury Space');
-    const [selectedStyle, setSelectedStyle] = useState(initialStyle || 'Classical');
+    const [selectedStyle, setSelectedStyle] = useState(initialStyle || 'Modern');
     const [error, setError] = useState(null);
 
     // Custom stone upload (when allowCustomStone=true)
@@ -1081,39 +1081,45 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                                     </h2>
                                 </div>
 
-                                {/* Style Selector */}
-                                <div className="mb-8">
-                                    <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest block mb-3">Architectural Style</label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <select
-                                            value={selectedStyle}
-                                            onChange={(e) => {
-                                                // Only sets the choice. Rendering is an explicit
-                                                // action below -- this used to bill a full image
-                                                // generation on every dropdown change, so browsing
-                                                // 5 styles quietly cost 5 renders.
-                                                setSelectedStyle(e.target.value);
-                                            }}
-                                            disabled={loading}
-                                            className="col-span-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white/80 focus:outline-none focus:border-[#eca413] transition-all cursor-pointer disabled:opacity-50"
-                                        >
-                                            {roomStyles.map(style => (
-                                                <option key={style} value={style} className="bg-[#0f0d0a]">{style}</option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                {/* Architectural style only exists on the generated-room path.
+                                    With the user's own photo the server takes the userRoomImage
+                                    branch, which never reads roomStyle or promptText -- so the
+                                    dropdown changed nothing, and its "Render in X" button billed a
+                                    full Vertex call to produce the same picture. */}
+                                {!userRoomImage && (
+                                    <div className="mb-8">
+                                        <label className="text-[9px] font-bold text-white/30 uppercase tracking-widest block mb-3">Architectural Style</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <select
+                                                value={selectedStyle}
+                                                onChange={(e) => {
+                                                    // Only sets the choice. Rendering is an explicit
+                                                    // action below -- this used to bill a full image
+                                                    // generation on every dropdown change, so browsing
+                                                    // 5 styles quietly cost 5 renders.
+                                                    setSelectedStyle(e.target.value);
+                                                }}
+                                                disabled={loading}
+                                                className="col-span-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white/80 focus:outline-none focus:border-[#eca413] transition-all cursor-pointer disabled:opacity-50"
+                                            >
+                                                {roomStyles.map(style => (
+                                                    <option key={style} value={style} className="bg-[#0f0d0a]">{style}</option>
+                                                ))}
+                                            </select>
+                                        </div>
 
-                                    {/* Appears only once the picked style differs from what's on
-                                        screen, so the dropdown never looks inert. */}
-                                    {imageReady && !loading && renderedStyle && selectedStyle !== renderedStyle && (
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); handleVisualize(selectedStyle); }}
-                                            className="mt-3 w-full py-3 bg-[#eca413] text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all flex items-center justify-center gap-2"
-                                        >
-                                            <Sparkles size={13} /> Render in {selectedStyle}
-                                        </button>
-                                    )}
-                                </div>
+                                        {/* Appears only once the picked style differs from what's on
+                                            screen, so the dropdown never looks inert. */}
+                                        {imageReady && !loading && renderedStyle && selectedStyle !== renderedStyle && (
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleVisualize(selectedStyle); }}
+                                                className="mt-3 w-full py-3 bg-[#eca413] text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all flex items-center justify-center gap-2"
+                                            >
+                                                <Sparkles size={13} /> Render in {selectedStyle}
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
 
                                 {!imageReady ? (
                                     <div className="space-y-6">
