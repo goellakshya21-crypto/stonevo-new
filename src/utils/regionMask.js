@@ -45,7 +45,12 @@ export const buildRegionMask = (imageDataUrl, rect) =>
 
                 // Semi-transparent flood: the underlying architecture stays legible
                 // so the model can still read window/door positions inside the band.
-                ctx.fillStyle = `rgba(${MASK_COLOR.r}, ${MASK_COLOR.g}, ${MASK_COLOR.b}, 0.45)`;
+                // 0.45 was enough magenta that the model sometimes decided the
+                // highlight WAS the material and painted it into the render --
+                // measured at ~18% of the output on a bad run. Lighter flood,
+                // same hard outline, and describeRegion still states the bounds
+                // in words as an independent signal.
+                ctx.fillStyle = `rgba(${MASK_COLOR.r}, ${MASK_COLOR.g}, ${MASK_COLOR.b}, 0.22)`;
                 ctx.fillRect(rx, ry, rw, rh);
 
                 // Hard outline: a crisp boundary is easier to honour than a soft edge.
@@ -183,14 +188,28 @@ export const compositeRegion = (originalDataUrl, renderedDataUrl, rect) =>
  *   inside 97.4, outside 28.1 -> ratio 3.47  fully clad
  * 1.5 sits in the empty space between a no-op and a partial hit.
  *
- * @returns {Promise<{inside:number, outside:number, ratio:number, applied:boolean, measured:boolean}>}
- *          measured:false means we could not tell -- treat as applied, never retry on ignorance.
+ * @returns {Promise<{inside, outside, ratio, magentaPct, contaminated, applied, usable, measured}>}
+ *          measured:false means we could not tell -- treat as usable, never retry on ignorance.
  */
 export const REGION_EDIT_MIN_RATIO = 1.5;
 
+/**
+ * Is this pixel the magenta MARKER rather than anything a stone could be?
+ *
+ * Deliberately narrow: red and blue both strong, green far below both, and red
+ * roughly equal to blue. Checked against the colours real stone actually is --
+ * pink marble, rosso levanto, purple onyx, lilac quartz all read false, while
+ * pure magenta and the flood-over-stone blend read true.
+ */
+const isMarkerMagenta = (r, g, b) =>
+    r > 120 && b > 120 && g < 0.6 * Math.min(r, b) && Math.abs(r - b) < 0.25 * Math.max(r, b);
+
+/** Contamination is judged as an INCREASE over the source photo, not an absolute. */
+export const REGION_MAGENTA_MAX_PCT = 1.0;
+
 export const measureRegionEdit = (originalDataUrl, renderedDataUrl, rect) =>
     new Promise((resolve) => {
-        const unknown = { inside: 0, outside: 0, ratio: Infinity, applied: true, measured: false };
+        const unknown = { inside: 0, outside: 0, ratio: Infinity, magentaPct: 0, contaminated: false, applied: true, usable: true, measured: false };
         // A cross-origin render (the Unsplash fallback) taints the canvas and
         // makes getImageData throw. Same guard as compositeRegion.
         if (!originalDataUrl || !renderedDataUrl || !rect || !renderedDataUrl.startsWith('data:')) {
@@ -216,6 +235,7 @@ export const measureRegionEdit = (originalDataUrl, renderedDataUrl, rect) =>
             };
             const da = grab(a), db = grab(b);
             let inSum = 0, inN = 0, outSum = 0, outN = 0;
+            let magA = 0, magB = 0, total = 0;
             for (let y = 0; y < H; y++) {
                 const fy = y / H;
                 const insideY = fy >= rect.y && fy < rect.y + rect.h;
@@ -225,6 +245,9 @@ export const measureRegionEdit = (originalDataUrl, renderedDataUrl, rect) =>
                     const fx = x / W;
                     if (insideY && fx >= rect.x && fx < rect.x + rect.w) { inSum += d; inN++; }
                     else { outSum += d; outN++; }
+                    if (isMarkerMagenta(da[i], da[i + 1], da[i + 2])) magA++;
+                    if (isMarkerMagenta(db[i], db[i + 1], db[i + 2])) magB++;
+                    total++;
                 }
             }
             const inside = inN ? inSum / inN : 0;
@@ -232,11 +255,23 @@ export const measureRegionEdit = (originalDataUrl, renderedDataUrl, rect) =>
             // Floor the denominator: a byte-identical render would otherwise
             // divide by ~0 and report an infinite ratio, i.e. a perfect edit.
             const ratio = inside / Math.max(outside, 1);
+            // The model sometimes copies the magenta guide into the output --
+            // the one thing the prompt forbids outright. That has to be caught
+            // HERE, because such a render scores brilliantly on the ratio above
+            // (magenta against stone is an enormous pixel difference), so
+            // without this check the worst possible result is graded the best.
+            const magentaPct = total ? ((magB - magA) / total) * 100 : 0;
+            const contaminated = magentaPct > REGION_MAGENTA_MAX_PCT;
+            const applied = ratio >= REGION_EDIT_MIN_RATIO;
             resolve({
                 inside: +inside.toFixed(2),
                 outside: +outside.toFixed(2),
                 ratio: +ratio.toFixed(2),
-                applied: ratio >= REGION_EDIT_MIN_RATIO,
+                magentaPct: +magentaPct.toFixed(2),
+                contaminated,
+                applied,
+                // What the caller should actually branch on: clad AND clean.
+                usable: applied && !contaminated,
                 measured: true,
             });
         }).catch(() => resolve(unknown));

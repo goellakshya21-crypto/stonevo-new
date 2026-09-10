@@ -59,7 +59,7 @@ export default async function handler(req, res) {
     const startedAt = Date.now();
 
     try {
-        const { stoneImageUrl, roomType, application, stoneName, roomStyle, promptText, userRoomImage, regionMaskImage, regionDescription, regionInsist, stoneImageData, slabGrid, slabDescription, modelId = 'gemini-2.5-flash-image', cropMode = false } = req.body;
+        const { stoneImageUrl, roomType, application, stoneName, roomStyle, promptText, userRoomImage, regionMaskImage, regionDescription, regionInsist, regionInsistReason, stoneImageData, slabGrid, slabDescription, modelId = 'gemini-2.5-flash-image', cropMode = false } = req.body;
 
         if (!stoneImageUrl) {
             return res.status(400).json({ error: 'Stone image URL is required.' });
@@ -152,9 +152,11 @@ If the stone has natural veining, keep it exactly as it appears. Do not add or r
             CONTEXT: You are performing precise, region-limited architectural material replacement on a photograph of a building exterior.
 
             THIS IS AN EDIT TASK. The image you return MUST visibly differ from image 2 inside the marked region -- that difference IS the deliverable. Returning image 2 unchanged, or changed only slightly, is a FAILED response.
-${regionInsist ? `
+${regionInsist ? (regionInsistReason === 'magenta' ? `
+            RETRY NOTICE: a previous attempt PAINTED THE MAGENTA HIGHLIGHT INTO THE RESULT. That attempt was rejected. The magenta in image 3 is a marker showing you where to work -- it is not paint, not cladding, and not a colour that exists on this building. The output must contain NO magenta, pink or violet anywhere. Clad the marked area in the stone from image 1 instead.
+` : `
             RETRY NOTICE: a previous attempt returned this photograph with the marked region still showing its original material. That attempt was rejected. The new stone must this time be unmistakable and cover the entire marked area.
-` : ''}
+`) : ''}
             IMAGE 1 - MATERIAL SOURCE: the natural stone slab "${stoneName}". Use this EXACT texture, vein structure and colour.
             IMAGE 2 - THE PHOTOGRAPH: the user's real building. This is the image you edit and return.
             IMAGE 3 - REGION GUIDE ONLY: an identical copy of image 2 with one area flooded and outlined in bright magenta. It marks WHERE to work. It is an instruction, NOT content.
@@ -164,7 +166,7 @@ ${regionInsist ? `
             INSTRUCTION:
             1. MANDATORY: clad every wall surface inside the marked region with the stone from image 1. Those walls must end up unmistakably made of that stone -- its colour, its veining, its finish -- and must no longer resemble the material currently there. This is the point of the task; rules 2 to 9 only constrain HOW, they never license skipping it.
             2. ABSOLUTE REQUIREMENT: every pixel OUTSIDE the marked region must be returned completely unchanged -- other storeys, roof, sky, ground, landscaping and neighbouring buildings stay exactly as photographed.
-            3. STRICTLY FORBIDDEN: do NOT draw magenta, pink or any highlight colour anywhere in the output. Image 3 is a guide; its colour must never appear in the result.
+            3. STRICTLY FORBIDDEN: do NOT draw magenta, pink or violet anywhere in the output. Image 3's magenta is a marker telling you WHERE to work -- it is not a material, not paint, and does not exist on this building. Every magenta pixel in image 3 must come back as the stone from image 1, never as magenta.
             4. Within the region, preserve windows, doors, balconies, drainpipes and trim -- clad the WALL around them, do not paint over them.
             5. ${gridActive
                 ? `PANEL LAYOUT: image 1 is ${panelPhrase}. Clad the marked region with that panel applied ONCE, at architectural scale, with tight hairline butt joints at the slab boundaries and nowhere else. Do NOT tile, repeat or crop it, and do NOT change how many slabs it contains. STRICTLY FORBIDDEN: grout lines, mortar, grid patterns, tile segments, or any joint not already present in image 1.`

@@ -522,7 +522,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
             // decorative two-sentence blurb that already has a hardcoded
             // fallback and is only ever read beside a finished render, so it has
             // no business competing with the thing the user is waiting for.
-            const requestRender = (insist) => aiVisualizer.generateRoomImage({
+            const requestRender = (insist, insistReason) => aiVisualizer.generateRoomImage({
                 stoneName: effectiveStone?.name || 'Natural Stone',
                 roomType,
                 stoneType: effectiveStone?.colour || 'Natural',
@@ -533,7 +533,8 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                 isCustomStone: !!localStone,
                 regionMaskImage,           // facade region guide (null otherwise)
                 regionDescription,
-                regionInsist: insist,      // second pass after a detected no-op
+                regionInsist: insist,      // second pass after a rejected render
+                regionInsistReason: insistReason,
                 slabPanelImage,
                 slabGrid,
                 slabDescription,
@@ -552,19 +553,30 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
             // detected, so a render that worked never costs a second call.
             if (regionToUse && userImgToUse && imageUrl) {
                 const check = await measureRegionEdit(userImgToUse, imageUrl, regionToUse);
-                if (check.measured && !check.applied) {
-                    console.warn(`[AI Modal] Region looks unclad (inside ${check.inside} vs outside ${check.outside}, ratio ${check.ratio}) -- retrying once.`);
-                    const second = await requestRender(true).catch((err) => {
-                        // Keep the first render rather than failing outright: an
-                        // unclad photo still beats an error screen.
+                if (check.measured && !check.usable) {
+                    const why = check.contaminated
+                        ? `magenta guide painted into the render (${check.magentaPct}% of the image)`
+                        : `band looks unclad (inside ${check.inside} vs outside ${check.outside}, ratio ${check.ratio})`;
+                    console.warn(`[AI Modal] Region render rejected -- ${why}. Retrying once.`);
+                    const second = await requestRender(true, check.contaminated ? 'magenta' : 'unclad').catch((err) => {
                         console.error('[AI Modal] Region retry failed, keeping first render:', err.message);
                         return null;
                     });
                     if (second) {
                         const recheck = await measureRegionEdit(userImgToUse, second, regionToUse);
-                        console.log(`[AI Modal] Retry ratio ${recheck.ratio} (was ${check.ratio}).`);
-                        // Take whichever pass actually touched the band.
-                        if (!recheck.measured || recheck.ratio >= check.ratio) imageUrl = second;
+                        console.log(`[AI Modal] Retry: usable=${recheck.usable} ratio=${recheck.ratio} magenta=${recheck.magentaPct}% (was usable=${check.usable} ratio=${check.ratio} magenta=${check.magentaPct}%).`);
+                        // Prefer a CLEAN render over a high-scoring one. Ratio alone
+                        // would pick the magenta-contaminated pass every time, since
+                        // magenta against stone is an enormous pixel difference --
+                        // the failure mode scores better than the success.
+                        const better =
+                            !recheck.measured ? true
+                            : recheck.usable && !check.usable ? true
+                            : check.usable && !recheck.usable ? false
+                            : !recheck.contaminated && check.contaminated ? true
+                            : recheck.contaminated && !check.contaminated ? false
+                            : recheck.ratio >= check.ratio;
+                        if (better) imageUrl = second;
                     }
                 }
             }
