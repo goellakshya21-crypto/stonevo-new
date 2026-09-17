@@ -292,6 +292,7 @@ const AdminUpload = ({ onCancel }) => {
                 body: JSON.stringify({
                     message: prompt,
                     model: 'gemini-2.5-flash',
+                    purpose: 'stone_tagging',
                     imageBase64: base64,
                     mimeType
                 })

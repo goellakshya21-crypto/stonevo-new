@@ -2,6 +2,7 @@ import { VertexAI } from '@google-cloud/vertexai';
 import fs from 'fs';
 import path from 'path';
 import { rateLimit, clientIp } from './_rateLimit.js';
+import { logAiCall, usageOf, cleanLabel } from './_aiLog.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -14,6 +15,28 @@ export default async function handler(req, res) {
     if (!(await rateLimit(`gemini:${ip}`, 200, 3600))) {
         return res.status(429).json({ error: 'Too many AI requests from this network. Please slow down and try again shortly.' });
     }
+
+    const startedAt = Date.now();
+
+    // ── Cost & latency log ───────────────────────────────────────────────────
+    // Seven different features share this endpoint, so each caller sends a
+    // `purpose` label. Without it every text call would land in one bucket and
+    // nobody could tell a gallery chat from an admin bulk-tagging run. Callers
+    // that don't send one still get a rough bucket rather than nothing.
+    const b = req.body || {};
+    const callType = cleanLabel(b.purpose)
+        || (b.imageBase64 || b.imageUrl ? 'vision' : b.history ? 'chat' : 'text');
+    let modelStartedAt = null, usage = {};
+    const record = (extra) => logAiCall({
+        endpoint: 'gemini-vertex',
+        callType,
+        model: b.model || 'gemini-1.5-flash',
+        latencyMs: Date.now() - startedAt,
+        modelLatencyMs: modelStartedAt ? Date.now() - modelStartedAt : null,
+        attempts: 1,
+        ...usage,
+        ...extra,
+    });
 
     try {
         const { message, history, model: modelId = 'gemini-1.5-flash', imageBase64, mimeType, imageUrl } = req.body;
@@ -29,6 +52,7 @@ export default async function handler(req, res) {
                 console.log('[Vertex AI] Loading credentials from local hi.json.');
                 keyData = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
             } else {
+                await record({ success: false, status: 500, error: 'Service account credentials not found.' });
                 return res.status(500).json({ error: 'Service account credentials not found. Set GOOGLE_SERVICE_ACCOUNT or provide hi.json.' });
             }
         }
@@ -72,6 +96,7 @@ export default async function handler(req, res) {
         // If an image is supplied, use multimodal one-shot generation (no chat history)
         if (inlineImage) {
             console.log(`[Vertex AI] Multimodal request with image (${inlineImage.mimeType})`);
+            modelStartedAt = Date.now();
             const result = await generativeModel.generateContent({
                 contents: [{
                     role: 'user',
@@ -82,8 +107,10 @@ export default async function handler(req, res) {
                 }]
             });
             const response = await result.response;
+            usage = usageOf(response);
             const candidate = response.candidates?.[0];
             const text = candidate?.content?.parts?.find(p => p.text)?.text || "No response generated.";
+            await record({ success: true, status: 200 });
             return res.status(200).json({ text });
         }
 
@@ -95,15 +122,19 @@ export default async function handler(req, res) {
             })) : []
         });
 
+        modelStartedAt = Date.now();
         const result = await chat.sendMessage(message);
         const response = await result.response;
+        usage = usageOf(response);
         const candidate = response.candidates?.[0];
         const text = candidate?.content?.parts?.find(p => p.text)?.text || "No response generated.";
 
+        await record({ success: true, status: 200 });
         return res.status(200).json({ text });
 
     } catch (error) {
         console.error('[Vertex AI Error]:', error);
+        await record({ success: false, status: 500, error: error.message });
         res.status(500).json({ 
             error: error.message,
             stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 

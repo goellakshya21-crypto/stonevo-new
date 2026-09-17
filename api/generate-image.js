@@ -2,6 +2,7 @@ import { VertexAI } from '@google-cloud/vertexai';
 import fs from 'fs';
 import path from 'path';
 import { rateLimit, clientIp } from './_rateLimit.js';
+import { logAiCall, usageOf } from './_aiLog.js';
 
 // Vertex enforces a per-project quota on the image model and answers 429
 // RESOURCE_EXHAUSTED when a burst crosses it. Two renders in quick succession --
@@ -21,8 +22,11 @@ const isQuotaError = (err) => {
 const RETRY_BUDGET_MS = 32000;
 const MAX_QUOTA_RETRIES = 2;
 
-async function generateWithQuotaRetry(model, request, startedAt) {
+// `stats` is filled in as it goes so the attempt count survives a throw: the
+// cost log needs it on a failed call just as much as on a successful one.
+async function generateWithQuotaRetry(model, request, startedAt, stats = {}) {
     for (let attempt = 0; ; attempt++) {
+        stats.attempts = attempt + 1;
         try {
             return await model.generateContent(request);
         } catch (err) {
@@ -58,6 +62,35 @@ export default async function handler(req, res) {
 
     const startedAt = Date.now();
 
+    // ── Cost & latency log ───────────────────────────────────────────────────
+    // Which of the four jobs this endpoint does decides what a render costs and
+    // how long it should take, so it is the main thing worth grouping by.
+    const b = req.body || {};
+    const callType = b.cropMode ? 'crop_preview'
+        : (b.userRoomImage && b.regionMaskImage) ? 'facade_region'
+        : b.userRoomImage ? 'own_photo'
+        : 'generated_room';
+    const stats = { attempts: 0 };
+    let modelStartedAt = null, modelEndedAt = null, usage = {};
+    const record = (extra) => logAiCall({
+        endpoint: 'generate-image',
+        callType,
+        model: b.modelId || 'gemini-2.5-flash-image',
+        latencyMs: Date.now() - startedAt,
+        modelLatencyMs: modelStartedAt ? (modelEndedAt || Date.now()) - modelStartedAt : null,
+        attempts: stats.attempts || 1,
+        ...usage,
+        meta: {
+            application: b.application || null,
+            slabs: b.slabGrid?.count ?? null,
+            // A facade region retry is a second billed render the user never
+            // asked for. Tagged so that hidden cost is countable.
+            region_retry: b.regionInsist ? (b.regionInsistReason || 'unclad') : null,
+            style: callType === 'generated_room' ? (b.roomStyle || null) : null,
+        },
+        ...extra,
+    });
+
     try {
         const { stoneImageUrl, roomType, application, stoneName, roomStyle, promptText, userRoomImage, regionMaskImage, regionDescription, regionInsist, regionInsistReason, stoneImageData, slabGrid, slabDescription, modelId = 'gemini-2.5-flash-image', cropMode = false } = req.body;
 
@@ -74,12 +107,15 @@ export default async function handler(req, res) {
             if (fs.existsSync(keyPath)) {
                 keyData = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
             } else {
+                // Logged although no model was called: missing credentials on one
+                // Vercel environment is exactly the silent failure this should expose.
+                await record({ success: false, status: 500, error: 'Service account credentials not found.' });
                 return res.status(500).json({ error: 'Service account credentials not found.' });
             }
         }
 
-        const vertexAI = new VertexAI({ 
-            project: keyData.project_id, 
+        const vertexAI = new VertexAI({
+            project: keyData.project_id,
             location: 'us-central1',
             googleAuthOptions: { credentials: { client_email: keyData.client_email, private_key: keyData.private_key } } 
         });
@@ -248,17 +284,23 @@ ${regionInsist ? (regionInsistReason === 'magenta' ? `
             }
         }
 
+        modelStartedAt = Date.now();
         const result = await generateWithQuotaRetry(model, {
             contents: [{ role: 'user', parts }]
-        }, startedAt);
+        }, startedAt, stats);
+        modelEndedAt = Date.now();
 
         const response = await result.response;
+        // Captured before inspecting the result: a model that returns text instead
+        // of an image has still been paid for, and that cost belongs in the log.
+        usage = usageOf(response);
         const candidate = response.candidates?.[0];
         const imagePart = candidate?.content?.parts?.find(p => p.inlineData);
 
         if (imagePart) {
             console.log('[Vertex AI Image] SUCCESS: Architectural rendering generated.');
-            return res.status(200).json({ 
+            await record({ success: true, status: 200 });
+            return res.status(200).json({
                 url: `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}` 
             });
         }
@@ -269,10 +311,16 @@ ${regionInsist ? (regionInsistReason === 'magenta' ? `
 
     } catch (error) {
         console.error('[Vertex AI Image Error]:', error);
+        const quota = isQuotaError(error);
+        await record({
+            success: false,
+            status: quota ? 429 : 500,
+            error: quota ? 'Vertex quota exhausted after retries' : error.message,
+        });
         // A quota error survived the retries above, so it is genuinely busy
         // rather than momentarily bursty. Say so plainly -- 500 with a raw SDK
         // string told the user nothing about whether waiting would help.
-        if (isQuotaError(error)) {
+        if (quota) {
             return res.status(429).json({
                 error: 'The image service is busy right now. Please wait a few seconds and try again.',
                 canRetry: true,

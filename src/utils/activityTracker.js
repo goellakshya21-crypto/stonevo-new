@@ -1,5 +1,30 @@
 import { supabase } from '../lib/supabaseClient';
 
+// At most one compaction attempt per lead per day, recorded BEFORE the attempt.
+//
+// Compaction only stops being due once it succeeds, and it used to be retried
+// on every single event after a lead passed 100 logs -- so any persistent
+// failure became a billed Gemini call on every click. That is what happened:
+// leads.behavioral_compaction was never created, the save always failed, the
+// logs were never purged, and on 2026-09-17 four leads were re-billing on every
+// action at 142-257 logs. Recording the attempt first also stops a burst of
+// events in the same second from each firing a call of its own.
+const COMPACTION_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+
+const compactionAllowed = (leadId) => {
+    const key = `ston_compaction_attempt_${leadId}`;
+    try {
+        const last = Number(localStorage.getItem(key) || 0);
+        if (Date.now() - last < COMPACTION_COOLDOWN_MS) return false;
+        localStorage.setItem(key, String(Date.now()));
+        return true;
+    } catch {
+        // No storage means no way to remember the attempt, and so no way to
+        // bound the loop. Skipping one summary is far cheaper than risking it.
+        return false;
+    }
+};
+
 /**
  * Logs a lead's activity to Supabase if a lead_id exists in localStorage.
  * @param {string} actionType - 'search', 'view_stone', 'ai_query', 'visualize'
@@ -36,7 +61,7 @@ export const logActivity = async (actionType, details = {}) => {
             .select('*', { count: 'exact', head: true })
             .eq('lead_id', leadId);
 
-        if (!countErr && count >= 100) {
+        if (!countErr && count >= 100 && compactionAllowed(leadId)) {
             console.log(`[Auto-Compaction] Log limit reached (${count}/100) for ${leadId}. Commencing AI compression...`);
             await compactLeadLogs(leadId);
         }
@@ -81,7 +106,7 @@ const compactLeadLogs = async (leadId) => {
         const response = await fetch('/api/gemini-vertex', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: prompt, model: 'gemini-2.5-flash' })
+            body: JSON.stringify({ message: prompt, model: 'gemini-2.5-flash', purpose: 'activity_compaction' })
         });
 
         if (!response.ok) throw new Error('AI Compaction failed');

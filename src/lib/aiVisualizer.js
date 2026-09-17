@@ -26,6 +26,7 @@ export const aiVisualizer = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     model: 'gemini-2.5-flash',
+                    purpose: 'bookmatch_detect',
                     imageUrl,
                     message: `Look at this stone/marble image carefully.
 Does it show a BOOKMATCH pattern — two slabs placed side by side (or top-to-bottom) that are mirror images of each other, with veining that meets symmetrically at a central seam?
@@ -86,7 +87,8 @@ Answer with ONLY the word "yes" or "no".`
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: prompt,
-                    model: 'gemini-2.5-flash'
+                    model: 'gemini-2.5-flash',
+                    purpose: 'render_caption'
                 })
             });
 

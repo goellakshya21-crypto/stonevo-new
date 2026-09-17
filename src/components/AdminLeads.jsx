@@ -82,7 +82,7 @@ const AdminLeads = () => {
             const response = await fetch('/api/gemini-vertex', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: prompt, model: 'gemini-2.5-flash' })
+                body: JSON.stringify({ message: prompt, model: 'gemini-2.5-flash', purpose: 'lead_summary' })
             });
 
             if (!response.ok) throw new Error('AI Summary failed');

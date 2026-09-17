@@ -108,7 +108,8 @@ const ChatAssistant = ({ marbles, onStoneClick, onVisualizeRequest }) => {
                 body: JSON.stringify({
                     message: prompt, // sending the full prompt here
                     history: messages.slice(-10),
-                    model: 'gemini-2.5-flash'
+                    model: 'gemini-2.5-flash',
+                    purpose: 'gallery_chat'
                 })
             });
 

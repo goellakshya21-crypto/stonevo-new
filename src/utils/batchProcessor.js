@@ -123,6 +123,7 @@ export class BatchProcessor {
             body: JSON.stringify({
                 message: prompt,
                 model: 'gemini-2.5-flash',
+                purpose: 'stone_tagging_bulk',
                 imageBase64: base64,
                 mimeType
             })
