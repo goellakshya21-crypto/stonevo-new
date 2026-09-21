@@ -15,9 +15,10 @@ import { useRequirements } from '../context/RequirementsContext';
 import ClientManager from '../components/ClientManager';
 import StonWordmark from '../components/StonWordmark';
 import VisualizationQuotaBar from '../components/VisualizationQuotaBar';
+import StoneCompareModal from '../components/StoneCompareModal';
 import { useVisualizationQuota } from '../hooks/useVisualizationQuota';
 import ArchitectDossier from '../components/ArchitectDossier';
-import { PowerOff, ChevronDown, Link as LinkIcon, Upload, Sparkles, Trash2, Pencil, Check, X as XIcon, Phone } from 'lucide-react';
+import { PowerOff, ChevronDown, Link as LinkIcon, Upload, Sparkles, Trash2, Pencil, Check, X as XIcon, Phone, Columns2 } from 'lucide-react';
 
 // Floating prompt for clients who haven't linked an architect yet
 const LinkArchitectPrompt = ({ leadId, onLinked }) => {
@@ -191,6 +192,23 @@ function Home({ role }) {
     // accurate by the time the user looks back at it. Returns null for uncapped
     // accounts, and the bar renders nothing for them.
     const { quota, refresh: refreshQuota } = useVisualizationQuota(leadId);
+
+    // Compare mode: pick two stones, see them in one room with a draggable
+    // divider between them.
+    const [compareMode, setCompareMode] = useState(false);
+    const [comparePicks, setComparePicks] = useState([]);
+    const [compareOpen, setCompareOpen] = useState(false);
+
+    const toggleComparePick = (stone) => {
+        setComparePicks(prev => {
+            if (prev.some(s => s.id === stone.id)) return prev.filter(s => s.id !== stone.id);
+            // A third pick replaces the oldest rather than being refused, which
+            // is what people expect when swapping one side of a comparison.
+            return prev.length >= 2 ? [prev[1], stone] : [...prev, stone];
+        });
+    };
+
+    const exitCompare = () => { setCompareMode(false); setComparePicks([]); };
 
     // Who is currently logged in — shown in header so it's always obvious
     const loggedInName = (() => { try { return localStorage.getItem('stonevo_user_name') || ''; } catch { return ''; } })();
@@ -643,6 +661,18 @@ function Home({ role }) {
                     </button>
                 </div>
                 <nav className="flex items-center gap-4">
+                    <button
+                        onClick={() => (compareMode ? exitCompare() : setCompareMode(true))}
+                        className={`flex items-center gap-2 px-5 py-2 rounded-full text-[10px] uppercase tracking-widest font-bold border transition-all backdrop-blur-md ${
+                            compareMode
+                                ? 'bg-bronze text-white border-bronze'
+                                : 'border-bronze/30 text-bronze hover:bg-bronze hover:text-white'
+                        }`}
+                    >
+                        <Columns2 size={12} />
+                        {compareMode ? 'Cancel Compare' : 'Compare'}
+                    </button>
+
                     <VisualizationQuotaBar quota={quota} />
 
                     {/* Logged-in identity — always visible so users know which account is active */}
@@ -824,7 +854,14 @@ function Home({ role }) {
                 </div>
 
                 <div className="max-w-7xl mx-auto">
-                    <MarbleGrid marbles={paginatedMarbles} loading={loading} onEnlarge={(stone) => handleStoneClick(stone, paginatedMarbles)} />
+                    <MarbleGrid
+                        marbles={paginatedMarbles}
+                        loading={loading}
+                        onEnlarge={(stone) => handleStoneClick(stone, paginatedMarbles)}
+                        selectable={compareMode}
+                        selectedIds={comparePicks.map(s => s.id)}
+                        onSelect={toggleComparePick}
+                    />
                 </div>
             </main>
 
@@ -880,6 +917,52 @@ function Home({ role }) {
                     onClose={() => { setCustomStoneView(null); setCustomStoneBookmatch(null); }}
                 />
             )}
+
+            {/* Selection tray. Fixed, because the two picks are usually far apart
+                in a long grid and a header counter would scroll away. */}
+            {compareMode && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[190] flex items-center gap-4 px-5 py-4 rounded-2xl bg-stone-900/95 border border-white/10 backdrop-blur-xl shadow-2xl">
+                    <div className="flex items-center gap-3">
+                        {[0, 1].map(i => {
+                            const s = comparePicks[i];
+                            return s ? (
+                                <div key={s.id} className="flex items-center gap-2">
+                                    <div className="size-10 rounded-lg overflow-hidden border border-[#eca413]/50">
+                                        <img src={s.imageUrl} alt={s.name} className="w-full h-full object-cover" />
+                                    </div>
+                                    <span className="text-[10px] text-stone-300 max-w-[90px] truncate">{s.name}</span>
+                                </div>
+                            ) : (
+                                <div key={`empty-${i}`} className="size-10 rounded-lg border border-dashed border-white/20 flex items-center justify-center text-[9px] text-stone-600">
+                                    {i + 1}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <span className="text-[10px] uppercase tracking-widest text-stone-500 hidden md:block">
+                        {comparePicks.length < 2 ? `Pick ${2 - comparePicks.length} more` : 'Ready'}
+                    </span>
+
+                    <button
+                        onClick={() => setCompareOpen(true)}
+                        disabled={comparePicks.length < 2}
+                        className="px-5 py-2.5 bg-[#eca413] text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                        Compare
+                    </button>
+                    <button onClick={exitCompare} className="text-stone-500 hover:text-white transition-colors">
+                        <XIcon size={16} />
+                    </button>
+                </div>
+            )}
+
+            <StoneCompareModal
+                isOpen={compareOpen}
+                stoneA={comparePicks[0]}
+                stoneB={comparePicks[1]}
+                onClose={() => { setCompareOpen(false); refreshQuota(); }}
+            />
 
             <footer className="bg-stone-950 py-24 mt-20 text-stone-400">
                 <div className="max-w-7xl mx-auto px-6 text-center border-t border-white/5 pt-16">

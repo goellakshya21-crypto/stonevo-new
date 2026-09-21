@@ -1,7 +1,7 @@
 import React from 'react';
 import MarbleCard from './MarbleCard';
 
-const MarbleGrid = ({ marbles, loading, onEnlarge }) => {
+const MarbleGrid = ({ marbles, loading, onEnlarge, selectable = false, selectedIds = [], onSelect }) => {
     if (loading) {
         return (
             <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-8 space-y-8">
@@ -25,7 +25,13 @@ const MarbleGrid = ({ marbles, loading, onEnlarge }) => {
         <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-8 space-y-8">
             {marbles.map((marble) => (
                 <div key={marble.id} className="break-inside-avoid mb-8">
-                    <MarbleCard marble={marble} onEnlarge={onEnlarge} />
+                    <MarbleCard
+                        marble={marble}
+                        onEnlarge={onEnlarge}
+                        selectable={selectable}
+                        selected={selectedIds.includes(marble.id)}
+                        onSelect={onSelect}
+                    />
                 </div>
             ))}
         </div>

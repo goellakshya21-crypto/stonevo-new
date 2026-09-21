@@ -1,6 +1,7 @@
 import React from 'react';
+import { Check } from 'lucide-react';
 
-const MarbleCard = ({ marble, onEnlarge }) => {
+const MarbleCard = ({ marble, onEnlarge, selectable = false, selected = false, onSelect }) => {
     const handleDownload = async (e) => {
         e.stopPropagation();
         try {
@@ -26,10 +27,21 @@ const MarbleCard = ({ marble, onEnlarge }) => {
     return (
         <div
             id={`stone-${marble.id}`}
-            onClick={() => onEnlarge(marble)}
-            className="group relative bg-[#4A423B] rounded-xl overflow-hidden border border-white/5 flex flex-col h-full cursor-pointer transition-all duration-500 hover:shadow-[0_40px_80px_rgba(0,0,0,0.5)] transform hover:scale-[1.02] active:scale-[0.98] will-change-transform"
+            // In compare mode a card is a choice, not a doorway: opening the
+            // detail view would throw away the selection the user is building.
+            onClick={() => (selectable ? onSelect?.(marble) : onEnlarge(marble))}
+            className={`group relative bg-[#4A423B] rounded-xl overflow-hidden flex flex-col h-full cursor-pointer transition-all duration-500 hover:shadow-[0_40px_80px_rgba(0,0,0,0.5)] transform hover:scale-[1.02] active:scale-[0.98] will-change-transform ${
+                selected ? 'border-2 border-[#eca413] shadow-[0_0_0_4px_rgba(236,164,19,0.15)]' : 'border border-white/5'
+            }`}
         >
             <div className="aspect-[4/5] overflow-hidden bg-stone-900 relative">
+                {selectable && (
+                    <div className={`absolute top-4 right-4 z-20 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${
+                        selected ? 'bg-[#eca413] border-[#eca413]' : 'bg-black/50 border-white/40 backdrop-blur-sm'
+                    }`}>
+                        {selected && <Check size={14} className="text-black" strokeWidth={3} />}
+                    </div>
+                )}
                 <img
                     src={marble.imageUrl}
                     alt={marble.name}
