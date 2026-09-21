@@ -665,6 +665,11 @@ const LeadGate = ({ children }) => {
         );
     }
 
+    // Resolved the same way the pre-launch gate does, so both screens name the
+    // number the user is actually stuck on rather than guessing.
+    const signedInPhone = String(formData.phone || localStorage.getItem('stonevo_user_phone') || '')
+        .replace(/\D/g, '').slice(-10);
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0 bg-stone-950">
@@ -702,6 +707,25 @@ const LeadGate = ({ children }) => {
                             >
                                 Re-verify Status
                             </button>
+
+                            {/* The same dead end the pre-launch notice had: waiting on
+                                approval left Re-verify as the only button, so signing in
+                                on the wrong number meant clearing site data to escape.
+                                Vetting can take days, which makes it worse here. */}
+                            <div className="pt-8 mt-8 border-t border-white/5 space-y-3">
+                                {signedInPhone && (
+                                    <p className="text-[10px] uppercase tracking-widest text-stone-600">
+                                        Signed in as +91 {signedInPhone}
+                                    </p>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={resetSession}
+                                    className="text-[10px] uppercase tracking-[0.25em] font-bold text-stone-300 hover:text-bronze transition-colors border-b border-bronze/30 pb-1"
+                                >
+                                    Use a different number
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
                 ) : (
