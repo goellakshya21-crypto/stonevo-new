@@ -14,6 +14,8 @@ import StoneSelectionForm from '../components/StoneSelectionForm';
 import { useRequirements } from '../context/RequirementsContext';
 import ClientManager from '../components/ClientManager';
 import StonWordmark from '../components/StonWordmark';
+import VisualizationQuotaBar from '../components/VisualizationQuotaBar';
+import { useVisualizationQuota } from '../hooks/useVisualizationQuota';
 import ArchitectDossier from '../components/ArchitectDossier';
 import { PowerOff, ChevronDown, Link as LinkIcon, Upload, Sparkles, Trash2, Pencil, Check, X as XIcon, Phone } from 'lucide-react';
 
@@ -184,6 +186,11 @@ function Home({ role }) {
         isLinked,
         clearSession
     } = useRequirements();
+
+    // Refreshed whenever a modal that can spend a render closes, so the bar is
+    // accurate by the time the user looks back at it. Returns null for uncapped
+    // accounts, and the bar renders nothing for them.
+    const { quota, refresh: refreshQuota } = useVisualizationQuota(leadId);
 
     // Who is currently logged in — shown in header so it's always obvious
     const loggedInName = (() => { try { return localStorage.getItem('stonevo_user_name') || ''; } catch { return ''; } })();
@@ -636,6 +643,8 @@ function Home({ role }) {
                     </button>
                 </div>
                 <nav className="flex items-center gap-4">
+                    <VisualizationQuotaBar quota={quota} />
+
                     {/* Logged-in identity — always visible so users know which account is active */}
                     {(loggedInName || loggedInPhone) && (
                         <div className="flex items-center gap-2">
@@ -823,7 +832,7 @@ function Home({ role }) {
                 <ImageModal
                     stone={selectedStone}
                     allStones={stoneContextList}
-                    onClose={() => { setSelectedStone(null); setStoneContextList([]); }}
+                    onClose={() => { setSelectedStone(null); setStoneContextList([]); refreshQuota(); }}
                     onNavigate={setSelectedStone}
                     onAddToRequirements={handleAddToRequirements}
                 />
@@ -836,7 +845,7 @@ function Home({ role }) {
                     roomName={visualizationData.roomType}
                     initialStyle={visualizationData.roomStyle}
                     intendedApp={visualizationData.intendedApplication}
-                    onClose={() => setVisualizationData(null)}
+                    onClose={() => { setVisualizationData(null); refreshQuota(); }}
                 />
             )}
 
@@ -846,7 +855,7 @@ function Home({ role }) {
                 stone={null}
                 allowCustomStone={true}
                 onStoneUploaded={saveCustomStone}
-                onClose={() => setCustomStoneOpen(false)}
+                onClose={() => { setCustomStoneOpen(false); refreshQuota(); }}
             />
 
             {/* Re-visualize a previously uploaded stone (plain room render) */}
@@ -854,7 +863,7 @@ function Home({ role }) {
                 <AIVisualizationModal
                     isOpen={true}
                     stone={stoneToVisualize}
-                    onClose={() => setStoneToVisualize(null)}
+                    onClose={() => { setStoneToVisualize(null); refreshQuota(); }}
                 />
             )}
 
