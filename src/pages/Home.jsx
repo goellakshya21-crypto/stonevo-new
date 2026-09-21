@@ -924,10 +924,14 @@ function Home({ role }) {
                 />
             )}
 
-            {/* Selection tray. Fixed, because the two picks are usually far apart
-                in a long grid and a header counter would scroll away. */}
+            {/* Selection tray. Pinned to the TOP, under the header.
+                It sat at the bottom, which put it beside the footer and a whole
+                screen away from the grid being picked from -- it read as
+                something that appears "at the very end" rather than a live
+                count. Up here it is next to the Compare button that started
+                this, so the two read as one control. */}
             {compareMode && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[190] flex items-center gap-4 px-5 py-4 rounded-2xl bg-stone-900/95 border border-white/10 backdrop-blur-xl shadow-2xl">
+                <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[190] flex items-center gap-4 px-5 py-4 rounded-2xl bg-stone-900/95 border border-white/10 backdrop-blur-xl shadow-2xl">
                     <div className="flex items-center gap-3">
                         {[0, 1].map(i => {
                             const s = comparePicks[i];
