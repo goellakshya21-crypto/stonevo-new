@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { rateLimit, clientIp } from './_rateLimit.js';
 import { logAiCall, usageOf } from './_aiLog.js';
+import { asLeadId, consumeVisualization, refundVisualization } from './_quota.js';
 
 // Vertex enforces a per-project quota on the image model and answers 429
 // RESOURCE_EXHAUSTED when a burst crosses it. Two renders in quick succession --
@@ -70,6 +71,7 @@ export default async function handler(req, res) {
         : (b.userRoomImage && b.regionMaskImage) ? 'facade_region'
         : b.userRoomImage ? 'own_photo'
         : 'generated_room';
+    const leadId = asLeadId(b.leadId);
     const stats = { attempts: 0 };
     let modelStartedAt = null, modelEndedAt = null, usage = {};
     const record = (extra) => logAiCall({
@@ -81,6 +83,8 @@ export default async function handler(req, res) {
         attempts: stats.attempts || 1,
         ...usage,
         meta: {
+            // Cost per user falls out of this; see ai_cost_by_lead.
+            lead_id: leadId,
             application: b.application || null,
             slabs: b.slabGrid?.count ?? null,
             // A facade region retry is a second billed render the user never
@@ -90,6 +94,31 @@ export default async function handler(req, res) {
         },
         ...extra,
     });
+
+    // ── Per-user limit ───────────────────────────────────────────────────────
+    // Claimed BEFORE any work, since the point is to not spend the money.
+    //
+    // Two things deliberately don't count against it. A crop preview is a
+    // side-effect of uploading a stone, not a visualisation anyone asked for.
+    // And a facade region retry is our own second attempt at a render that came
+    // back unclad -- charging a user a credit for our flakiness would be wrong.
+    const quotaApplies = !b.cropMode && !b.regionInsist;
+    let creditTaken = false;
+    if (quotaApplies) {
+        const verdict = await consumeVisualization(leadId);
+        if (!verdict.allowed) {
+            // Logged so the cap shows up as demand rather than vanishing: a user
+            // hitting it repeatedly is worth knowing about.
+            await record({ success: false, status: 403, error: 'Visualisation limit reached' });
+            return res.status(403).json({
+                error: `You have used all ${verdict.limit} of your visualisations.`,
+                limitReached: true,
+                used: verdict.used,
+                limit: verdict.limit,
+            });
+        }
+        creditTaken = verdict.reason !== 'not_enforced' && verdict.reason !== 'rpc_error';
+    }
 
     try {
         const { stoneImageUrl, roomType, application, stoneName, roomStyle, promptText, userRoomImage, regionMaskImage, regionDescription, regionInsist, regionInsistReason, stoneImageData, slabGrid, slabDescription, modelId = 'gemini-2.5-flash-image', cropMode = false } = req.body;
@@ -110,6 +139,7 @@ export default async function handler(req, res) {
                 // Logged although no model was called: missing credentials on one
                 // Vercel environment is exactly the silent failure this should expose.
                 await record({ success: false, status: 500, error: 'Service account credentials not found.' });
+                if (creditTaken) await refundVisualization(leadId);
                 return res.status(500).json({ error: 'Service account credentials not found.' });
             }
         }
@@ -317,6 +347,8 @@ ${regionInsist ? (regionInsistReason === 'magenta' ? `
             status: quota ? 429 : 500,
             error: quota ? 'Vertex quota exhausted after retries' : error.message,
         });
+        // No image came back, so the credit goes back too.
+        if (creditTaken) await refundVisualization(leadId);
         // A quota error survived the retries above, so it is genuinely busy
         // rather than momentarily bursty. Say so plainly -- 500 with a raw SDK
         // string told the user nothing about whether waiting would help.

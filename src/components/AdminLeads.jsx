@@ -13,6 +13,8 @@ const AdminLeads = () => {
     const [activityLoading, setActivityLoading] = useState(false);
     const [aiSummaries, setAiSummaries] = useState({}); // leadId -> summary
     const [generatingSummary, setGeneratingSummary] = useState({}); // leadId -> boolean
+    const [limitDrafts, setLimitDrafts] = useState({});   // leadId -> the box's text
+    const [savingLimit, setSavingLimit] = useState({});   // leadId -> boolean
 
     useEffect(() => {
         fetchLeads();
@@ -94,6 +96,43 @@ const AdminLeads = () => {
             setAiSummaries(prev => ({ ...prev, [leadId]: 'Intelligence generation failed. Please try again.' }));
         } finally {
             setGeneratingSummary(prev => ({ ...prev, [leadId]: false }));
+        }
+    };
+
+    // An empty box means unlimited, which is why this stores NULL rather than 0 --
+    // 0 would read as "allowed none" and lock the user out of every render.
+    const handleLimitSave = async (id) => {
+        const raw = (limitDrafts[id] ?? '').trim();
+        const parsed = raw === '' ? null : Math.max(0, Math.floor(Number(raw)));
+        if (raw !== '' && !Number.isFinite(parsed)) {
+            alert('Enter a whole number, or leave it empty for unlimited.');
+            return;
+        }
+        setSavingLimit(prev => ({ ...prev, [id]: true }));
+        try {
+            const { error } = await supabase
+                .from('leads').update({ visualization_limit: parsed }).eq('id', id);
+            if (error) throw error;
+            setLeads(prev => prev.map(l => l.id === id ? { ...l, visualization_limit: parsed } : l));
+            setLimitDrafts(prev => { const next = { ...prev }; delete next[id]; return next; });
+        } catch (err) {
+            console.error('Failed to set render limit:', err);
+            alert('Failed to set render limit: ' + err.message);
+        } finally {
+            setSavingLimit(prev => ({ ...prev, [id]: false }));
+        }
+    };
+
+    const handleUsageReset = async (id) => {
+        if (!window.confirm('Reset this user’s render count back to zero?')) return;
+        try {
+            const { error } = await supabase
+                .from('leads').update({ visualizations_used: 0 }).eq('id', id);
+            if (error) throw error;
+            setLeads(prev => prev.map(l => l.id === id ? { ...l, visualizations_used: 0 } : l));
+        } catch (err) {
+            console.error('Failed to reset usage:', err);
+            alert('Failed to reset usage: ' + err.message);
         }
     };
 
@@ -318,6 +357,42 @@ const AdminLeads = () => {
                                             <p className="text-sm font-medium text-stone-800 flex items-center gap-2">
                                                 <Calendar size={14} className="text-stone-400" />
                                                 {new Date(lead.created_at).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] uppercase font-bold text-stone-400 tracking-widest">
+                                                Render Limit
+                                            </label>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    placeholder="Unlimited"
+                                                    value={limitDrafts[lead.id] ?? (lead.visualization_limit ?? '')}
+                                                    onChange={(e) => setLimitDrafts(prev => ({ ...prev, [lead.id]: e.target.value }))}
+                                                    className="w-24 border border-stone-200 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-stone-900"
+                                                />
+                                                <button
+                                                    onClick={() => handleLimitSave(lead.id)}
+                                                    disabled={savingLimit[lead.id]}
+                                                    className="px-3 py-1 bg-stone-900 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-stone-700 disabled:opacity-40 transition-colors"
+                                                >
+                                                    {savingLimit[lead.id] ? 'Saving' : 'Save'}
+                                                </button>
+                                            </div>
+                                            <p className="text-[11px] text-stone-500">
+                                                <span className="font-semibold text-stone-700">{lead.visualizations_used ?? 0}</span>
+                                                {lead.visualization_limit != null
+                                                    ? <> of {lead.visualization_limit} used</>
+                                                    : <> used · no limit set</>}
+                                                {(lead.visualizations_used ?? 0) > 0 && (
+                                                    <button
+                                                        onClick={() => handleUsageReset(lead.id)}
+                                                        className="ml-2 underline hover:text-stone-900"
+                                                    >
+                                                        reset
+                                                    </button>
+                                                )}
                                             </p>
                                         </div>
                                         <div className="space-y-1">

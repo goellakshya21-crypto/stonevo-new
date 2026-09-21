@@ -9,6 +9,14 @@
  * and then sends the stone's imageUrl + room context to the server
  * for true image-based compositing (server fetches image, no CORS issues).
  */
+// Which lead is asking. Sent with every image call so the server can enforce
+// that user's render limit and attribute the cost. Read here rather than
+// threaded through every caller, so no call site can forget it -- and a caller
+// that has no session simply sends null, which the server treats as unlimited.
+const currentLeadId = () => {
+    try { return localStorage.getItem('stonevo_lead_id'); } catch { return null; }
+};
+
 export const aiVisualizer = {
 
     /**
@@ -55,7 +63,7 @@ Answer with ONLY the word "yes" or "no".`
             const response = await fetch('/api/generate-image', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ stoneImageUrl: imageUrl, cropMode: true, stoneName: 'Stone Sample' })
+                body: JSON.stringify({ stoneImageUrl: imageUrl, cropMode: true, stoneName: 'Stone Sample', leadId: currentLeadId() })
             });
             if (!response.ok) return null;
             const data = await response.json();
@@ -246,6 +254,7 @@ ${isOutdoor ? 'Bright sunlight' : 'Soft architectural lighting'}, 8k resolution,
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    leadId: currentLeadId(),
                     promptText: imageUrl ? compositePrompt : fallbackPrompt,
                     stoneImageUrl: imageUrl || null,   // Server will fetch this — no CORS issue
                     // The composed slab panel, when there is one. Sent ALONGSIDE
@@ -272,7 +281,15 @@ ${isOutdoor ? 'Bright sunlight' : 'Soft architectural lighting'}, 8k resolution,
                     console.error("[AI Visualizer] API Route not found (404). Use 'vercel dev' instead of 'npm run dev'.");
                 }
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(`Proxy error: ${errorData.error || response.statusText}`);
+                const err = new Error(`Proxy error: ${errorData.error || response.statusText}`);
+                // Flattening this into a message string would leave the UI
+                // guessing from prose whether the user is out of renders.
+                if (errorData.limitReached) {
+                    err.limitReached = true;
+                    err.used = errorData.used;
+                    err.limit = errorData.limit;
+                }
+                throw err;
             }
 
             const data = await response.json();

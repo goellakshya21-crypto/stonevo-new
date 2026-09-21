@@ -6,6 +6,7 @@ import { aiVisualizer } from '../lib/aiVisualizer';
 import { supabase } from '../lib/supabaseClient';
 import FacadeRegionSelector from './FacadeRegionSelector';
 import SlabGridSelector from './SlabGridSelector';
+import VisualizationLimitNotice from './VisualizationLimitNotice';
 import { buildRegionMask, describeRegion, compositeRegion, measureRegionEdit } from '../utils/regionMask';
 import { composeSlabGrid, describeSlabGrid, findPreset } from '../utils/slabGrid';
 import { urlToDataUrl } from '../utils/urlToDataUrl';
@@ -99,6 +100,10 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
     // count is a property of what the model receives rather than a request in
     // the prompt (which it would ignore).
     const [slabPreset, setSlabPreset] = useState(null);
+    // Set when the server refuses a render because this user's allowance is
+    // spent. Held separately from `error` because it is not a failure: there is
+    // nothing to retry, so the retry-and-reason panel would be the wrong answer.
+    const [limitInfo, setLimitInfo] = useState(null);
     // The style the CURRENTLY VISIBLE render was generated with. Lets us show
     // "apply this style" only when the dropdown has actually diverged from what
     // is on screen, instead of billing a render on every dropdown change.
@@ -162,6 +167,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         // Seeded from the caller when the user was already looking at a
         // bookmatch preview, so their choice carries into the render.
         setSlabPreset(initialSlabPreset);
+        setLimitInfo(null);
         inFlightRef.current = false;
 
         // Custom stone mode: no stone provided, user must upload one first
@@ -658,6 +664,14 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
             setImageReady(true);
         } catch (error) {
             console.error("[AI Modal] FATAL ERROR:", error.message);
+            // An exhausted allowance is a state, not a fault. Showing it as an
+            // error would offer a Retry button that cannot possibly work.
+            if (error.limitReached) {
+                setLimitInfo({ used: error.used, limit: error.limit });
+                setLoading(false);
+                inFlightRef.current = false;
+                return;
+            }
             setError(error.message);
             setVisualData({
                 description: `A stunning interior vision featuring ${effectiveStone?.name || 'this stone'}.`,
@@ -690,6 +704,13 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                         >
                             <X size={20} />
                         </button>
+
+                        {limitInfo && (
+                            <VisualizationLimitNotice
+                                limit={limitInfo.limit}
+                                onClose={onClose}
+                            />
+                        )}
 
                         {/* Sequential Steps Overlay */}
                         {visualizationStep && (
