@@ -18,7 +18,7 @@ const GALLERY_LOCKED = true;
 // adding a number here grants early access to the gallery, not a login bypass.
 const LAUNCH_ALLOWED_PHONES = ['9910978887', '7678320944'];
 
-const PreLaunchNotice = () => (
+const PreLaunchNotice = ({ phone, onChangeNumber }) => (
     <div className="fixed inset-0 z-[150] bg-stone-950 flex items-center justify-center px-6 overflow-y-auto">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-bronze/10 blur-[140px] rounded-full pointer-events-none" />
         <div className="relative text-center max-w-xl py-16 space-y-8">
@@ -39,6 +39,27 @@ const PreLaunchNotice = () => (
                     </Link>
                 ))}
             </div>
+
+            {/* Without this the screen is a dead end: someone who signed in on the
+                wrong number had no way back to the phone form short of clearing
+                site data. Showing WHICH number they are on answers the first
+                question they will ask -- why am I seeing this and they are not. */}
+            {onChangeNumber && (
+                <div className="pt-8 mt-8 border-t border-white/5 space-y-3">
+                    {phone && (
+                        <p className="text-[10px] uppercase tracking-widest text-stone-600">
+                            Signed in as +91 {phone}
+                        </p>
+                    )}
+                    <button
+                        type="button"
+                        onClick={onChangeNumber}
+                        className="text-[10px] uppercase tracking-[0.25em] font-bold text-stone-300 hover:text-bronze transition-colors border-b border-bronze/30 pb-1"
+                    >
+                        Use a different number
+                    </button>
+                </div>
+            )}
         </div>
     </div>
 );
@@ -519,6 +540,10 @@ const LeadGate = ({ children }) => {
 
     const resetSession = () => {
         clearSession();
+        // checkLeadStatus treats a visitor with no lead as brand new and sends
+        // them to /about unless they arrived through it. Someone deliberately
+        // switching numbers wants the phone form, so mark the entry first.
+        try { sessionStorage.setItem('sv_enter', '1'); } catch { /* storage unavailable */ }
         window.location.reload();
     };
 
@@ -540,7 +565,7 @@ const LeadGate = ({ children }) => {
             const loginPhone = String(formData.phone || localStorage.getItem('stonevo_user_phone') || '')
                 .replace(/\D/g, '').slice(-10);
             if (!LAUNCH_ALLOWED_PHONES.includes(loginPhone)) {
-                return <PreLaunchNotice />;
+                return <PreLaunchNotice phone={loginPhone} onChangeNumber={resetSession} />;
             }
         }
         return (
