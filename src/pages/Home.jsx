@@ -200,12 +200,18 @@ function Home({ role }) {
     const [compareOpen, setCompareOpen] = useState(false);
 
     const toggleComparePick = (stone) => {
-        setComparePicks(prev => {
-            if (prev.some(s => s.id === stone.id)) return prev.filter(s => s.id !== stone.id);
-            // A third pick replaces the oldest rather than being refused, which
-            // is what people expect when swapping one side of a comparison.
-            return prev.length >= 2 ? [prev[1], stone] : [...prev, stone];
-        });
+        const already = comparePicks.some(s => s.id === stone.id);
+        // A third pick replaces the oldest rather than being refused, which is
+        // what people expect when swapping one side of a comparison.
+        const next = already
+            ? comparePicks.filter(s => s.id !== stone.id)
+            : (comparePicks.length >= 2 ? [comparePicks[1], stone] : [...comparePicks, stone]);
+        setComparePicks(next);
+
+        // Choosing the second stone IS the request to compare. Requiring a
+        // further click on a button in the tray was a step nobody expected, and
+        // it read as the feature simply not responding.
+        if (!already && comparePicks.length < 2 && next.length === 2) setCompareOpen(true);
     };
 
     const exitCompare = () => { setCompareMode(false); setComparePicks([]); };
@@ -940,8 +946,10 @@ function Home({ role }) {
                         })}
                     </div>
 
-                    <span className="text-[10px] uppercase tracking-widest text-stone-500 hidden md:block">
-                        {comparePicks.length < 2 ? `Pick ${2 - comparePicks.length} more` : 'Ready'}
+                    {/* Was hidden below md, which removed the only feedback a
+                        phone user had about how many picks were left. */}
+                    <span className="text-[10px] uppercase tracking-widest text-stone-500">
+                        {comparePicks.length < 2 ? `Pick ${2 - comparePicks.length} more` : 'Compare again'}
                     </span>
 
                     <button
