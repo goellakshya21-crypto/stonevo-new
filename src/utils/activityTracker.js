@@ -1,149 +1,71 @@
 import { supabase } from '../lib/supabaseClient';
 
-// At most one compaction attempt per lead per day, recorded BEFORE the attempt.
-//
-// Compaction only stops being due once it succeeds, and it used to be retried
-// on every single event after a lead passed 100 logs -- so any persistent
-// failure became a billed Gemini call on every click. That is what happened:
-// leads.behavioral_compaction was never created, the save always failed, the
-// logs were never purged, and on 2026-09-17 four leads were re-billing on every
-// action at 142-257 logs. Recording the attempt first also stops a burst of
-// events in the same second from each firing a call of its own.
-const COMPACTION_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+/**
+ * Activity tracking: one row per meaningful thing a lead does, and nothing else.
+ *
+ * INSERT-ONLY, deliberately. Tracking used to do three more jobs on every event:
+ *
+ *   - count(*) the lead's whole history, every time, to decide the next job;
+ *   - once that count reached 100, ask Gemini to summarise the logs...
+ *   - ...then DELETE the raw logs and keep only the summary.
+ *
+ * The deletion was the real cost. It made every lead's history irreversible --
+ * nothing could be re-analysed, and the paragraph could not be checked against
+ * what had actually happened. It also never worked: the summary column was never
+ * created, so the save failed and the logs were never deleted. Instead each
+ * event past 100 paid for another Gemini call, until a cooldown stopped it.
+ *
+ * Raw logs are now kept. Behavioural summaries are made on demand in the admin
+ * panel (AdminLeads), where they are read and saved, rather than being
+ * triggered by what users click. At the rate events arrive now that searches
+ * are debounced, keeping them costs nothing worth measuring.
+ */
 
-const compactionAllowed = (leadId) => {
-    const key = `ston_compaction_attempt_${leadId}`;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// last_active drives "when was this lead last here", which does not need
+// updating every second while they click around. Once a couple of minutes is
+// enough, and saves a write per event.
+const LAST_ACTIVE_EVERY_MS = 2 * 60 * 1000;
+
+const lastActiveDue = (leadId) => {
+    const key = `ston_last_active_write_${leadId}`;
     try {
         const last = Number(localStorage.getItem(key) || 0);
-        if (Date.now() - last < COMPACTION_COOLDOWN_MS) return false;
+        if (Date.now() - last < LAST_ACTIVE_EVERY_MS) return false;
         localStorage.setItem(key, String(Date.now()));
         return true;
     } catch {
-        // No storage means no way to remember the attempt, and so no way to
-        // bound the loop. Skipping one summary is far cheaper than risking it.
-        return false;
+        return true; // no storage: fall back to the old always-write behaviour
     }
 };
 
 /**
- * Logs a lead's activity to Supabase if a lead_id exists in localStorage.
- * @param {string} actionType - 'search', 'view_stone', 'ai_query', 'visualize'
- * @param {object} details - Any metadata about the action
+ * Record one action for the signed-in lead. Never throws, never blocks the UI.
+ * @param {string} actionType  'search' | 'view_stone' | 'visualize' | 'ai_query'
+ * @param {object} details     what the action was about
  */
 export const logActivity = async (actionType, details = {}) => {
-    const leadId = localStorage.getItem('stonevo_lead_id');
+    let leadId = null;
+    try { leadId = localStorage.getItem('stonevo_lead_id'); } catch { return; }
 
-    if (!leadId) return;
+    // Guest ids ("GUEST_x7f2q") are not uuids, and activity_logs.lead_id is.
+    // Those inserts could only ever fail, so they are not attempted.
+    if (!leadId || !UUID_RE.test(leadId)) return;
 
     try {
         const { error } = await supabase
             .from('activity_logs')
-            .insert([{
-                lead_id: leadId,
-                action_type: actionType,
-                details: details
-            }]);
+            .insert([{ lead_id: leadId, action_type: actionType, details }]);
+        if (error) console.error('Failed to log activity:', error.message);
 
-        if (error) {
-            console.error('Failed to log activity:', error);
+        if (lastActiveDue(leadId)) {
+            await supabase
+                .from('leads')
+                .update({ last_active: new Date().toISOString() })
+                .eq('id', leadId);
         }
-
-        // Update last_active on the lead record
-        await supabase
-            .from('leads')
-            .update({ last_active: new Date().toISOString() })
-            .eq('id', leadId);
-
-        // --- AUTO-COMPACTION PROTOCOL ---
-        // Every 100 logs, we summarize and purge to save Supabase space
-        const { count, error: countErr } = await supabase
-            .from('activity_logs')
-            .select('*', { count: 'exact', head: true })
-            .eq('lead_id', leadId);
-
-        if (!countErr && count >= 100 && compactionAllowed(leadId)) {
-            console.log(`[Auto-Compaction] Log limit reached (${count}/100) for ${leadId}. Commencing AI compression...`);
-            await compactLeadLogs(leadId);
-        }
-
     } catch (err) {
-        console.error('Activity tracking error:', err);
-    }
-};
-
-/**
- * Summarizes the last 100 logs into a behavioral JSON and deletes individual records.
- */
-const compactLeadLogs = async (leadId) => {
-    try {
-        // 1. Fetch the logs
-        const { data: logs, error: fetchErr } = await supabase
-            .from('activity_logs')
-            .select('*')
-            .eq('lead_id', leadId)
-            .order('created_at', { ascending: true })
-            .limit(100);
-
-        if (fetchErr || !logs.length) return;
-
-        // 2. Format logs for AI
-        const logContent = logs.map(l => `${l.action_type}: ${JSON.stringify(l.details)}`).join('\n');
-
-        // 3. Call AI for analytical compression
-        const prompt = `Analyze these 100 user interaction logs and compress them into a factual behavioral summary JSON.
-        Logs:
-        ${logContent}
-
-        Return ONLY a JSON object in this format:
-        {
-          "summary_para": "One paragraph analysis of their project intent and preferences",
-          "frequent_colors": ["color1", "color2"],
-          "preferred_marbles": ["type1", "type2"],
-          "intent_score": 1-100,
-          "data_points_compressed": 100
-        }`;
-
-        const response = await fetch('/api/gemini-vertex', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: prompt, model: 'gemini-2.5-flash', purpose: 'activity_compaction' })
-        });
-
-        if (!response.ok) throw new Error('AI Compaction failed');
-        const aiData = await response.json();
-        
-        // Ensure we parse the AI response if it's a string
-        let compressedJson = aiData.text;
-        try {
-            const match = aiData.text.match(/\{[\s\S]*\}/);
-            if (match) compressedJson = JSON.parse(match[0]);
-        } catch (e) {
-            console.warn("[Compaction] AI didn't return valid JSON, using raw text.");
-        }
-
-        // 4. Store the compressed intelligence in the lead profile
-        // We use a field called 'behavioral_compaction' (assumed to exist as JSONB)
-        const { error: updateErr } = await supabase
-            .from('leads')
-            .update({ 
-                behavioral_compaction: compressedJson 
-            })
-            .eq('id', leadId);
-
-        if (updateErr) throw updateErr;
-
-        // 5. PURGE the logs to free up space
-        const logIdsToDelete = logs.map(l => l.id);
-        const { error: deleteErr } = await supabase
-            .from('activity_logs')
-            .delete()
-            .in('id', logIdsToDelete);
-
-        if (!deleteErr) {
-            console.log(`[Auto-Compaction] SUCCESS: 100 logs purged for ${leadId}. Data compressed into behavioral profile.`);
-        }
-
-    } catch (err) {
-        console.error('[Auto-Compaction Error]:', err);
+        console.error('Activity tracking error:', err?.message || err);
     }
 };

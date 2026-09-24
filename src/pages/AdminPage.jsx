@@ -4,6 +4,7 @@ import AdminUpload from '../components/AdminUpload';
 import AdminWhitelist from '../components/AdminWhitelist';
 import AdminChatRooms from '../components/AdminChatRooms';
 import AdminActivity from '../components/AdminActivity';
+import AdminInsights from '../components/AdminInsights';
 import AdminClientLinks from '../components/AdminClientLinks';
 import AdminFormPreview from '../components/AdminFormPreview';
 import AdminDossier from '../components/AdminDossier';
@@ -139,6 +140,7 @@ function AdminPage() {
                             { id: 'inventory', label: 'Stone Inventory' },
                             { id: 'whitelist', label: 'Whitelist Registry' },
                             { id: 'chat',      label: 'Project Rooms' },
+                            { id: 'insights',  label: '📈 Insights' },
                             { id: 'activity',  label: 'Login Activity' },
                             { id: 'links',     label: 'Client Links' },
                             { id: 'preview',   label: 'Form Preview' },
@@ -168,6 +170,8 @@ function AdminPage() {
                     </div>
                 ) : activeTab === 'chat' ? (
                     <AdminChatRooms />
+                ) : activeTab === 'insights' ? (
+                    <AdminInsights />
                 ) : activeTab === 'activity' ? (
                     <AdminActivity />
                 ) : activeTab === 'links' ? (

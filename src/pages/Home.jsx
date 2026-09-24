@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import FilterBar from '../components/FilterBar';
 import MarbleGrid from '../components/MarbleGrid';
@@ -296,21 +296,34 @@ function Home({ role }) {
         temperature: []
     });
 
+    // Log a search once the user has SETTLED on it, not on every keystroke.
+    //
+    // This used to fire on each change to `filters`, and the name box changes it
+    // per character -- so typing "calacatta" wrote nine rows ("c", "ca", "cal",
+    // ...), each costing three queries. Searches were 48% of all activity, most
+    // of it prefixes of a word nobody finished searching for.
+    //
+    // Only the facets actually in use are stored, and an identical search is not
+    // logged twice in a row (clearing and re-picking the same colour, say).
+    const lastSearchLogged = useRef('');
     useEffect(() => {
-        const hasActiveFilters = filters.name ||
-            filters.marble.length > 0 ||
-            filters.color.length > 0 ||
-            filters.finish.length > 0 ||
-            filters.priceRange.length > 0 ||
-            filters.application.length > 0 ||
-            filters.pattern.length > 0 ||
-            filters.temperature.length > 0;
-
-        if (hasActiveFilters) {
-            import('../utils/activityTracker').then(({ logActivity }) => {
-                logActivity('search', { filters });
-            });
+        const active = {};
+        const name = filters.name.trim();
+        if (name) active.name = name;
+        for (const k of ['marble', 'color', 'finish', 'priceRange', 'application', 'pattern', 'temperature']) {
+            if (filters[k].length) active[k] = filters[k];
         }
+        if (!Object.keys(active).length) return;
+
+        const key = JSON.stringify(active);
+        const timer = setTimeout(() => {
+            if (key === lastSearchLogged.current) return;
+            lastSearchLogged.current = key;
+            import('../utils/activityTracker').then(({ logActivity }) => {
+                logActivity('search', { filters: active });
+            });
+        }, 800);
+        return () => clearTimeout(timer);
     }, [filters]);
 
     const fetchMarbles = async () => {

@@ -91,6 +91,22 @@ const AdminLeads = () => {
             
             const data = await response.json();
             setAiSummaries(prev => ({ ...prev, [leadId]: data.text }));
+
+            // Saved to the lead, so opening this lead again shows it instead of
+            // paying Gemini to write the same paragraph again. This is also now
+            // the ONLY writer of behavioral_compaction: tracking no longer
+            // summarises (or deletes) anything on its own.
+            const saved = {
+                summary_para: data.text,
+                generated_at: new Date().toISOString(),
+                events_considered: Math.min(20, leadActivities.length),
+            };
+            setLeads(prev => prev.map(l => l.id === leadId ? { ...l, behavioral_compaction: saved } : l));
+            const { error: saveErr } = await supabase
+                .from('leads').update({ behavioral_compaction: saved }).eq('id', leadId);
+            if (saveErr) {
+                console.warn('Summary shown but not saved -- run AI_COST_LOGGING_SETUP.sql to add leads.behavioral_compaction:', saveErr.message);
+            }
         } catch (err) {
             console.error('AI Summary Error:', err);
             setAiSummaries(prev => ({ ...prev, [leadId]: 'Intelligence generation failed. Please try again.' }));
@@ -464,7 +480,7 @@ const AdminLeads = () => {
                                                         onClick={() => generateLeadSummary(lead.id, activities)}
                                                         className="px-4 py-1.5 bg-bronze text-white text-[9px] font-bold uppercase tracking-widest rounded-md hover:bg-stone-900 transition-all active:scale-95 flex items-center gap-2"
                                                     >
-                                                        Generate Insights
+                                                        {lead.behavioral_compaction ? 'Regenerate' : 'Generate Insights'}
                                                     </button>
                                                 )}
                                             </div>
@@ -488,7 +504,11 @@ const AdminLeads = () => {
                                                 <div className="space-y-3 bg-stone-50 p-4 rounded-xl border border-stone-100">
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <Clock size={12} className="text-bronze" />
-                                                        <p className="text-[9px] font-black uppercase tracking-widest text-bronze">Historical Archive (Compacted)</p>
+                                                        <p className="text-[9px] font-black uppercase tracking-widest text-bronze">
+                                                            {lead.behavioral_compaction.generated_at
+                                                                ? `Saved analysis · ${new Date(lead.behavioral_compaction.generated_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`
+                                                                : 'Historical Archive (Compacted)'}
+                                                        </p>
                                                     </div>
                                                     <p className="text-xs text-stone-600 leading-relaxed italic">
                                                         {lead.behavioral_compaction.summary_para || JSON.stringify(lead.behavioral_compaction)}
