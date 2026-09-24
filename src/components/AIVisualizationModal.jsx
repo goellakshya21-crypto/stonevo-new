@@ -209,6 +209,26 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
         document.body.removeChild(link);
     };
 
+    // The crop preview comes back as a ~2 MB base64 data URL. It used to be saved
+    // as-is inside leads.custom_stones, which made that table 55% of the whole
+    // database and rewrote megabytes on every rename. Store it as a file and keep
+    // only the URL; without the upload, fall back to the original photo.
+    const storeCroppedPreview = async (cropped, originalPath) => {
+        if (!cropped?.startsWith('data:')) return cropped || null;
+        try {
+            const blob = await (await fetch(cropped)).blob();
+            const cropPath = originalPath.replace(/\.[^./]+$/, '') + '_crop.png';
+            const { error } = await supabase.storage
+                .from('chat-files')
+                .upload(cropPath, blob, { upsert: false, contentType: blob.type || 'image/png' });
+            if (error) throw error;
+            return supabase.storage.from('chat-files').getPublicUrl(cropPath).data.publicUrl;
+        } catch (err) {
+            console.error('[AI Modal] Crop preview upload failed:', err);
+            return null;
+        }
+    };
+
     // Upload user's own stone image to storage → proceed to app selection
     const handleStoneImageUpload = async (file) => {
         if (!file || !file.type.startsWith('image/')) {
@@ -245,7 +265,7 @@ const AIVisualizationModal = ({ isOpen, onClose, stone, roomName, initialStyle, 
                     aiVisualizer.generateCroppedStonePreview(publicUrl).catch(() => null)
                 ]);
                 isBookmatched = detection.isBookmatched;
-                croppedUrl = cropped;
+                croppedUrl = await storeCroppedPreview(cropped, filePath);
                 setUploadedStoneIsBookmatched(isBookmatched);
                 console.log('[AI Modal] Bookmatch detected:', isBookmatched, '| Crop URL ready:', !!croppedUrl);
             } finally {
