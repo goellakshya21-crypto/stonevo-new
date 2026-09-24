@@ -1,8 +1,18 @@
-import { VertexAI } from '@google-cloud/vertexai';
+// @google/genai in Vertex mode. The previous SDK, @google-cloud/vertexai, was
+// deprecated by Google with removal scheduled for 24 June 2026 -- a date already
+// past when this was migrated. Same project, same service account, same billing:
+// only the client library changed. Deliberately NOT the SDK's API-key mode,
+// which talks to a different Google service with its own billing and quotas.
+import { GoogleGenAI } from '@google/genai';
 import fs from 'fs';
 import path from 'path';
 import { rateLimit, clientIp } from './_rateLimit.js';
 import { logAiCall, usageOf, cleanLabel } from './_aiLog.js';
+
+// Used only when a caller names no model. Every caller does today, but the old
+// fallback was gemini-1.5-flash, which Google has retired -- a caller that
+// forgot the field would have failed outright rather than degraded.
+const DEFAULT_MODEL = 'gemini-2.5-flash';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -30,7 +40,7 @@ export default async function handler(req, res) {
     const record = (extra) => logAiCall({
         endpoint: 'gemini-vertex',
         callType,
-        model: b.model || 'gemini-1.5-flash',
+        model: b.model || DEFAULT_MODEL,
         latencyMs: Date.now() - startedAt,
         modelLatencyMs: modelStartedAt ? Date.now() - modelStartedAt : null,
         attempts: 1,
@@ -39,7 +49,7 @@ export default async function handler(req, res) {
     });
 
     try {
-        const { message, history, model: modelId = 'gemini-1.5-flash', imageBase64, mimeType, imageUrl } = req.body;
+        const { message, history, model: modelId = DEFAULT_MODEL, imageBase64, mimeType, imageUrl } = req.body;
 
         // Secure Service Account Loading
         let keyData;
@@ -57,8 +67,8 @@ export default async function handler(req, res) {
             }
         }
         
-        // Initialize Vertex AI
-        const vertexAI = new VertexAI({
+        const ai = new GoogleGenAI({
+            vertexai: true,
             project: keyData.project_id,
             location: 'us-central1',
             googleAuthOptions: {
@@ -67,11 +77,6 @@ export default async function handler(req, res) {
                     private_key: keyData.private_key,
                 }
             }
-        });
-
-        // Use the Gemini model
-        const generativeModel = vertexAI.getGenerativeModel({
-            model: modelId,
         });
 
         console.log(`[Vertex AI] Using model: ${modelId}`);
@@ -97,7 +102,10 @@ export default async function handler(req, res) {
         if (inlineImage) {
             console.log(`[Vertex AI] Multimodal request with image (${inlineImage.mimeType})`);
             modelStartedAt = Date.now();
-            const result = await generativeModel.generateContent({
+            // The new SDK returns the response itself; there is no `.response`
+            // promise to await as there was before.
+            const response = await ai.models.generateContent({
+                model: modelId,
                 contents: [{
                     role: 'user',
                     parts: [
@@ -106,7 +114,6 @@ export default async function handler(req, res) {
                     ]
                 }]
             });
-            const response = await result.response;
             usage = usageOf(response);
             const candidate = response.candidates?.[0];
             const text = candidate?.content?.parts?.find(p => p.text)?.text || "No response generated.";
@@ -115,7 +122,8 @@ export default async function handler(req, res) {
         }
 
         // Text-only chat (existing path)
-        const chat = generativeModel.startChat({
+        const chat = ai.chats.create({
+            model: modelId,
             history: history ? history.map(h => ({
                 role: h.role === 'user' ? 'user' : 'model',
                 parts: [{ text: h.content }]
@@ -123,8 +131,7 @@ export default async function handler(req, res) {
         });
 
         modelStartedAt = Date.now();
-        const result = await chat.sendMessage(message);
-        const response = await result.response;
+        const response = await chat.sendMessage({ message });
         usage = usageOf(response);
         const candidate = response.candidates?.[0];
         const text = candidate?.content?.parts?.find(p => p.text)?.text || "No response generated.";

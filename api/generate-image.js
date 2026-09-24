@@ -1,4 +1,6 @@
-import { VertexAI } from '@google-cloud/vertexai';
+// @google/genai in Vertex mode -- see the note in gemini-vertex.js. The old
+// @google-cloud/vertexai SDK was scheduled for removal on 24 June 2026.
+import { GoogleGenAI } from '@google/genai';
 import fs from 'fs';
 import path from 'path';
 import { rateLimit, clientIp } from './_rateLimit.js';
@@ -12,6 +14,10 @@ import { asLeadId, consumeVisualization, refundVisualization } from './_quota.js
 // wait out for them. Each visualize also spends TWO Vertex calls (this one plus
 // the description in gemini-vertex.js), which doubles the pressure.
 const isQuotaError = (err) => {
+    // The new SDK throws an ApiError carrying the HTTP status as a number, which
+    // is a firmer signal than finding "429" in prose. The message check stays as
+    // a fallback in case a quota error ever arrives without it.
+    if (err?.status === 429) return true;
     const s = String(err?.message || err);
     return s.includes('429') || /RESOURCE_EXHAUSTED|resource exhausted/i.test(s);
 };
@@ -25,11 +31,12 @@ const MAX_QUOTA_RETRIES = 2;
 
 // `stats` is filled in as it goes so the attempt count survives a throw: the
 // cost log needs it on a failed call just as much as on a successful one.
-async function generateWithQuotaRetry(model, request, startedAt, stats = {}) {
+// `call` is a thunk so a retry makes a genuinely fresh request.
+async function generateWithQuotaRetry(call, startedAt, stats = {}) {
     for (let attempt = 0; ; attempt++) {
         stats.attempts = attempt + 1;
         try {
-            return await model.generateContent(request);
+            return await call();
         } catch (err) {
             const elapsed = Date.now() - startedAt;
             // Only quota errors are worth retrying -- a bad prompt or a missing
@@ -144,7 +151,8 @@ export default async function handler(req, res) {
             }
         }
 
-        const vertexAI = new VertexAI({
+        const ai = new GoogleGenAI({
+            vertexai: true,
             project: keyData.project_id,
             location: 'us-central1',
             googleAuthOptions: { credentials: { client_email: keyData.client_email, private_key: keyData.private_key } } 
@@ -283,7 +291,6 @@ ${regionInsist ? (regionInsistReason === 'magenta' ? `
 
         // (The stone image was resolved above, before the prompt was built.)
 
-        const model = vertexAI.preview.getGenerativeModel({ model: modelId });
         console.log(`[Vertex AI Image] Generating render. Custom Room: ${!!userRoomImage}, Slab panel: ${usedPanel ? `${slabGrid?.cols}x${slabGrid?.rows}` : 'no'}`);
 
         const parts = [
@@ -315,12 +322,14 @@ ${regionInsist ? (regionInsistReason === 'magenta' ? `
         }
 
         modelStartedAt = Date.now();
-        const result = await generateWithQuotaRetry(model, {
-            contents: [{ role: 'user', parts }]
-        }, startedAt, stats);
+        // The new SDK hands back the response itself; there is no `.response`
+        // promise to await as there was with the old one.
+        const response = await generateWithQuotaRetry(
+            () => ai.models.generateContent({ model: modelId, contents: [{ role: 'user', parts }] }),
+            startedAt, stats,
+        );
         modelEndedAt = Date.now();
 
-        const response = await result.response;
         // Captured before inspecting the result: a model that returns text instead
         // of an image has still been paid for, and that cost belongs in the log.
         usage = usageOf(response);
