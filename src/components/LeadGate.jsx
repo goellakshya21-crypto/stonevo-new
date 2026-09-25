@@ -13,10 +13,14 @@ import StonWordmark from './StonWordmark';
 // Flip GALLERY_LOCKED to false (or delete this + the check in the approved
 // branch) on launch day.
 const GALLERY_LOCKED = true;
-// Both numbers belong to the team. They still have to pass a real SMS OTP to
-// get in -- this list only decides who the gate lets THROUGH afterwards, so
-// adding a number here grants early access to the gallery, not a login bypass.
-const LAUNCH_ALLOWED_PHONES = ['9910978887', '7678320944'];
+// Everyone here still has to pass a real SMS OTP to get in -- this list only
+// decides who the gate lets THROUGH afterwards, so adding a number grants early
+// access to the gallery, not a login bypass.
+const LAUNCH_ALLOWED_PHONES = [
+    '9910978887',
+    '7678320944', // Lakshya
+    '8779473034', // Jaswant
+];
 
 const PreLaunchNotice = ({ phone, onChangeNumber }) => (
     <div className="fixed inset-0 z-[150] bg-stone-950 flex items-center justify-center px-6 overflow-y-auto">
