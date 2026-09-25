@@ -17,7 +17,12 @@ import { TrendingUp, RefreshCw, Users, Eye, Sparkles, ClipboardList, Search } fr
 
 // The team's own testing would otherwise dominate every chart: one person
 // rendering the same black marble forty times reads as a hit product.
-const TEAM_PHONES = ['7678320944', '7042353166', '9910978887'];
+const TEAM_PHONES = [
+    '7678320944', // Lakshya
+    '7042353166',
+    '9910978887',
+    '8779473034', // Jaswant
+];
 
 // Searches from one person closer together than this are one search being
 // typed or refined, not several. Needed for history recorded before searches
