@@ -68,6 +68,17 @@ const PreLaunchNotice = ({ phone, onChangeNumber }) => (
     </div>
 );
 
+// Browsers report a request that never completed with their own raw wording --
+// "TypeError: Load failed" on iPhone Safari, "Failed to fetch" in Chrome. That
+// reads as a crash and tells the person nothing about what to do next.
+const friendlyError = (message) => {
+    const m = String(message || '');
+    if (/load failed|failed to fetch|networkerror|network request failed/i.test(m)) {
+        return "We couldn't reach the server. Please check your connection and try again. If it keeps happening, start over below.";
+    }
+    return m;
+};
+
 const LeadGate = ({ children }) => {
     const { setLeadId: setContextLeadId, clearSession } = useRequirements();
     const navigate = useNavigate();
@@ -927,7 +938,26 @@ const LeadGate = ({ children }) => {
                                 </form>
                             )}
 
-                            {error && <p className="mt-4 text-red-400 text-xs italic bg-red-400/10 p-3 rounded">{error}</p>}
+                            {error && (
+                                <p className="mt-4 text-red-400 text-xs italic bg-red-400/10 p-3 rounded">
+                                    {friendlyError(error)}
+                                </p>
+                            )}
+
+                            {/* Every step after the phone number used to be a dead end:
+                                if a submit failed, or the wrong number was entered, the
+                                only escape was clearing site data by hand. */}
+                            {step !== 'PHONE' && (
+                                <div className="mt-8 pt-6 border-t border-white/5 text-center">
+                                    <button
+                                        type="button"
+                                        onClick={resetSession}
+                                        className="text-[10px] uppercase tracking-[0.25em] font-bold text-stone-400 hover:text-bronze transition-colors border-b border-bronze/30 pb-1"
+                                    >
+                                        Start over with a different number
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </motion.div>
                 )}
