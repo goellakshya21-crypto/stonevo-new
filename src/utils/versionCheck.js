@@ -29,15 +29,24 @@ const runningBundle = () => {
 
 let reloading = false;
 
+// Set while the user is part-way through signing in. Leaving the page to read
+// the SMS code and coming back is the NORMAL way to enter it -- and returning to
+// the page is exactly what triggers this check. Reloading then wiped the code
+// screen and sent people back to the phone form; asking for more codes then
+// tripped the 3-per-10-minutes limit and locked them out entirely.
+let held = false;
+export const setReloadHold = (value) => { held = !!value; };
+
 const checkForNewVersion = async () => {
-    if (reloading) return;
+    if (reloading || held) return;
     const mine = runningBundle();
     if (!mine) return;
     try {
         // no-store: the point is to ask the server, not a cache.
         const html = await (await fetch('/', { cache: 'no-store' })).text();
         const live = (html.match(/\/assets\/(index-[^"'/]+\.js)/) || [])[1];
-        if (live && live !== mine) {
+        // Re-checked after the request: sign-in may have started while it ran.
+        if (live && live !== mine && !held) {
             reloading = true;
             window.location.reload();
         }

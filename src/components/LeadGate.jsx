@@ -6,6 +6,7 @@ import { Phone, Mail, Building, Globe, User, ShieldCheck, Compass, Hammer, X } f
 import { useRequirements } from '../context/RequirementsContext';
 import { notifyLogin, notifyArchitectSignup, notifyClientRequest } from '../utils/notifyTelegram';
 import StonWordmark from './StonWordmark';
+import { setReloadHold } from '../utils/versionCheck';
 
 // ── Pre-launch gate ──────────────────────────────────────────────────────
 // The gallery is closed until public launch. Only these numbers get through
@@ -98,6 +99,15 @@ const LeadGate = ({ children }) => {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState(null);
     const [pendingLead, setPendingLead] = useState(null); // Data after verification but before role choice
+
+    // Never auto-reload for a new version while someone is mid-sign-in: they
+    // leave the page to read the SMS code, and coming back would otherwise wipe
+    // the step they were on. Only the phone step has nothing to lose.
+    const midSignIn = !['approved', 'welcome', 'pending', 'loading'].includes(status) && step !== 'PHONE';
+    useEffect(() => {
+        setReloadHold(midSignIn);
+        return () => setReloadHold(false);
+    }, [midSignIn]);
 
     useEffect(() => {
         checkLeadStatus();
