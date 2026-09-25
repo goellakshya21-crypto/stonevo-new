@@ -21,10 +21,10 @@ serve(async (req) => {
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE);
 
         // ── Rate limiting (anti-abuse — protects SMS credits) ──────────────────
-        // Per phone: max 3 OTPs / 10 min. Per IP: max 15 OTPs / hour.
+        // Per phone: max 3 OTPs / 5 min. Per IP: max 15 OTPs / hour.
         const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
         const [{ data: phoneOk }, { data: ipOk }] = await Promise.all([
-            supabase.rpc('check_rate_limit', { p_key: `otp:phone:${phone}`, p_limit: 3, p_window: 600 }),
+            supabase.rpc('check_rate_limit', { p_key: `otp:phone:${phone}`, p_limit: 3, p_window: 300 }),
             supabase.rpc('check_rate_limit', { p_key: `otp:ip:${ip}`, p_limit: 15, p_window: 3600 }),
         ]);
         if (phoneOk === false || ipOk === false) {
