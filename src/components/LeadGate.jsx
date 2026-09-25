@@ -717,7 +717,13 @@ const LeadGate = ({ children }) => {
                                 <div className="w-32 h-[1px] bg-gradient-to-r from-transparent via-bronze to-transparent mx-auto"></div>
                             </div>
                             <button
-                                onClick={checkLeadStatus}
+                                // A full reload, not an in-memory re-check. Vetting can
+                                // take days, and re-checking in place ran whatever code was
+                                // loaded when this screen first appeared: a user approved
+                                // days later was then judged by the OLD launch allowlist and
+                                // bounced to the pre-launch notice. Reloading re-checks the
+                                // status with the site as it is now.
+                                onClick={() => window.location.reload()}
                                 className="mt-8 text-[10px] font-bold text-stone-400 hover:text-bronze transition-colors uppercase tracking-[0.3em]"
                             >
                                 Re-verify Status
