@@ -350,7 +350,8 @@ function Home({ role }) {
                     temperature: item.temperature || []
                 },
                 description: item.description,
-                tags: item.tags
+                tags: item.tags,
+                alternateNames: item.alternate_names || []
             }));
 
             setMarbles([...transformedData, ...SYNTHETIC_MARBLES]);

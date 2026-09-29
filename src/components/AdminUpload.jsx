@@ -163,6 +163,22 @@ const AdminUpload = ({ onCancel }) => {
     // --- Array helpers for multi-value fields ---
     const toArr = (v) => Array.isArray(v) ? v.filter(Boolean) : (v ? [v] : []);
     const mergeArr = (a, b) => [...new Set([...toArr(a), ...toArr(b)])].filter(Boolean);
+    // Alternate names are typed as one comma-separated string and only split on
+    // save -- splitting on every keystroke would eat the comma you just typed.
+    const parseNames = (text) => [...new Set((text || '').split(',').map(t => t.trim()).filter(Boolean))];
+    // stones.alternate_names is added by ALTERNATE_NAMES_SETUP.sql. Until that has
+    // been run, retry the write without it so saving a stone never breaks.
+    const writeWithoutAltNamesIfMissing = async (write, payload) => {
+        const res = await write(payload);
+        if (res.error && /alternate_names/i.test(res.error.message || '')) {
+            const { alternate_names, ...rest } = payload;
+            if (alternate_names?.length) {
+                alert('Alternate names were NOT saved: run ALTERNATE_NAMES_SETUP.sql in Supabase first. Everything else was saved.');
+            }
+            return write(rest);
+        }
+        return res;
+    };
 
     // Pill-style multi-select for physical property fields
     const FieldPills = ({ category, values, onChange, compact = false }) => {
@@ -254,6 +270,7 @@ const AdminUpload = ({ onCancel }) => {
                     name: extractedName,
                     description: existingStone.description,
                     tags: existingStone.tags,
+                    alternate_names_text: toArr(existingStone.alternate_names).join(', '),
                     physical_properties: {
                         marble: toArr(existingStone.type),
                         finish: toArr(existingStone.finish),
@@ -310,6 +327,7 @@ const AdminUpload = ({ onCancel }) => {
             const finalResult = {
                 name: extractedName,
                 ...jsonResult,
+                alternate_names_text: '',
                 physical_properties: {
                     marble: [],
                     finish: [],
@@ -409,20 +427,21 @@ const AdminUpload = ({ onCancel }) => {
                 price_range: mergeArr(mergeArr(stoneData.physical_properties?.priceRange, existingStone?.price_range), getMappingArr('priceRange')),
                 description: existingStone?.description || stoneData.description || '',
                 tags: existingStone?.tags || stoneData.tags || [],
+                alternate_names: mergeArr(parseNames(stoneData.alternate_names_text), existingStone?.alternate_names),
                 image_url: publicUrl || '',
                 original_filename: imageFile.name
             };
 
             let dbResponse;
             if (existingStone) {
-                dbResponse = await supabase
+                dbResponse = await writeWithoutAltNamesIfMissing(p => supabase
                     .from('stones')
-                    .update(payload)
-                    .eq('id', existingStone.id);
+                    .update(p)
+                    .eq('id', existingStone.id), payload);
             } else {
-                dbResponse = await supabase
+                dbResponse = await writeWithoutAltNamesIfMissing(p => supabase
                     .from('stones')
-                    .insert([payload]);
+                    .insert([p]), payload);
             }
 
             if (dbResponse.error) throw dbResponse.error;
@@ -749,6 +768,7 @@ const AdminUpload = ({ onCancel }) => {
     const startEditing = (stone) => {
         setEditingStone({
             ...stone,
+            alternate_names_text: toArr(stone.alternate_names).join(', '),
             physical_properties: {
                 marble: toArr(stone.type),
                 finish: toArr(stone.finish),
@@ -783,6 +803,7 @@ const AdminUpload = ({ onCancel }) => {
                 name: editingStone.name,
                 description: editingStone.description || '',
                 tags: editingStone.tags || [],
+                alternate_names: parseNames(editingStone.alternate_names_text),
                 type: toArr(pp.marble),
                 application: toArr(pp.application),
                 finish: toArr(pp.finish),
@@ -791,7 +812,8 @@ const AdminUpload = ({ onCancel }) => {
                 temperature: toArr(pp.temperature),
                 price_range: toArr(pp.priceRange),
             };
-            const { error } = await supabase.from('stones').update(payload).eq('id', editingStone.id);
+            const { error } = await writeWithoutAltNamesIfMissing(
+                p => supabase.from('stones').update(p).eq('id', editingStone.id), payload);
             if (error) throw error;
             setManageResults(prev => prev.map(s =>
                 s.id === editingStone.id ? { ...s, ...payload } : s
@@ -1076,6 +1098,17 @@ const AdminUpload = ({ onCancel }) => {
                                             onChange={(e) => handleFieldChange('tags', e.target.value.split(',').map(t => t.trim()))}
                                             className="w-full bg-stone-50 border border-stone-100 rounded-md p-2 focus:ring-0 text-sm text-stone-600"
                                         />
+                                    </div>
+                                    <div className="mb-6 text-left">
+                                        <label className="text-[10px] text-stone-400 uppercase block font-bold mb-1">Alternate Names (Comma separated)</label>
+                                        <input
+                                            type="text"
+                                            value={result.alternate_names_text || ''}
+                                            onChange={(e) => handleFieldChange('alternate_names_text', e.target.value)}
+                                            placeholder="Other trade names, e.g. Volakas, Bianco Voque"
+                                            className="w-full bg-stone-50 border border-stone-100 rounded-md p-2 focus:ring-0 text-sm text-stone-600"
+                                        />
+                                        <p className="text-[10px] text-stone-400 mt-1">Searching any of these in the gallery will find this stone.</p>
                                     </div>
 
                                     <button
@@ -1490,6 +1523,17 @@ const AdminUpload = ({ onCancel }) => {
                                                     onChange={e => handleEditFieldChange('tags', e.target.value.split(',').map(t => t.trim()).filter(Boolean))}
                                                     className="w-full bg-transparent border-none p-0 focus:ring-0 text-sm text-stone-600"
                                                 />
+                                            </div>
+                                            <div className="col-span-2 p-3 bg-stone-50 rounded-md border border-stone-100">
+                                                <label className="text-[10px] text-stone-400 uppercase font-bold mb-1 block">Alternate names (comma separated)</label>
+                                                <input
+                                                    type="text"
+                                                    value={editingStone.alternate_names_text || ''}
+                                                    onChange={e => handleEditFieldChange('alternate_names_text', e.target.value)}
+                                                    placeholder="Other trade names, e.g. Volakas, Bianco Voque"
+                                                    className="w-full bg-transparent border-none p-0 focus:ring-0 text-sm text-stone-600"
+                                                />
+                                                <p className="text-[10px] text-stone-400 mt-1">Searching any of these in the gallery will find this stone.</p>
                                             </div>
                                         </div>
 

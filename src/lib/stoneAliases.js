@@ -115,10 +115,13 @@ export const getAliases = (stoneName) => {
 /**
  * Enrich a list of stones with an `_aliases` field (array of alias strings).
  * Used by Fuse.js search so aliases are matched alongside the real name.
+ *
+ * Two sources are merged: the hardcoded map above, and `alternateNames` --
+ * the names typed into the admin panel for that one stone (stones.alternate_names).
  */
 export const enrichWithAliases = (stones) => {
     return stones.map(s => ({
         ...s,
-        _aliases: getAliases(s.name)
+        _aliases: [...new Set([...getAliases(s.name), ...(s.alternateNames || [])])]
     }));
 };
