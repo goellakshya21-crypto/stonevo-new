@@ -7,7 +7,7 @@ import StonWordmark from './StonWordmark';
 // ── Who may open the internal admin panel ────────────────────────────────────
 // Checked against leads.phone, so an admin must pass phone-OTP first -- knowing
 // the URL alone is not enough. Add numbers here to grant access.
-const ADMIN_PHONES = ['7678320944'];
+const ADMIN_PHONES = ['7678320944', '8779473034' /* Jaswant */];
 
 const last10 = (v) => String(v || '').replace(/\D/g, '').slice(-10);
 
