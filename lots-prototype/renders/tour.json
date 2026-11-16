@@ -1,0 +1,50 @@
+{
+  "items": [
+    {
+      "lotId": "0cc0caaa-371d-4b20-b889-05f97003f032",
+      "scene": "bathroom",
+      "style": "contemporary-indian"
+    },
+    {
+      "lotId": "96f15290-f9ac-4850-92f6-d086de991bc1",
+      "scene": "kitchen",
+      "style": "haveli"
+    },
+    {
+      "lotId": "11595098-0cbf-4d58-b5d3-61b490259526",
+      "scene": "living",
+      "style": "mediterranean"
+    },
+    {
+      "lotId": "2de5a38f-a5fc-4c8a-9ee7-75b3d3b0421c",
+      "scene": "bedroom",
+      "style": "art-deco"
+    },
+    {
+      "lotId": "0959f45c-8b7b-4d59-a55b-94e46de5a801",
+      "scene": "pooja",
+      "style": "industrial"
+    },
+    {
+      "lotId": "e1615569-d668-49dc-8688-d44277f679b3",
+      "scene": "dining",
+      "style": "mid-century"
+    },
+    {
+      "lotId": "9630368c-e345-4d6f-96cc-0ca3730b4d51",
+      "scene": "vanity",
+      "style": "warm-minimal"
+    },
+    {
+      "lotId": "e47afd5f-50de-4ceb-a132-18717ad7f371",
+      "scene": "foyer",
+      "style": "japandi"
+    },
+    {
+      "lotId": "79c827c2-22ee-4bbb-9b31-49cd49786c4c",
+      "scene": "staircase",
+      "style": "scandinavian"
+    }
+  ],
+  "savedAt": "2026-11-11T06:51:06.479Z"
+}

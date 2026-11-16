@@ -5,14 +5,33 @@
     },
 "api/health.js": {
       "maxDuration": 10
+    },
+    "api/lots-proto.js": {
+      "maxDuration": 60
     }
   },
   "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/lots(.*)",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/renders/(.*)",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
+    { "source": "/__proto/swap-stone", "destination": "/api/lots-proto?route=swap" },
+    { "source": "/__proto/locate", "destination": "/api/lots-proto?route=locate" },
+    { "source": "/__proto/mix-stones", "destination": "/api/lots-proto?route=mix" },
+    { "source": "/__renders/save", "destination": "/api/lots-proto?route=save" },
+    { "source": "/__renders/tour", "destination": "/api/lots-proto?route=tour" },
+    { "source": "/lots", "destination": "/lots/index.html" },
     {
       "source": "/((?!api/|node_modules/|src/|@vite/|@react-refresh|@fs/|public/|.*\\..*).*)",
       "destination": "/index.html"
