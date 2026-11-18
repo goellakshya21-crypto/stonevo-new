@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 // The live site's slider, imported as is: same drag, same clip, same labels.
 import ImageCompareSlider from '../../../src/components/ImageCompareSlider.jsx';
 import { canDo, GROUPS, ownSurfacesFor, placeOf, SCENE_IDS, SCENES } from '../lib/applications';
-import { compareInRoom, hasOwnRender, prepareRoomPhoto, renderLot, renderOwnRoom } from '../lib/renders';
+import { hasOwnRender, prepareRoomPhoto, renderOwnRoom } from '../lib/renders';
+import { creditsLeft, giveCreditBack, takeCredit, useCredits } from '../lib/commerce';
 import { costFor, inr } from '../lib/lots';
 import { Arrow, Chip, Close, DownloadButton, Pin } from './ui';
 import { fileNameFor } from '../lib/download';
@@ -27,7 +28,12 @@ const OWN = 'own';
  * surface this visit. The photo is the app's in-memory one, shared with the
  * lot pages, and is never saved.
  */
-export default function CompareSheet({ a, b, renders, onRendered, onOpenLot, onClose, ownPhoto, setOwnPhoto, startInOwnRoom }) {
+// Decided 2026-11-17: only "Your room" makes new pictures, and each takes a
+// credit. In one of our rooms the two lots are shown from their ready-made
+// pictures (or the slab photo where a lot has none for that room), at once
+// and free; for both stones in the very same room, use a photo of your own.
+export default function CompareSheet({ a, b, renders, onOpenLot, onClose, ownPhoto, setOwnPhoto, startInOwnRoom, onNeedCredits }) {
+    const credits = useCredits();
     const rooms = SCENE_IDS.filter((id) => canDo(a, id) && canDo(b, id));
     const bSurfaces = ownSurfacesFor(b);
     const surfaces = ownSurfacesFor(a).filter((s) => bSurfaces.includes(s));
@@ -55,46 +61,11 @@ export default function CompareSheet({ a, b, renders, onRendered, onOpenLot, onC
 
     const cleanError = (err) => String(err.message || err).replace(/^Proxy error:\s*/i, '');
 
-    // `fresh`: ask again even though a swap of this pair exists ("Try again"
-    // after a side came back unchanged).
-    const runRoom = async (id, { fresh = false } = {}) => {
-        if ((results[id] && !fresh) || inFlight.current) return;
-        // Each click spends a render or two, so a double-click must not spend four.
-        inFlight.current = true;
+    // Our rooms: each lot's ready-made picture of that room, else its slab photo. No render.
+    const runRoom = (id) => {
+        if (results[id]) return;
         setError('');
-        const started = Date.now();
-        try {
-            // The room comes from whichever lot already has one saved.
-            let base = renders[a.id]?.[id] ? a : renders[b.id]?.[id] ? b : null;
-            let baseUrl = base ? renders[base.id][id] : null;
-            const steps = base ? 1 : 2;
-            if (!base) {
-                setBusy({ sceneId: id, step: 'scene', started, steps });
-                baseUrl = await renderLot(a, id);
-                onRendered(a, id, baseUrl);
-                base = a;
-            }
-            const other = base === a ? b : a;
-            setBusy({ sceneId: id, step: 'swap', started, steps });
-            const swapped = await compareInRoom({ base, baseUrl, other, sceneId: id, fresh });
-            // Left is always the first lot, right the second, whichever was the room.
-            setResults((r) => ({
-                ...r,
-                // `before` is the room in the model's frame, the exact frame the
-                // swap came back in, so the two sides line up on the slider.
-                [id]: {
-                    ...(base === a ? { left: swapped.before, right: swapped.url } : { left: swapped.url, right: swapped.before }),
-                    w: swapped.w,
-                    h: swapped.h,
-                    unchanged: swapped.changed ? [] : [other],
-                },
-            }));
-        } catch (err) {
-            setError(cleanError(err));
-        } finally {
-            setBusy(null);
-            inFlight.current = false;
-        }
+        setResults((r) => ({ ...r, [id]: { left: renders[a.id]?.[id] || a.image, right: renders[b.id]?.[id] || b.image, ready: true, unchanged: [] } }));
     };
 
     // `again`: the lots to ask for afresh (the ones that came back unchanged).
@@ -107,6 +78,14 @@ export default function CompareSheet({ a, b, renders, onRendered, onOpenLot, onC
         const started = Date.now();
         const fresh = (l) => again.some((x) => x.id === l.id);
         const steps = [a, b].filter((l) => fresh(l) || !hasOwnRender(l, s, photo)).length;
+        // A credit for each new picture; "Try again" on an unchanged side is free.
+        const toPay = [a, b].filter((l) => !fresh(l) && !hasOwnRender(l, s, photo)).length;
+        if (toPay > creditsLeft(credits)) {
+            inFlight.current = false;
+            onNeedCredits?.();
+            return;
+        }
+        const taken = Array.from({ length: toPay }, () => takeCredit());
         try {
             setBusy({ sceneId: OWN, step: 'a', started, steps });
             const left = await renderOwnRoom(a, s, photo, { fresh: fresh(a) });
@@ -114,8 +93,12 @@ export default function CompareSheet({ a, b, renders, onRendered, onOpenLot, onC
             const right = await renderOwnRoom(b, s, photo, { fresh: fresh(b) });
             const unchanged = [left.changed ? null : a, right.changed ? null : b].filter(Boolean);
             // Both are edits of the same framed photo, so they share one frame.
-            setOwn((o) => ({ photo, by: { ...(o.photo === photo ? o.by : {}), [s.id]: { left: left.url, right: right.url, w: left.w, h: left.h, unchanged } } }));
+            setOwn((o) => ({
+                photo,
+                by: { ...(o.photo === photo ? o.by : {}), [s.id]: { left: left.url, right: right.url, w: left.w, h: left.h, unchanged } },
+            }));
         } catch (err) {
+            taken.forEach(giveCreditBack);
             setError(cleanError(err));
         } finally {
             setBusy(null);
@@ -147,7 +130,15 @@ export default function CompareSheet({ a, b, renders, onRendered, onOpenLot, onC
 
     let picture;
     if (result && !busy) {
-        picture = <ImageCompareSlider key={`${result.left.slice(-24)}${result.right.slice(-24)}`} before={result.left} after={result.right} beforeLabel={a.name} afterLabel={b.name} />;
+        picture = (
+            <ImageCompareSlider
+                key={`${result.left.slice(-24)}${result.right.slice(-24)}`}
+                before={result.left}
+                after={result.right}
+                beforeLabel={a.name}
+                afterLabel={b.name}
+            />
+        );
     } else if (isOwn && !ownPhoto) {
         picture = (
             <div className="absolute inset-0 bg-paper-2">
@@ -178,7 +169,11 @@ export default function CompareSheet({ a, b, renders, onRendered, onOpenLot, onC
                 {busy && (
                     <div className="absolute inset-0 grid place-items-center p-4">
                         <BusyNote
-                            title={busy.step === 'a' ? `Putting ${a.name} on your ${surface.label.toLowerCase()}…` : `Now ${b.name} on the same ${surface.label.toLowerCase()}…`}
+                            title={
+                                busy.step === 'a'
+                                    ? `Putting ${a.name} on your ${surface.label.toLowerCase()}…`
+                                    : `Now ${b.name} on the same ${surface.label.toLowerCase()}…`
+                            }
                             started={busy.started}
                             hint={busy.steps === 2 ? `step ${busy.step === 'a' ? 1 : 2} of 2, about 40 s in all` : 'about 20 s'}
                         />
@@ -196,27 +191,28 @@ export default function CompareSheet({ a, b, renders, onRendered, onOpenLot, onC
                         <BusyNote
                             title={busy.step === 'scene' ? `Building the ${placeOf(SCENES[busy.sceneId])} with ${a.name}…` : 'Swapping in the other stone…'}
                             started={busy.started}
-                            hint={busy.step === 'scene' ? 'step 1 of 2, about 40 s in all' : busy.steps === 2 ? 'step 2 of 2' : 'same room, other stone · about 20 s'}
+                            hint={
+                                busy.step === 'scene'
+                                    ? 'step 1 of 2, about 40 s in all'
+                                    : busy.steps === 2
+                                      ? 'step 2 of 2'
+                                      : 'same room, other stone · about 20 s'
+                            }
                         />
                     ) : (
                         <div className="rounded-2xl bg-paper/95 backdrop-blur px-5 py-4 shadow-card max-w-[400px]">
                             <p className="font-bold text-[15px]">{error ? 'That comparison did not finish' : 'Pick a room to compare them in'}</p>
                             <p className="mt-1 text-[12.5px] text-ink-2">
-                                {error ||
-                                    'Both stones go into the same room under the same light, so the only difference you see is the stone. Use one of our rooms, or a photo of your own.'}
+                                {error || 'Pick one of our rooms to see both lots in it, or put both stones on the same surface of a photo of your own.'}
                             </p>
-                            {error && sceneId ? (
-                                <button onClick={() => runRoom(sceneId)} className="mt-3 h-10 px-4 rounded-full bg-ink text-paper text-[13px] font-bold">
-                                    Try again
-                                </button>
-                            ) : (
+                            {
                                 <button
                                     onClick={() => pick(OWN)}
                                     className="mt-3 h-10 px-4 rounded-full border border-ink/20 text-[13px] font-bold inline-flex items-center gap-1.5 hover:border-ink"
                                 >
                                     <CameraIcon /> Use my own room
                                 </button>
-                            )}
+                            }
                         </div>
                     )}
                 </div>
@@ -225,7 +221,12 @@ export default function CompareSheet({ a, b, renders, onRendered, onOpenLot, onC
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" role="dialog" aria-modal="true" aria-label={`Compare ${a.name} and ${b.name}`}>
+        <div
+            className="fixed inset-0 z-50 flex items-end md:items-center justify-center"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Compare ${a.name} and ${b.name}`}
+        >
             <button className="absolute inset-0 bg-ink/45 backdrop-blur-[2px] scene-fade" onClick={onClose} aria-label="Close" />
             <div className="relative sheet-in bg-paper w-full md:w-[min(1180px,94vw)] max-h-[94svh] md:max-h-[92vh] rounded-t-[26px] md:rounded-[26px] overflow-y-auto shadow-float">
                 <div className="p-4 md:p-6 pb-3 md:pb-4 pr-14">
@@ -271,7 +272,7 @@ export default function CompareSheet({ a, b, renders, onRendered, onOpenLot, onC
                                     : `${result.unchanged.map((l) => l.name).join(' and ')} came back with the ${scene.surface.toLowerCase()} barely changed, even after a second try, so both sides may look alike.`}
                             </span>
                             <button
-                                onClick={() => (isOwn ? runOwn({ again: result.unchanged }) : runRoom(sceneId, { fresh: true }))}
+                                onClick={() => runOwn({ again: result.unchanged })}
                                 className="h-9 px-4 rounded-full bg-clay text-paper text-[12.5px] font-bold shrink-0"
                             >
                                 Try again
@@ -313,8 +314,8 @@ export default function CompareSheet({ a, b, renders, onRendered, onOpenLot, onC
                                     : !surface
                                       ? ''
                                       : ownCost === 0
-                                      ? 'Both are ready.'
-                                      : `${ownCost} ${ownCost === 1 ? 'render' : 'renders'}, about ${ownCost * 20} seconds.`}{' '}
+                                        ? 'Both are ready.'
+                                        : `${ownCost} ${ownCost === 1 ? 'render' : 'renders'}, about ${ownCost * 20} seconds, ${ownCost} ${ownCost === 1 ? 'credit' : 'credits'} (${creditsLeft(credits)} left).`}{' '}
                                 Your photo is never saved.
                             </span>
                         </div>
@@ -324,7 +325,8 @@ export default function CompareSheet({ a, b, renders, onRendered, onOpenLot, onC
 
                 <div className="px-4 md:px-6 pt-4">
                     <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-ink-3">
-                        Where to compare <span className="normal-case tracking-normal font-semibold">· your room, or {rooms.length} of ours both lots suit</span>
+                        Where to compare{' '}
+                        <span className="normal-case tracking-normal font-semibold">· your room, or {rooms.length} of ours both lots suit</span>
                     </p>
                     <div className="mt-2 flex md:flex-wrap items-center gap-1.5 overflow-x-auto md:overflow-visible no-scrollbar pb-1">
                         <Chip

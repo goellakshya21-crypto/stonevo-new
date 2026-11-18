@@ -12,6 +12,24 @@ import { BRAND } from './brand';
 
 export const WHATSAPP_NUMBER = String(import.meta.env.VITE_WHATSAPP_NUMBER || '').replace(/\D/g, '');
 
+// Where a happy customer reviews us on Google (optional; the button hides without it).
+export const GOOGLE_REVIEW_URL = String(import.meta.env.VITE_GOOGLE_REVIEW_URL || '');
+
+/**
+ * Asking a customer for feedback on WhatsApp, after they bought (decided
+ * 2026-11-17): a few words, a Google review, and photos of the finished space,
+ * which we publish only with their permission.
+ */
+export const feedbackRequest = (name) =>
+    [
+        `Hi${name ? ` ${name}` : ''}, thank you for buying your stone with ${BRAND.name}.`,
+        'How did it turn out? A few words here would mean a lot.',
+        GOOGLE_REVIEW_URL ? `If you are happy, a Google review helps others find us: ${GOOGLE_REVIEW_URL}` : '',
+        'And if you send photos of the finished space, we would love to share them, but only if you say yes.',
+    ]
+        .filter(Boolean)
+        .join('\n\n');
+
 /** A wa.me link that opens a chat with the team, `text` already typed. */
 export const whatsappLink = (text) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 
@@ -57,7 +75,8 @@ export const VIDEO_CALL_FEE = 499;
 export const VIDEO_CREDIT_DAYS = 30;
 
 /** One line about a lot, for a message to the team. */
-export const lotLine = (lot) => `${lot.name} (${lot.sqft} sq ft lot, ${inr(lot.price)}/sq ft for the whole lot or ${inr(lot.partRate)}/sq ft for part, ships from ${lot.city.name})`;
+export const lotLine = (lot) =>
+    `${lot.name} (${lot.sqft} sq ft lot, ${inr(lot.price)}/sq ft for the whole lot or ${inr(lot.partRate)}/sq ft for part, ships from ${lot.city.name})`;
 
 /** The WhatsApp message that asks for a meeting. */
 export function meetingMessage({ day, time, about }) {

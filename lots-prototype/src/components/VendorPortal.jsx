@@ -29,7 +29,7 @@ export default function VendorPortal({ catalogueNames, onHome, onViewLot }) {
                 <div className="max-w-[1180px] mx-auto h-[60px] md:h-[68px] px-4 md:px-8 flex items-center justify-between gap-3">
                     <button onClick={onHome} className="flex items-center gap-2.5" aria-label="Back to the site">
                         <Brand />
-                        <span className="hidden sm:inline text-[12px] font-extrabold uppercase tracking-[0.16em] text-ink-3">for stone yards</span>
+                        <span className="hidden sm:inline text-[12px] font-extrabold uppercase tracking-[0.16em] text-ink-3">vendor space</span>
                     </button>
                     <div className="flex items-center gap-2">
                         {account?.status === 'verified' && (
@@ -76,7 +76,7 @@ function Welcome() {
     return (
         <div className="grid md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-8 md:gap-12 items-start">
             <div>
-                <p className="text-[12px] font-extrabold uppercase tracking-[0.18em] text-clay">For stone yards</p>
+                <p className="text-[12px] font-extrabold uppercase tracking-[0.18em] text-clay">Vendor Space</p>
                 <h1 className="mt-2 font-brand text-[40px] md:text-[56px] leading-[1.02]">Turn the lots in your yard into cash and space.</h1>
                 <ul className="mt-6 space-y-3 max-w-[520px]">
                     {[

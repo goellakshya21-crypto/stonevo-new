@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import ImageCompareSlider from '../../../src/components/ImageCompareSlider.jsx';
 import { ownSurfacesFor } from '../lib/applications';
-import { layoutKey, prepareRoomPhoto, renderOwnRoom } from '../lib/renders';
+import { hasOwnRender, layoutKey, prepareRoomPhoto, renderOwnRoom } from '../lib/renders';
+import { creditsLeft, giveCreditBack, takeCredit, useCredits } from '../lib/commerce';
 import { useFileDrop } from '../lib/hooks';
 import { Chip } from './ui';
 import { RenderingNote } from './Busy';
@@ -33,7 +34,9 @@ export default function OwnRoom({
     onChangeLayout,
     surfaceId: keptSurfaceId,
     setSurfaceId: keepSurfaceId,
+    onNeedCredits,
 }) {
+    const credits = useCredits();
     const surfaces = ownSurfacesFor(lot);
     // The lot page keeps the chosen surface, so a trip to the Book-match view
     // and back does not make the buyer pick it again.
@@ -69,6 +72,17 @@ export default function OwnRoom({
 
     const run = async ({ fresh = false } = {}) => {
         if (busy || !photo || !surface) return;
+        // Each new picture of the buyer's room takes a credit (decided
+        // 2026-11-17); "Try again" after an unchanged result does not, and a
+        // render that fails gives its credit back.
+        let credit = null;
+        if (!fresh && !hasOwnRender(lot, surface, photo, layout)) {
+            credit = takeCredit();
+            if (!credit) {
+                onNeedCredits?.();
+                return;
+            }
+        }
         setError('');
         setBusy({ started: Date.now(), surfaceId: surface.id });
         try {
@@ -78,6 +92,7 @@ export default function OwnRoom({
                 by: { ...(d.photo === photo ? d.by : {}), [keyOf(surface)]: { url: out.url, before: out.before, changed: out.changed } },
             }));
         } catch (err) {
+            giveCreditBack(credit);
             setError(String(err.message || err).replace(/^Proxy error:\s*/i, ''));
         } finally {
             setBusy(null);
@@ -121,7 +136,7 @@ export default function OwnRoom({
                             onClick={() => onMix(surface?.id || 'wall')}
                             className="text-[13px] font-bold text-clay underline underline-offset-4 decoration-clay/40 hover:decoration-clay"
                         >
-                            Several surfaces at once? Design a room with {lot.name} and other stones
+                            Several surfaces at once? Design your space with {lot.name} and other stones
                         </button>
                     </div>
                 )}
@@ -207,7 +222,12 @@ export default function OwnRoom({
                             Add more stones
                         </button>
                     )}
-                    <span className="text-[12px] text-ink-3">{result ? 'Drag the line to compare.' : 'About 20 seconds.'} Your photo is never saved.</span>
+                    <span className="text-[12px] text-ink-3">
+                        {result
+                            ? 'Drag the line to compare.'
+                            : `About 20 seconds, 1 credit (${creditsLeft(credits)} left${credits.free ? `, ${credits.free} free` : ''}).`}{' '}
+                        Your photo is never saved.
+                    </span>
                 </div>
                 {unchanged && !busy && (
                     <p className="text-[12.5px] text-clay font-semibold" role="alert">

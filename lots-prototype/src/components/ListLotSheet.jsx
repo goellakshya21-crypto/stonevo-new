@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CITIES, FAMILIES, inchSize, inr, pieceInches, sqftOfInches } from '../lib/lots';
-import { COLOUR_TAGS, FINISHES, shrinkPhoto, THICKNESSES, yard } from '../lib/vendor';
+import { COLOUR_TAGS, FINISHES, ORIGINS, shrinkPhoto, sizeAddsUp, THICKNESSES, TRAVERTINE_FILLING, yard } from '../lib/vendor';
 import { Check, Chip, Close } from './ui';
 import { CameraIcon } from './RoomUpload';
 import WhereItGoes from './WhereItGoes';
@@ -28,6 +28,9 @@ export default function ListLotSheet({ account, catalogueNames = [], editing = n
     const [busyPhotos, setBusyPhotos] = useState(false);
     const [name, setName] = useState(e0.name || '');
     const [family, setFamily] = useState(e0.family || '');
+    const [origin, setOrigin] = useState(e0.origin || '');
+    const [filling, setFilling] = useState(e0.filling || '');
+    const [remarks, setRemarks] = useState(e0.remarks || '');
     const [colors, setColors] = useState(e0.colors || []);
     const [sqft, setSqft] = useState(e0.sqft ? String(e0.sqft) : '');
     const [pieces, setPieces] = useState(e0.pieces ? String(e0.pieces) : '');
@@ -74,12 +77,16 @@ export default function ListLotSheet({ account, catalogueNames = [], editing = n
     // How far the yard's own price is under market. The price buyers see is
     // set by our team at review (our margin on top), so it is not shown here.
     const off = price && market ? Math.round((1 - price / market) * 100) : null;
+    // Pieces x size far from the total (decided 2026-11-17): remarks become required, so our team knows why.
+    const sizeOff = sizeAddsUp(n(pieces), n(pieceL), n(pieceW), area) === false;
     const missing = [
         !photos.length && 'at least one photo',
         !name.trim() && 'the stone’s name',
         !family && 'the type of stone',
+        family === 'Travertine' && !filling && 'filled or unfilled',
         !area && 'how many sq ft',
         !n(pieces) && 'how many pieces',
+        sizeOff && !remarks.trim() && 'remarks on the size',
         !price && 'your price',
         !market && 'the usual market rate',
     ].filter(Boolean);
@@ -135,6 +142,9 @@ export default function ListLotSheet({ account, catalogueNames = [], editing = n
                             cityKey,
                             yardPrice: price,
                             marketRate: market,
+                            origin: origin.trim(),
+                            filling: family === 'Travertine' ? filling : '',
+                            remarks: remarks.trim(),
                         };
                         if (editing) {
                             yard.resubmit(editing.id, fields);
@@ -210,6 +220,21 @@ export default function ListLotSheet({ account, catalogueNames = [], editing = n
                                 ))}
                             </datalist>
                         </label>
+                        <label className="block sm:col-span-2">
+                            <span className={label}>Origin: where it was quarried (optional)</span>
+                            <input
+                                list="yard-origins"
+                                value={origin}
+                                onChange={(e) => setOrigin(e.target.value)}
+                                placeholder="e.g. Rajasthan, Italy"
+                                className={input}
+                            />
+                            <datalist id="yard-origins">
+                                {ORIGINS.map((o) => (
+                                    <option key={o} value={o} />
+                                ))}
+                            </datalist>
+                        </label>
                     </div>
 
                     <div>
@@ -221,6 +246,18 @@ export default function ListLotSheet({ account, catalogueNames = [], editing = n
                                 </Chip>
                             ))}
                         </div>
+                        {family === 'Travertine' && (
+                            <div className="mt-2.5">
+                                <p className={label}>Travertine: filled or unfilled?</p>
+                                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                                    {TRAVERTINE_FILLING.map((f) => (
+                                        <Chip key={f} active={filling === f} onClick={() => setFilling(f)}>
+                                            {f}
+                                        </Chip>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                         {/* Where buyers will be offered it: marble, for one, is never a kitchen counter. */}
                         <WhereItGoes family={family} className="mt-2" />
                     </div>
@@ -280,6 +317,20 @@ export default function ListLotSheet({ account, catalogueNames = [], editing = n
                             <PieceArea L={n(pieceL)} W={n(pieceW)} pieces={n(pieces)} total={area} />
                         </label>
                     </div>
+                    {(sizeOff || remarks) && (
+                        <label className="block">
+                            <span className={`${label} ${sizeOff && !remarks.trim() ? '!text-clay' : ''}`}>
+                                Remarks on the size{sizeOff ? ' (needed: the pieces and their size do not add up to the total)' : ''}
+                            </span>
+                            <textarea
+                                rows={2}
+                                value={remarks}
+                                onChange={(e) => setRemarks(e.target.value)}
+                                placeholder="e.g. Pieces are different sizes; one has a broken corner."
+                                className="mt-1 w-full rounded-xl border border-ink/15 bg-white px-3 py-2 text-[14px] outline-none focus:border-ink resize-none"
+                            />
+                        </label>
+                    )}
 
                     <div className="grid sm:grid-cols-3 gap-4">
                         <label className="block">

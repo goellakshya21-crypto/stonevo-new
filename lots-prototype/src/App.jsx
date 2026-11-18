@@ -5,14 +5,15 @@ import LotSheet from './components/LotSheet';
 import Studio from './components/Studio';
 import CompareSheet from './components/CompareSheet';
 import ContactSheet from './components/ContactSheet';
-import DirectSheet from './components/DirectSheet';
 import LoginSheet from './components/LoginSheet';
 import ProjectSheet from './components/ProjectSheet';
 import RequirementSheet from './components/RequirementSheet';
 import RoomDesigner from './components/RoomDesigner';
 import VendorPortal from './components/VendorPortal';
 import ReviewQueue from './components/ReviewQueue';
-import { ContactBand, Footer, ForYards, HowItWorks, JustListed, Nav, Regions, ShopBySpace } from './components/Sections';
+import { ContactBand, Footer, ForYards, HappyCustomers, HowItWorks, JustListed, Nav, Regions, ShopBySpace } from './components/Sections';
+import { BookingSheet, CartSheet, CreditsSheet, LocationPrompt } from './components/BuySheets';
+import { addToCart, isOpenBooking, locationLabel, useBookings, useBuyerLocation, useCart } from './lib/commerce';
 import { useSaved } from './lib/hooks';
 import { fetchLots, lotFromListing } from './lib/lots';
 import { useYard } from './lib/vendor';
@@ -45,7 +46,18 @@ export default function App() {
     // first; one marked sold or withdrawn drops out of every view at once.
     const { listings } = useYard();
     const yardLots = useMemo(() => listings.filter((l) => l.status === 'live').map(lotFromListing), [listings]);
-    const lots = useMemo(() => [...yardLots, ...catalogueLots], [yardLots, catalogueLots]);
+    // Bookings (2% advance, then a visit): a lot with an open booking shows as
+    // booked; one bought whole is off the site.
+    const bookings = useBookings();
+    const bookedIds = useMemo(() => new Set(bookings.filter(isOpenBooking).flatMap((b) => b.items.map((i) => i.lotId))), [bookings]);
+    const soldIds = useMemo(() => new Set(bookings.filter((b) => b.status === 'full').flatMap((b) => b.items.map((i) => i.lotId))), [bookings]);
+    const lots = useMemo(() => [...yardLots, ...catalogueLots].filter((l) => !soldIds.has(l.id)), [yardLots, catalogueLots, soldIds]);
+    const cart = useCart();
+    const buyerLocation = useBuyerLocation();
+    const [booking, setBooking] = useState(null); // the lines being booked
+    const [cartOpen, setCartOpen] = useState(false);
+    const [creditsOpen, setCreditsOpen] = useState(false);
+    const [askLocation, setAskLocation] = useState(false);
     const catalogueNames = useMemo(() => [...new Set(catalogueLots.map((l) => l.name))].sort(), [catalogueLots]);
     // { [lotId]: { name, bathroom?: url, kitchen?: url, … } }
     const [renders, setRenders] = useState({});
@@ -93,8 +105,6 @@ export default function App() {
     const [designPick, setDesignPick] = useState(null);
     // "Talk to us": { lot?, focus? } (see ContactSheet).
     const [contact, setContact] = useState(null);
-    // "Buy direct from the yard": the lot whose yard details are on offer.
-    const [direct, setDirect] = useState(null);
 
     useEffect(() => {
         let alive = true;
@@ -193,7 +203,6 @@ export default function App() {
     const closeRequirement = useCallback(() => setRequirement(null), []);
     const openContact = useCallback((c) => setContact(c || {}), []);
     const closeContact = useCallback(() => setContact(null), []);
-    const closeDirect = useCallback(() => setDirect(null), []);
     const closeLogin = useCallback(() => setLogin(null), []);
     // A tap on a heart: saves, or asks to log in first and then saves.
     // After logging in it only ever saves: the heart looked empty, so the buyer meant "save".
@@ -262,6 +271,10 @@ export default function App() {
                     onRequirement={() => openRequirement()}
                     onDesign={() => openDesigner()}
                     onContact={() => openContact()}
+                    cartCount={cart.length}
+                    onCart={() => setCartOpen(true)}
+                    location={locationLabel(buyerLocation)}
+                    onLocation={() => setAskLocation(true)}
                     solid={view !== 'home'}
                 />
             )}
@@ -311,12 +324,8 @@ export default function App() {
                     <ShopBySpace lots={lots} renders={renders} onPick={(space, pin) => goGallery({ space, pin })} onOpenLot={openLot} />
                     <Regions lots={lots} onPick={(city, pin) => goGallery({ city, pin })} onOpenLot={openLot} />
                     <JustListed lots={lots} renders={renders} saved={visibleSaved} onToggleSave={saveLot} onOpen={openLot} onBrowse={() => goGallery()} />
-                    <ContactBand
-                        onRequirement={openRequirement}
-                        onContact={(focus) => openContact({ focus })}
-                        onBrowse={() => goGallery()}
-                        onProject={() => setProject(true)}
-                    />
+                    <ContactBand onRequirement={openRequirement} onContact={(focus) => openContact({ focus })} onProject={() => setProject(true)} />
+                    <HappyCustomers />
                     <ForYards onOpen={() => (window.location.hash = '#/yards')} />
                     <Footer />
                 </main>
@@ -339,6 +348,7 @@ export default function App() {
                         onPickCompare={pickCompare}
                         onOpenCompare={() => setCompare((c) => ({ ...c, open: true }))}
                         onRequirement={openRequirement}
+                        bookedIds={bookedIds}
                         designPick={designPick}
                         onDesignPick={finishDesignPick}
                         onCancelDesignPick={() => finishDesignPick(null)}
@@ -359,6 +369,7 @@ export default function App() {
                         prefill={designPrefill}
                         onOpenLot={openLot}
                         onPickStone={pickForDesign}
+                        onNeedCredits={() => setCreditsOpen(true)}
                         onHome={goHome}
                     />
                     <Footer />
@@ -373,19 +384,21 @@ export default function App() {
 
             {open && (
                 <LotSheet
-                    key={`lot-${open.lot.id}${open.initial?.reserve ? '-reserve' : ''}`}
+                    key={`lot-${open.lot.id}`}
                     lot={open.lot}
                     initial={open.initial}
                     renders={renders}
-                    onRendered={addRender}
                     saved={visibleSaved.has(open.lot.id)}
                     onToggleSave={saveLot}
                     onCompare={compareFrom}
                     onDesign={openDesigner}
-                    onContact={(focus) => openContact({ lot: open.lot, focus })}
-                    onDirect={(lot) => setDirect(lot)}
                     ownPhoto={ownPhoto}
                     setOwnPhoto={setOwnPhoto}
+                    onReserve={(line) => setBooking([line])}
+                    onAddToCart={addToCart}
+                    inCart={cart.some((i) => i.lotId === open.lot.id)}
+                    booked={bookedIds.has(open.lot.id)}
+                    onNeedCredits={() => setCreditsOpen(true)}
                     onClose={closeLot}
                 />
             )}
@@ -414,15 +427,6 @@ export default function App() {
                         closeContact();
                         openRequirement(prefill);
                     }}
-                    onDirect={(lot) => {
-                        closeContact();
-                        setDirect(lot);
-                    }}
-                    onBrowse={() => {
-                        closeContact();
-                        setOpen(null);
-                        goGallery();
-                    }}
                     onProject={() => {
                         closeContact();
                         setProject(true);
@@ -435,17 +439,28 @@ export default function App() {
 
             {login && <LoginSheet reason={login.reason} onDone={logIn} onClose={closeLogin} />}
 
-            {direct && (
-                <DirectSheet
-                    // Prefixed: siblings of the lot sheet, whose key is also the lot's id.
-                    key={`direct-${direct.id}`}
-                    lot={direct}
-                    onReserve={() => {
-                        closeDirect();
-                        openLot(direct, { reserve: true });
+            {cartOpen && (
+                <CartSheet
+                    lots={lots}
+                    onOpenLot={(lot) => {
+                        setCartOpen(false);
+                        openLot(lot);
                     }}
-                    onClose={closeDirect}
+                    onBook={(lines) => {
+                        setCartOpen(false);
+                        setBooking(lines);
+                    }}
+                    onClose={() => setCartOpen(false)}
                 />
+            )}
+
+            {booking && <BookingSheet lines={booking} user={user} onClose={() => setBooking(null)} />}
+
+            {creditsOpen && <CreditsSheet onClose={() => setCreditsOpen(false)} />}
+
+            {/* Where the buyer is: asked once, on the first visit (decided 2026-11-17), for our team only. */}
+            {status === 'ready' && ['home', 'gallery', 'design'].includes(view) && (askLocation || !buyerLocation) && !open && (
+                <LocationPrompt onClose={() => setAskLocation(false)} />
             )}
 
             {compare.open && compare.picks.length === 2 && (
@@ -454,10 +469,10 @@ export default function App() {
                     a={compare.picks[0]}
                     b={compare.picks[1]}
                     renders={renders}
-                    onRendered={addRender}
                     ownPhoto={ownPhoto}
                     setOwnPhoto={setOwnPhoto}
                     startInOwnRoom={compare.ownRoom}
+                    onNeedCredits={() => setCreditsOpen(true)}
                     onOpenLot={(lot) => {
                         closeCompare();
                         openLot(lot);

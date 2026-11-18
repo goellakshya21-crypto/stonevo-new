@@ -1,21 +1,18 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BRAND } from '../lib/brand';
-import { directFee, DIRECT_FEE, lotLine, meetingDays, meetingMessage, timesOn, VIDEO_CALL_FEE, VIDEO_CREDIT_DAYS, WHATSAPP_NUMBER, whatsappLink } from '../lib/contact';
-import { inr } from '../lib/lots';
-import { ChatIcon, Check, Chip, Close, KeyIcon, PhoneIcon, VideoIcon } from './ui';
+import { lotLine, meetingDays, meetingMessage, timesOn, WHATSAPP_NUMBER, whatsappLink } from '../lib/contact';
+import { ChatIcon, Check, Chip, Close, PhoneIcon } from './ui';
 
 /**
- * "Talk to us": three ways to reach a person, side by side.
+ * "Talk to us": ways to reach a person, side by side.
  *   1. Meet on WhatsApp: pick a day and time, and WhatsApp opens with the
  *      request written. The lead lands in the business WhatsApp inbox.
- *   2. We call you back: the requirement form (RequirementSheet).
- *   3. See the slab on a video call: name, number, a slot and a fee paid when
- *      booking (credited if they buy); the team shows the actual pieces on camera.
- *   4. Buy direct from the yard: a one-time fee for the yard's details
- *      (DirectSheet), for a buyer who has found their lot.
+ *   2. We call you back: Find your Stone (RequirementSheet).
  *   And, first and wide: plan a whole project (ProjectSheet), for a whole home
  *   or several rooms, with a project lead and every kind of stone, not only
  *   small lots.
+ * The video call and "Buy direct" were taken out on 2026-11-17: the 2% booking
+ * advance (BookingSheet) now gives a buyer the yard's details to visit.
  *
  * `lot`: the lot they were looking at, if any, written into both messages.
  * `focus`: which way to point at first ('whatsapp' | 'call' | 'video').
@@ -24,7 +21,7 @@ import { ChatIcon, Check, Chip, Close, KeyIcon, PhoneIcon, VideoIcon } from './u
  * `contact_requests` through a server route after phone OTP, and alerts the
  * team on Telegram, like the requirement.
  */
-export default function ContactSheet({ lot, focus, onRequirement, onDirect, onBrowse, onProject, onClose }) {
+export default function ContactSheet({ lot, focus, onRequirement, onProject, onClose }) {
     const pointedRef = useRef(null);
     const refFor = (id) => (focus === id ? pointedRef : undefined);
 
@@ -50,9 +47,9 @@ export default function ContactSheet({ lot, focus, onRequirement, onDirect, onBr
             <div className="relative sheet-in bg-paper w-full md:w-[min(1180px,94vw)] max-h-[94svh] md:max-h-[92vh] rounded-t-[26px] md:rounded-[26px] overflow-y-auto shadow-float">
                 <div className="p-5 md:p-8 pr-14">
                     <p className="text-[12px] font-extrabold uppercase tracking-[0.18em] text-clay">Talk to us</p>
-                    <h2 className="mt-1 font-brand text-[34px] md:text-[42px] leading-[1.02]">Five ways to work with us.</h2>
+                    <h2 className="mt-1 font-brand text-[34px] md:text-[42px] leading-[1.02]">Three ways to work with us.</h2>
                     <p className="mt-2 text-[14px] text-ink-2 max-w-[620px]">
-                        {lot ? `About ${lot.name}, or anything else. ` : ''}Talk to a person, or buy direct from the yard. Our team answers every day, 10 am to 8 pm.
+                        {lot ? `About ${lot.name}, or anything else. ` : ''}Talk to a person. Our team answers every day, 10 am to 8 pm.
                     </p>
                 </div>
 
@@ -60,8 +57,6 @@ export default function ContactSheet({ lot, focus, onRequirement, onDirect, onBr
                     <ProjectCard innerRef={refFor('project')} pointed={focus === 'project'} onProject={onProject} />
                     <WhatsAppCard innerRef={refFor('whatsapp')} lot={lot} pointed={focus === 'whatsapp'} />
                     <CallBackCard innerRef={refFor('call')} pointed={focus === 'call'} onRequirement={onRequirement} />
-                    <VideoCard innerRef={refFor('video')} lot={lot} pointed={focus === 'video'} />
-                    <DirectCard innerRef={refFor('direct')} lot={lot} pointed={focus === 'direct'} onDirect={onDirect} onBrowse={onBrowse} />
                 </div>
 
                 <button
@@ -163,7 +158,12 @@ function WhatsAppCard({ innerRef, lot, pointed }) {
             >
                 <ChatIcon /> Set it up on WhatsApp
             </a>
-            <a href={whatsappLink(hello)} target="_blank" rel="noopener noreferrer" className="mt-2 block text-center text-[12.5px] font-bold text-ink-2 underline underline-offset-4 decoration-ink/20 hover:decoration-ink">
+            <a
+                href={whatsappLink(hello)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 block text-center text-[12.5px] font-bold text-ink-2 underline underline-offset-4 decoration-ink/20 hover:decoration-ink"
+            >
                 Or just say hi on WhatsApp
             </a>
             {!WHATSAPP_NUMBER && (
@@ -191,160 +191,13 @@ function CallBackCard({ innerRef, pointed, onRequirement }) {
                 ))}
             </ul>
             <button onClick={() => onRequirement()} className="mt-5 w-full h-11 rounded-full bg-ink text-paper font-bold text-[14px] hover:bg-ink/90">
-                Share your requirement
+                Find your Stone
             </button>
             <p className="mt-2 text-[12px] text-ink-3 text-center">About two minutes. No payment.</p>
         </Card>
     );
 }
 
-function VideoCard({ innerRef, lot, pointed }) {
-    const { day, time, picker } = useSlot();
-    const [which, setWhich] = useState(lot ? lot.name : '');
-    const [sent, setSent] = useState(null); // { day, time, which }
-    // Paying is one step after the form (demo: no payment is taken).
-    const [paying, setPaying] = useState(null); // { day, time, which } while paying
-    const [method, setMethod] = useState('UPI');
-    return (
-        <Card
-            innerRef={innerRef}
-            pointed={pointed}
-            n={3}
-            icon={<VideoIcon />}
-            title="See the slab on a video call"
-            text="15 minutes on WhatsApp video. We show you the actual pieces in daylight, close up, and measure them while you watch. Only the stone is on camera."
-        >
-            <p className="-mt-1 mb-4 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 rounded-xl bg-paper-2/70 px-3 py-2">
-                <span className="text-[18px] font-extrabold tabular-nums">{inr(VIDEO_CALL_FEE)}</span>
-                <span className="text-[12.5px] text-ink-2">to book · counts towards your stone if you buy within {VIDEO_CREDIT_DAYS} days</span>
-            </p>
-            {sent ? (
-                <div className="rounded-2xl bg-moss-soft p-4 fade-up" role="status">
-                    <p className="font-bold text-moss text-[14.5px]">Video call booked · {inr(VIDEO_CALL_FEE)} paid (demo)</p>
-                    <p className="mt-1 text-[13px] text-ink-2">
-                        {sent.day.long}, {sent.time.label.toLowerCase()} ({sent.time.hours}){sent.which ? `, for ${sent.which}` : ''}. We message you on WhatsApp to fix the exact time,
-                        then call on video. The {inr(VIDEO_CALL_FEE)} comes off your stone if you buy within {VIDEO_CREDIT_DAYS} days, and comes back to you if we miss the call.
-                    </p>
-                    <p className="mt-2 text-[11.5px] text-ink-3">Demo: no payment was taken and nothing was sent.</p>
-                    <button onClick={() => setSent(null)} className="mt-3 h-9 px-3 rounded-full border border-ink/20 text-[12.5px] font-bold hover:border-ink">
-                        Book another
-                    </button>
-                </div>
-            ) : paying ? (
-                <div className="rounded-2xl border border-ink/10 bg-paper/70 p-4 fade-up">
-                    <p className="text-[11.5px] font-bold uppercase tracking-[0.12em] text-ink-3">Pay to book</p>
-                    <p className="mt-1 text-[14px]">
-                        <b>{inr(VIDEO_CALL_FEE)}</b> for a video call on {paying.day.long}, {paying.time.label.toLowerCase()} ({paying.time.hours})
-                        {paying.which ? `, for ${paying.which}` : ''}.
-                    </p>
-                    <div className="mt-3 grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="How to pay">
-                        {['UPI', 'Card', 'Netbanking'].map((m) => (
-                            <button
-                                key={m}
-                                type="button"
-                                role="radio"
-                                aria-checked={method === m}
-                                onClick={() => setMethod(m)}
-                                className={`h-10 rounded-xl border text-[13px] font-bold ${method === m ? 'border-ink bg-white' : 'border-ink/15 bg-white/60 text-ink-2 hover:border-ink/40'}`}
-                            >
-                                {m}
-                            </button>
-                        ))}
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setSent(paying);
-                            setPaying(null);
-                        }}
-                        className="mt-3 w-full h-11 rounded-full bg-ink text-paper font-bold text-[14px] hover:bg-ink/90"
-                    >
-                        Pay {inr(VIDEO_CALL_FEE)} by {method === 'Netbanking' ? 'netbanking' : method}
-                    </button>
-                    <button type="button" onClick={() => setPaying(null)} className="mt-1.5 w-full text-[12.5px] font-bold text-ink-2 hover:text-ink">
-                        Back
-                    </button>
-                    <p className="mt-2 text-[11.5px] text-ink-3 text-center">Demo: no payment is taken. Live: Razorpay, after your number is checked by OTP.</p>
-                </div>
-            ) : (
-                <form
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        setPaying({ day, time, which: which.trim() });
-                    }}
-                >
-                    {picker}
-                    <label className="mt-3 block">
-                        <Label>Which lot? (optional)</Label>
-                        <input
-                            value={which}
-                            onChange={(e) => setWhich(e.target.value)}
-                            placeholder="Not sure yet? We'll show you a few"
-                            className="mt-1.5 w-full h-10 rounded-xl border border-ink/15 bg-white px-3 text-[13.5px] outline-none focus:border-ink"
-                        />
-                    </label>
-                    <div className="mt-3 grid grid-cols-2 gap-2">
-                        <label className="block">
-                            <Label>Your name</Label>
-                            <input required className="mt-1.5 w-full h-10 rounded-xl border border-ink/15 bg-white px-3 text-[13.5px] outline-none focus:border-ink" />
-                        </label>
-                        <label className="block">
-                            <Label>Mobile</Label>
-                            <input
-                                required
-                                inputMode="numeric"
-                                pattern="[0-9]{10}"
-                                maxLength={10}
-                                title="10-digit mobile number"
-                                className="mt-1.5 w-full h-10 rounded-xl border border-ink/15 bg-white px-3 text-[13.5px] outline-none focus:border-ink"
-                            />
-                        </label>
-                    </div>
-                    <button className="mt-4 w-full h-11 rounded-full bg-ink text-paper font-bold text-[14px] inline-flex items-center justify-center gap-2 hover:bg-ink/90">
-                        <VideoIcon /> Book the call · {inr(VIDEO_CALL_FEE)}
-                    </button>
-                    <p className="mt-2 text-[12px] text-ink-3 text-center">Refunded in full if we miss the call.</p>
-                </form>
-            )}
-        </Card>
-    );
-}
-
-function DirectCard({ innerRef, lot, pointed, onDirect, onBrowse }) {
-    const fee = lot ? directFee(lot) : DIRECT_FEE.base;
-    return (
-        <Card
-            innerRef={innerRef}
-            pointed={pointed}
-            n={4}
-            icon={<KeyIcon />}
-            title="Buy direct from the yard"
-            text={`Found the lot you want? Pay a one-time fee${lot ? '' : ' (from ' + inr(DIRECT_FEE.base) + ')'} and get the yard's name, address and contact to deal with them yourself: this lot and anything else they have.`}
-        >
-            <ul className="space-y-2 text-[13.5px] text-ink-2">
-                {['Shown only after payment', 'Full refund if the lot is gone or the details are wrong', 'We tell the yard you are coming'].map((t) => (
-                    <li key={t} className="flex gap-2">
-                        <Check className="w-4 h-4 text-moss shrink-0 mt-0.5" /> {t}
-                    </li>
-                ))}
-            </ul>
-            {lot ? (
-                <button onClick={() => onDirect(lot)} className="mt-5 w-full h-11 rounded-full bg-ink text-paper font-bold text-[14px] hover:bg-ink/90">
-                    Get the yard&apos;s details · {inr(fee)}
-                </button>
-            ) : (
-                <button onClick={onBrowse} className="mt-5 w-full h-11 rounded-full border border-ink/20 font-bold text-[14px] hover:border-ink">
-                    Find your lot first
-                </button>
-            )}
-            <p className="mt-2 text-[12px] text-ink-3 text-center">
-                {lot ? `For ${lot.name}. UPI, card or netbanking.` : `Open any lot and choose "Buy direct". ${inr(DIRECT_FEE.base)}, or ${inr(DIRECT_FEE.large)} for lots worth ${inr(DIRECT_FEE.largeFrom)} or more.`}
-            </p>
-        </Card>
-    );
-}
-
-/** The whole-project way: wide and dark, because it is the biggest job we take on. */
 function ProjectCard({ innerRef, pointed, onProject }) {
     return (
         <section
@@ -358,8 +211,8 @@ function ProjectCard({ innerRef, pointed, onProject }) {
                     Plan a whole project with us
                 </h3>
                 <p className="mt-1 text-[13.5px] text-paper/75 leading-relaxed max-w-[620px]">
-                    A project lead plans the stone for every space: full slabs and blocks as well as small lots, samples, a site visit if it helps, and one delivery
-                    schedule. Bring your plans or your architect.
+                    A project lead plans the stone for every space: full slabs and blocks as well as small lots, samples, a site visit if it helps, and one
+                    delivery schedule. Bring your plans or your architect.
                 </p>
             </div>
             <button onClick={onProject} className="h-11 px-5 rounded-full bg-paper text-ink font-bold text-[14px] shrink-0 hover:bg-white">

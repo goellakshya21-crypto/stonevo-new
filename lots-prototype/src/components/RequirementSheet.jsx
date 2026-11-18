@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { FAMILIES, inr, SPACES, wholeIsCheaper } from '../lib/lots';
-import { COLOUR_GROUPS, jobCost, lotsNamed, matchLots } from '../lib/requirements';
+import { FAMILIES, inr, jobFor, jobLabel, SPACES } from '../lib/lots';
+import { COLOUR_GROUPS, lotsNamed, matchLots } from '../lib/requirements';
 import { CameraIcon } from './RoomUpload';
 import { Arrow, Check, Chip, Close, Pin } from './ui';
 
-const TIMELINES = ['This month', 'In 1–3 months', 'Just exploring'];
+// Decided 2026-11-17: 'Within 1 week' added (we answer those within 24 hours); 'Just exploring' became '3 months +'.
+const TIMELINES = ['Within 1 week', 'This month', 'In 1–3 months', '3 months +'];
 const OTHER = { id: 'other', label: 'Something else', sqft: 40, hint: 'Tell us in the note' };
 const CHOICES = [...SPACES, OTHER];
 // Three ways to say which stone: whichever the buyer has.
@@ -144,9 +145,9 @@ export default function RequirementSheet({ lots, prefill, onOpenLot, onSeeAll, o
 
     const matchesPanel = (
         <div className="rounded-[20px] bg-white/80 border border-ink/10 p-4 md:p-5">
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-clay">Fits right now{many ? ` · requirement ${active + 1}` : ''}</p>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-clay">Options right now{many ? ` · requirement ${active + 1}` : ''}</p>
             <p className="mt-1 font-brand text-[30px] leading-none">
-                {a.matches.length ? `${a.matches.length} ${a.matches.length === 1 ? 'lot' : 'lots'}` : 'No lot yet'}
+                {a.matches.length ? `${a.matches.length} ${a.matches.length === 1 ? 'option' : 'options'}` : 'No options yet'}
             </p>
             <p className="mt-1 text-[13px] text-ink-2">
                 for {a.what} of {a.need} sq ft
@@ -172,10 +173,8 @@ export default function RequirementSheet({ lots, prefill, onOpenLot, onSeeAll, o
                                         </span>
                                     </span>
                                     <span className="text-right shrink-0">
-                                        <span className="block font-extrabold text-[14px] tabular-nums">{inr(jobCost(l, a.need))}</span>
-                                        <span className="block text-[11.5px] text-ink-3 tabular-nums">
-                                            {a.need >= l.sqft || wholeIsCheaper(l, a.need) ? 'whole lot' : `${inr(l.partRate)}/sq ft`}
-                                        </span>
+                                        <span className="block font-extrabold text-[14px] tabular-nums">{inr(jobFor(l, a.need).cost)}</span>
+                                        <span className="block text-[11.5px] text-ink-3 tabular-nums">{jobLabel(jobFor(l, a.need))}</span>
                                     </span>
                                 </button>
                             </li>
@@ -191,22 +190,22 @@ export default function RequirementSheet({ lots, prefill, onOpenLot, onSeeAll, o
                 </>
             ) : (
                 <div className="mt-4 text-[13.5px] text-ink-2 space-y-3">
-                    <p>No lot with that much stone{a.ids || item.families.length || a.colourNames.length ? ', in that stone,' : ''} right now.</p>
-                    <p className="text-ink-3 text-[12.5px]">New lots come in every week. Share your requirement and we&apos;ll message you when one fits.</p>
+                    <p className="font-semibold text-ink">No options available right now, but we will find the right stone for you within 48 hours.</p>
+                    <p className="text-ink-3 text-[12.5px]">Share your requirement below and we&apos;ll message you with it.</p>
                 </div>
             )}
         </div>
     );
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" role="dialog" aria-modal="true" aria-label="Share your requirement">
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" role="dialog" aria-modal="true" aria-label="Find your Stone">
             <button className="absolute inset-0 bg-ink/45 backdrop-blur-[2px] scene-fade" onClick={onClose} aria-label="Close" />
             <div className="relative sheet-in bg-paper w-full md:w-[min(1080px,94vw)] max-h-[94svh] md:max-h-[90vh] rounded-t-[26px] md:rounded-[26px] overflow-y-auto shadow-float">
                 <div className="p-5 md:p-8 pr-14">
-                    <p className="text-[12px] font-extrabold uppercase tracking-[0.18em] text-clay">Share your requirement</p>
+                    <p className="text-[12px] font-extrabold uppercase tracking-[0.18em] text-clay">Find your Stone</p>
                     <h2 className="mt-1 font-brand text-[34px] md:text-[42px] leading-[1.02]">Tell us the space and the stone.</h2>
                     <p className="mt-2 text-[14px] text-ink-2 max-w-[560px]">
-                        See what fits right now, and leave your number: our team calls with options, and messages you when a new lot fits. Need stone for more
+                        See the options right now, and leave your number: our team calls with options, and messages you when a new lot fits. Need stone for more
                         than one place? Add each one.
                     </p>
                 </div>
@@ -253,7 +252,8 @@ export default function RequirementSheet({ lots, prefill, onOpenLot, onSeeAll, o
                                                     </span>
                                                     {x.space.id === 'other' ? 'Something else' : x.space.label}
                                                     <span className={`font-semibold tabular-nums ${on ? 'text-paper/70' : 'text-ink-3'}`}>
-                                                        · {x.matches.length ? `${x.matches.length} fit` : 'none yet'}
+                                                        ·{' '}
+                                                        {x.matches.length ? `${x.matches.length} ${x.matches.length === 1 ? 'option' : 'options'}` : 'none yet'}
                                                     </span>
                                                 </button>
                                                 {many && (
@@ -448,7 +448,10 @@ export default function RequirementSheet({ lots, prefill, onOpenLot, onSeeAll, o
                             )}
 
                             <div className="border-t border-ink/10 pt-6 space-y-6">
-                                <Field label={many ? `When do you need them? (all ${items.length})` : 'When do you need it?'}>
+                                <Field
+                                    label={many ? `When do you need them? (all ${items.length})` : 'When do you need it?'}
+                                    hint={timeline === 'Within 1 week' ? 'We respond within 24 hours.' : undefined}
+                                >
                                     <div className="flex flex-wrap gap-1.5">
                                         {TIMELINES.map((t) => (
                                             <Chip key={t} active={timeline === t} onClick={() => setTimeline(t)}>
@@ -554,8 +557,8 @@ function Sent({ all, timeline, onSeeAll, onClose }) {
                             {x.stone.length > 0 && ` Stone: ${x.stone.join(', ')}.`}
                             <span className="block text-[12.5px] text-ink-3">
                                 {x.matches.length
-                                    ? `${x.matches.length} ${x.matches.length === 1 ? 'lot fits' : 'lots fit'} now`
-                                    : 'Nothing fits yet: on our watch list'}
+                                    ? `${x.matches.length} ${x.matches.length === 1 ? 'option' : 'options'} now`
+                                    : 'No options yet: we will find the right stone within 48 hours'}
                             </span>
                         </span>
                         {x.matches.length > 0 && (
@@ -569,7 +572,7 @@ function Sent({ all, timeline, onSeeAll, onClose }) {
                     </li>
                 ))}
             </ol>
-            <p className="mt-3 text-[13.5px] text-ink-2">{timeline === 'Just exploring' ? 'Just exploring for now.' : `Needed ${timeline.toLowerCase()}.`}</p>
+            <p className="mt-3 text-[13.5px] text-ink-2">{timeline === '3 months +' ? 'Needed in 3 months or more.' : `Needed ${timeline.toLowerCase()}.`}</p>
             <ul className="mt-3 space-y-2 text-[13.5px] text-ink-2">
                 {[
                     `Your number is verified by OTP, and ${many ? 'the requirements are' : 'the requirement is'} saved for our team.`,

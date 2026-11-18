@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { CITIES, inchSize, inr, partRateOf, pieceInches, sqftOfInches } from '../lib/lots';
 import { CANCEL_REASONS, DEFAULT_MARGIN, listPriceFor, MARGIN_STEPS, marginLabel, SEND_BACK_REASONS, useYard, yard, yardOf } from '../lib/vendor';
 import { AllLotsTab, TeamLotSheet, YardsTab } from './AdminYards';
+import { BookingsTab, StoriesTab } from './AdminOrders';
+import { isOpenBooking, useBookings, useStories } from '../lib/commerce';
 import { Brand, Check, Chip } from './ui';
 import WhereItGoes from './WhereItGoes';
 import StoneVideo from './StoneVideo';
@@ -27,7 +29,9 @@ import { secsLabel } from '../lib/media';
 export default function ReviewQueue({ onHome, onViewLot }) {
     const { listings, yards } = useYard();
     const [now] = useState(() => Date.now());
-    const [tab, setTab] = useState('review'); // review | yards | lots
+    const [tab, setTab] = useState('review'); // review | yards | lots | bookings | stories
+    const bookings = useBookings();
+    const stories = useStories();
     const [openLotId, setOpenLotId] = useState(null);
     const [openPhone, setOpenPhone] = useState(null);
     const openLot = listings.find((l) => l.id === openLotId);
@@ -70,6 +74,8 @@ export default function ReviewQueue({ onHome, onViewLot }) {
                         ['review', `Review (${waiting.length})`],
                         ['yards', `Yards (${Object.keys(yards).length})`],
                         ['lots', `All lots (${listings.length})`],
+                        ['bookings', `Bookings (${bookings.filter(isOpenBooking).length} open)`],
+                        ['stories', `Stories (${stories.length})`],
                     ].map(([id, label]) => (
                         <button
                             key={id}
@@ -101,6 +107,27 @@ export default function ReviewQueue({ onHome, onViewLot }) {
                             Every lot a yard has sent, in any state. Open one to see the yard it is from.
                         </p>
                         <AllLotsTab listings={listings} yards={yards} onOpenLot={setOpenLotId} />
+                    </>
+                )}
+
+                {tab === 'bookings' && (
+                    <>
+                        <h1 className="mt-5 font-brand text-[36px] md:text-[48px] leading-[1.02]">Bookings</h1>
+                        <p className="mt-2 mb-5 text-[14px] text-ink-2 max-w-[680px]">
+                            Each buyer paid a 2% advance and got the yard&apos;s details to visit. Record what came of it: the advance counts toward what they
+                            buy, and is refunded in full if they buy nothing. A yard lot bought whole is marked sold.
+                        </p>
+                        <BookingsTab />
+                    </>
+                )}
+
+                {tab === 'stories' && (
+                    <>
+                        <h1 className="mt-5 font-brand text-[36px] md:text-[48px] leading-[1.02]">Customer stories</h1>
+                        <p className="mt-2 mb-5 text-[14px] text-ink-2 max-w-[680px]">
+                            What shows under Happy customers on the site. Only with the customer&apos;s permission, in their own words.
+                        </p>
+                        <StoriesTab />
                     </>
                 )}
 
@@ -303,6 +330,18 @@ function ReviewCard({ l, now, y, onOpenYard }) {
                     <dd className="font-semibold tabular-nums">
                         {inr(l.yardPrice)} /sq ft · {inr(l.yardPrice * l.sqft)} whole lot
                     </dd>
+                    {(l.origin || l.filling) && (
+                        <>
+                            <dt className="text-ink-3">Origin · filling</dt>
+                            <dd className="font-semibold">{[l.origin || 'Origin not given', l.filling].filter(Boolean).join(' · ')}</dd>
+                        </>
+                    )}
+                    {l.remarks && (
+                        <>
+                            <dt className="text-ink-3">Yard&apos;s remarks</dt>
+                            <dd className="font-semibold">“{l.remarks}”</dd>
+                        </>
+                    )}
                     <dt className="text-ink-3">Market rate</dt>
                     <dd className="font-semibold tabular-nums">{inr(l.marketRate)} /sq ft</dd>
                 </dl>

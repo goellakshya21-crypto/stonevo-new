@@ -89,15 +89,31 @@ export const PART_PREMIUM = 0.15;
 export const partRateOf = (price) => Math.max(price + 5, Math.round((price * (1 + PART_PREMIUM)) / 5) * 5);
 
 /**
- * What `sqft` of this lot costs: the part-lot rate for part of it, the whole
- * lot's price for all of it, and the whole lot's price whenever that is less
- * than the part would be (then the buyer takes the whole lot).
+ * Stone is sold by the whole slab (decided 2026-11-17): a buyer says how many
+ * sq ft they need, and it rounds UP to whole slabs of this lot. The slabs'
+ * sq ft is what they pay for, at the part-lot rate, or the whole lot's price
+ * when that is no dearer (then they take the whole lot).
  */
-export const costFor = (lot, sqft) => {
+export const slabsFor = (lot, sqft) => Math.min(lot.slabs, Math.max(1, Math.ceil((Math.max(0, Number(sqft) || 0) * lot.slabs) / lot.sqft - 1e-9)));
+export const slabSqft = (lot, slabs) => (slabs >= lot.slabs ? lot.sqft : Math.round((slabs * lot.sqft) / lot.slabs));
+/** `{ slabs, sqft, cost, whole, short }` for a job of `sqft` from this lot (short: the lot has less than that). */
+export const jobFor = (lot, sqft) => {
     const need = Math.max(0, Number(sqft) || 0);
-    if (need >= lot.sqft) return lot.lotTotal;
-    return Math.min(Math.round(need * lot.partRate), lot.lotTotal);
+    const slabs = slabsFor(lot, need);
+    const billed = slabSqft(lot, slabs);
+    const whole = billed >= lot.sqft || billed * lot.partRate >= lot.lotTotal;
+    return {
+        slabs: whole ? lot.slabs : slabs,
+        sqft: whole ? lot.sqft : billed,
+        cost: whole ? lot.lotTotal : Math.round(billed * lot.partRate),
+        whole,
+        short: need > lot.sqft,
+    };
 };
+/** What a job of `sqft` from this lot costs, in whole slabs. */
+export const costFor = (lot, sqft) => jobFor(lot, sqft).cost;
+/** "2 slabs (48 sq ft)" or "the whole lot". */
+export const jobLabel = (job) => (job.whole ? 'the whole lot' : `${job.slabs} ${job.slabs === 1 ? 'slab' : 'slabs'} (${job.sqft} sq ft)`);
 
 // Slab sizes the way the market says them (decided 2026-11-14): a piece's
 // length and width in inches, its area and the lot's area in sq ft.
@@ -132,6 +148,8 @@ export function lotFromListing(l) {
         image: l.photos[0],
         photos: l.photos,
         video: l.video || null,
+        origin: l.origin || '',
+        filling: l.filling || '',
         cityKey: l.cityKey,
         city: CITIES[l.cityKey] || CITIES.kishangarh,
         sqft: l.sqft,
@@ -152,7 +170,7 @@ export function lotFromListing(l) {
 }
 
 /** Taking the whole lot is no dearer than the `sqft` asked for. */
-export const wholeIsCheaper = (lot, sqft) => sqft < lot.sqft && sqft * lot.partRate >= lot.lotTotal;
+export const wholeIsCheaper = (lot, sqft) => sqft < lot.sqft && jobFor(lot, sqft).whole;
 
 function toLot(stone) {
     const types = asList(stone.type);

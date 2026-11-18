@@ -4,6 +4,7 @@ import { OWN_SURFACES } from '../lib/applications';
 import { inr } from '../lib/lots';
 import { MIX_COLORS, mixStonesInPhoto, prepareRoomPhoto, regionCorners, RENDER_SCENES, styleName, suggestBoxes, toFrame } from '../lib/renders';
 import { Arrow, Close } from './ui';
+import { creditsLeft, giveCreditBack, takeCredit, useCredits } from '../lib/commerce';
 import { RenderingNote } from './Busy';
 import { NewPhotoButton, RoomDropZone } from './RoomUpload';
 
@@ -60,7 +61,8 @@ const fromCorners = (pts) => {
  * drags; each corner can then be dragged, so a wall seen at an angle is
  * marked as its real four-sided shape.
  */
-export default function RoomDesigner({ lots, renders, tour, ownPhoto, setOwnPhoto, prefill, onOpenLot, onPickStone, onHome }) {
+export default function RoomDesigner({ lots, renders, tour, ownPhoto, setOwnPhoto, prefill, onOpenLot, onPickStone, onNeedCredits, onHome }) {
+    const credits = useCredits();
     const [picture, setPicture] = useState(prefill?.picture || ownPhoto || null);
     const [framed, setFramed] = useState(null); // { url, w, h, ar } for `picture`
     const [rows, setRows] = useState(() => (prefill?.lotId ? [newRow(prefill.surfaceId || 'wall', prefill.lotId)] : [newRow('floor'), newRow('wall')]));
@@ -194,6 +196,13 @@ export default function RoomDesigner({ lots, renders, tour, ownPhoto, setOwnPhot
     };
     const run = async () => {
         if (!ready || busy) return;
+        // A design is a new picture: one credit per render (decided 2026-11-17),
+        // given back if it fails.
+        const credit = takeCredit();
+        if (!credit) {
+            onNeedCredits?.();
+            return;
+        }
         setError('');
         setBusy({ started: Date.now(), stage: 'rendering' });
         try {
@@ -210,6 +219,7 @@ export default function RoomDesigner({ lots, renders, tour, ownPhoto, setOwnPhot
             });
             setResult({ ...out, rows: rows.map((r, i) => ({ ...r, label: labels[i] })) });
         } catch (err) {
+            giveCreditBack(credit);
             setError(String(err.message || err).replace(/^Proxy error:\s*/i, ''));
         } finally {
             setBusy(null);
@@ -361,7 +371,7 @@ export default function RoomDesigner({ lots, renders, tour, ownPhoto, setOwnPhot
             <button onClick={onHome} className="inline-flex items-center gap-1.5 text-[13px] font-bold text-ink-3 hover:text-ink">
                 <Arrow dir="left" className="w-3.5 h-3.5" /> Back to the site
             </button>
-            <h1 className="mt-3 font-brand text-[44px] md:text-[56px] leading-none">Design a room</h1>
+            <h1 className="mt-3 font-brand text-[44px] md:text-[56px] leading-none">Design your Space</h1>
             <p className="mt-3 max-w-[680px] text-ink-2 text-[15px] leading-relaxed">
                 Pick up to three surfaces in one picture, a stone for each, and see them all together in one render: say the floor in one stone, the dining
                 table in another, and the highlighter wall in a third.
@@ -491,7 +501,7 @@ export default function RoomDesigner({ lots, renders, tour, ownPhoto, setOwnPhot
                                         ? 'Choose a stone for every surface.'
                                         : unmarked && rows.length > 1
                                           ? `${unmarked} not marked: ${unmarked === 1 ? 'it is' : 'they are'} done one at a time, so ${passes} renders, about ${passes * 20} s. Mark every surface to do them all in one render.`
-                                          : 'One render, about 20 seconds. Your photo is never saved.'}
+                                          : `One render, about 20 seconds, 1 credit (${creditsLeft(credits)} left). Your photo is never saved.`}
                             </p>
                             {error && <p className="text-[12.5px] text-clay font-semibold">Couldn&apos;t finish: {error}</p>}
                         </>

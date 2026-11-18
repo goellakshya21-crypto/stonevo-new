@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import LotCard from './LotCard';
-import { CITIES, costFor, FAMILIES, inr, SORTS, SPACES, suitsSpace } from '../lib/lots';
+import { CITIES, costFor, FAMILIES, inr, jobFor, SORTS, SPACES, suitsSpace } from '../lib/lots';
 import { BUDGET_FILTERS, COLOUR_GROUPS } from '../lib/requirements';
 import { Arrow, Chip, Close } from './ui';
 
@@ -22,6 +22,7 @@ export default function Gallery({
     onPickCompare,
     onOpenCompare,
     onRequirement,
+    bookedIds = null,
     designPick = null,
     onDesignPick,
     onCancelDesignPick,
@@ -128,7 +129,7 @@ export default function Gallery({
                     <span className="min-w-0 flex-1">
                         <span className="block font-bold text-[15px]">Tap a stone for the {designPick.label.toLowerCase()}</span>
                         <span className="block text-[12.5px] text-ink-3">
-                            For Design a room.{' '}
+                            For Design your Space.{' '}
                             {designPick.avoid.length ? `Only stones that may go on a ${designPick.kind} are shown.` : 'Use the filters to narrow it down.'}
                         </span>
                     </span>
@@ -263,7 +264,8 @@ export default function Gallery({
                                 selected={!designPick && compare.picks.some((p) => p.id === l.id)}
                                 onSelect={designPick ? onDesignPick : onPickCompare}
                                 note={l.id === pin ? 'The one you picked' : ''}
-                                job={basis ? { sqft: basis, cost: costFor(l, basis) } : null}
+                                booked={!!bookedIds?.has(l.id)}
+                                job={basis ? jobFor(l, basis) : null}
                             />
                         ))}
                     </div>
@@ -288,7 +290,7 @@ export default function Gallery({
                             onClick={() => onRequirement({ space, sqft: Number(size) || undefined })}
                             className="h-11 px-5 rounded-full bg-ink text-paper font-bold text-[14px]"
                         >
-                            Share your requirement
+                            Find your Stone
                         </button>
                         <button
                             onClick={() => setFilters({ sort })}
@@ -316,7 +318,7 @@ function RequirementNudge({ onClick }) {
                 <p className="text-[14px] text-ink-2">Share your space and budget. We call with options, and message you when a new lot fits.</p>
             </div>
             <button onClick={onClick} className="h-11 px-5 rounded-full bg-ink text-paper font-bold text-[14px] inline-flex items-center gap-2">
-                Share your requirement <Arrow />
+                Find your Stone <Arrow />
             </button>
         </div>
     );

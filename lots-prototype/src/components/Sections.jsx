@@ -1,12 +1,28 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import LotCard from './LotCard';
 import { CITIES, compactInr, inr, SPACES, suitsSpace } from '../lib/lots';
-import { Arrow, Brand, ChatIcon, Check, Heart, KeyIcon, PhoneIcon, Pin, VideoIcon } from './ui';
-import { DIRECT_FEE, VIDEO_CALL_FEE } from '../lib/contact';
+import { Arrow, Brand, ChatIcon, Check, Heart, PhoneIcon, Pin } from './ui';
+import { GOOGLE_REVIEW_URL, whatsappLink } from '../lib/contact';
+import { useStories } from '../lib/commerce';
 import { useIsDesktop } from '../lib/hooks';
 import { BRAND } from '../lib/brand';
 
-export function Nav({ onHome, onBrowse, savedCount, onSaved, onRequirement, onDesign, onContact, user, onLogout, solid }) {
+export function Nav({
+    onHome,
+    onBrowse,
+    savedCount,
+    onSaved,
+    onRequirement,
+    onDesign,
+    onContact,
+    cartCount = 0,
+    onCart,
+    location,
+    onLocation,
+    user,
+    onLogout,
+    solid,
+}) {
     const isDesktop = useIsDesktop();
     const [scrolled, setScrolled] = useState(false);
     useEffect(() => {
@@ -35,13 +51,13 @@ export function Nav({ onHome, onBrowse, savedCount, onSaved, onRequirement, onDe
                         Shop by space
                     </a>
                     <button className={link} onClick={onDesign}>
-                        Design a room
+                        Design your Space
                     </button>
                     <button className={link} onClick={onRequirement}>
-                        Share your requirement
+                        Find your Stone
                     </button>
                     <a className={link} href="#yards" onClick={onHome}>
-                        For stone yards
+                        Vendor Space
                     </a>
                 </nav>
                 <div className="flex items-center gap-2">
@@ -53,12 +69,28 @@ export function Nav({ onHome, onBrowse, savedCount, onSaved, onRequirement, onDe
                     >
                         <ChatIcon /> <span className="hidden sm:inline">Talk to us</span>
                     </button>
+                    {location && (
+                        <button
+                            onClick={onLocation}
+                            className="hidden md:inline-flex h-10 px-3 rounded-full items-center gap-1.5 text-[12.5px] font-bold text-ink-3 hover:text-ink"
+                            title="Change where your project is"
+                        >
+                            <Pin className="w-3.5 h-3.5" /> {location}
+                        </button>
+                    )}
                     <button
                         onClick={onSaved}
                         className="h-10 px-3 rounded-full inline-flex items-center gap-1.5 text-[13px] font-bold text-ink-2 hover:text-ink bg-white/60 backdrop-blur"
                         aria-label={`Saved lots (${savedCount})`}
                     >
                         <Heart filled={savedCount > 0} /> <span className="tabular-nums">{savedCount}</span>
+                    </button>
+                    <button
+                        onClick={onCart}
+                        className="h-10 px-3 rounded-full inline-flex items-center gap-1.5 text-[13px] font-bold text-ink-2 hover:text-ink bg-white/60 backdrop-blur"
+                        aria-label={`Cart (${cartCount})`}
+                    >
+                        <CartIcon /> <span className="tabular-nums">{cartCount}</span>
                     </button>
                     {user && (
                         <button
@@ -77,6 +109,23 @@ export function Nav({ onHome, onBrowse, savedCount, onSaved, onRequirement, onDe
         </header>
     );
 }
+
+const CartIcon = () => (
+    <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="w-4 h-4"
+        aria-hidden="true"
+    >
+        <path d="M3 4h2l2.4 11.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.2L21 8H6.2" />
+        <circle cx="9.5" cy="20" r="1.2" />
+        <circle cx="17.5" cy="20" r="1.2" />
+    </svg>
+);
 
 const Eyebrow = ({ children }) => <p className="text-[12px] font-extrabold uppercase tracking-[0.18em] text-clay">{children}</p>;
 
@@ -155,30 +204,60 @@ export function HowItWorks({ lots }) {
 // clicking the text opens the gallery for the space, with that stone pinned
 // first. (One big button sent people to the gallery when they had clicked a
 // stone, and the stone they clicked was lost somewhere in the list.)
-function SpaceCard({ space, lot, photo, isRender, count, from, onPick, onOpenLot }) {
+// A space, shown in one stone, with other stones to try down the right side
+// of the picture (decided 2026-11-17): a tap on one shows the space in it.
+function SpaceCard({ space, options, count, from, onPick, onOpenLot }) {
+    const [sel, setSel] = useState(0);
+    const shown = options.at(Math.min(sel, options.length - 1));
+    const lot = shown?.lot;
+    const photo = shown?.photo;
+    const isRender = !!shown?.isRender;
     return (
         <article className="rounded-[22px] overflow-hidden bg-white/70 border border-ink/10 hover:shadow-card transition-shadow flex flex-col">
-            <button
-                type="button"
-                disabled={!lot}
-                onClick={() => onOpenLot(lot, { sceneId: space.room })}
-                aria-label={lot ? `Open ${lot.name}${isRender ? `, shown as a ${space.label.toLowerCase()}` : ''}` : undefined}
-                className="group relative block w-full aspect-[4/3] bg-paper-3 overflow-hidden"
-            >
-                {photo && (
-                    <img
-                        src={photo}
-                        alt=""
-                        loading="lazy"
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-                    />
+            <div className="relative">
+                <button
+                    type="button"
+                    disabled={!lot}
+                    onClick={() => onOpenLot(lot, { sceneId: space.room })}
+                    aria-label={lot ? `Open ${lot.name}${isRender ? `, shown as a ${space.label.toLowerCase()}` : ''}` : undefined}
+                    className="group relative block w-full aspect-[4/3] bg-paper-3 overflow-hidden"
+                >
+                    {photo && (
+                        <img
+                            src={photo}
+                            alt=""
+                            loading="lazy"
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                        />
+                    )}
+                    {lot && (
+                        <span className="absolute left-3 bottom-3 max-w-[calc(100%-64px)] inline-flex items-center gap-1 rounded-full bg-white/90 backdrop-blur px-2.5 py-1 text-[11px] font-bold text-ink-2 group-hover:bg-ink group-hover:text-paper transition-colors">
+                            <span className="truncate">{lot.name}</span> <Arrow className="w-3 h-3 shrink-0" />
+                        </span>
+                    )}
+                </button>
+                {options.length > 1 && (
+                    <div
+                        className="absolute right-2 top-2 bottom-2 flex flex-col justify-center gap-1.5"
+                        role="group"
+                        aria-label={`Stones for a ${space.label.toLowerCase()}`}
+                    >
+                        {options.map((o, i) => (
+                            <button
+                                key={o.lot.id}
+                                type="button"
+                                onClick={() => setSel(i)}
+                                aria-pressed={i === sel}
+                                aria-label={`Show ${o.lot.name}`}
+                                title={o.lot.name}
+                                className={`w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 shadow-sm transition-transform hover:scale-105 ${i === sel ? 'border-ink' : 'border-white'}`}
+                            >
+                                <img src={o.lot.image} alt="" loading="lazy" className="w-full h-full object-cover" />
+                            </button>
+                        ))}
+                    </div>
                 )}
-                {lot && (
-                    <span className="absolute left-3 bottom-3 inline-flex items-center gap-1 rounded-full bg-white/90 backdrop-blur px-2.5 py-1 text-[11px] font-bold text-ink-2 group-hover:bg-ink group-hover:text-paper transition-colors">
-                        {lot.name} <Arrow className="w-3 h-3" />
-                    </span>
-                )}
-            </button>
+            </div>
             <button type="button" onClick={() => onPick(space.id, lot?.id)} className="group flex-1 text-left p-4 md:p-5 hover:bg-white/60 transition-colors">
                 <div className="flex items-baseline justify-between gap-2">
                     <h3 className="font-brand text-[24px] md:text-[26px] leading-none">{space.label}</h3>
@@ -209,17 +288,31 @@ export function ShopBySpace({ lots, renders, onPick, onOpenLot }) {
             // Lots whose stone may go here; the buyer's own size is asked in the gallery.
             const fit = lots.filter((l) => suitsSpace(l, s));
             const cheapest = fit.reduce((best, l) => (!best || l.price < best.price ? l : best), null);
-            // A rendered lot big enough for this space, a different one per card
-            // where possible; otherwise the best-discounted lot's slab photo.
+            // A rendered lot for this space, a different one per card where
+            // possible; otherwise the best-discounted lot's slab photo. Then up
+            // to three other stones to try, of other types first, rendered ones
+            // ahead of the rest.
             const rendered = fit.filter((l) => renders[l.id]?.[room]).sort((a, b) => b.discountPct - a.discountPct);
             const pick = rendered.find((l) => !used.has(l.id)) || rendered[0];
             if (pick) used.add(pick.id);
             const lot = pick || [...fit].sort((a, b) => b.discountPct - a.discountPct)[0];
+            const pool = [...rendered, ...[...fit].sort((a, b) => b.discountPct - a.discountPct)].filter((l, i, all) => l !== lot && all.indexOf(l) === i);
+            const families = new Set(lot ? [lot.family] : []);
+            const others = [];
+            for (const l of pool) {
+                if (others.length >= 3) break;
+                if (families.has(l.family)) continue;
+                families.add(l.family);
+                others.push(l);
+            }
+            for (const l of pool) {
+                if (others.length >= 3) break;
+                if (!others.includes(l)) others.push(l);
+            }
+            const option = (l) => ({ lot: l, photo: renders[l.id]?.[room] || l.image, isRender: !!renders[l.id]?.[room] });
             return {
                 space: s,
-                lot,
-                photo: pick ? renders[pick.id][room] : lot?.image,
-                isRender: !!pick,
+                options: lot ? [option(lot), ...others.map(option)] : [],
                 count: fit.length,
                 from: cheapest ? cheapest.price : null,
             };
@@ -331,20 +424,21 @@ export function JustListed({ lots, renders, saved, onToggleSave, onOpen, onBrows
     );
 }
 
-// The home page's way in to "Share your requirement", with a few one-tap
-// starting points so a buyer sees a real answer before typing anything.
+// The home page's way in to "Find your Stone", with a few one-tap starting
+// points so a buyer sees a real answer before typing anything.
 const QUICK_ASKS = [
-    { space: 'bathroom', budget: 25000, label: 'A bathroom wall under ₹25,000' },
-    { space: 'kitchen', budget: 15000, label: 'A kitchen counter under ₹15,000' },
-    { space: 'pooja', budget: 20000, label: 'A pooja room under ₹20,000' },
-    { space: 'dining', budget: 10000, label: 'A dining table under ₹10,000' },
+    { space: 'bathroom', label: 'A bathroom wall' },
+    { space: 'kitchen', label: 'A kitchen counter' },
+    { space: 'pooja', label: 'A pooja room' },
+    { space: 'dining', label: 'A dining table' },
 ];
 
 /**
- * "Talk to us" on the home page: the three ways to reach a person, side by
- * side (see ContactSheet). The requirement keeps its one-tap starting points.
+ * "Talk to us" on the home page: a whole-home project, then the two ways to
+ * reach a person (see ContactSheet). The video call and "Buy direct" were
+ * taken out on 2026-11-17: the 2% booking now gives the yard's details.
  */
-export function ContactBand({ onRequirement, onContact, onBrowse, onProject }) {
+export function ContactBand({ onRequirement, onContact, onProject }) {
     const ways = [
         {
             id: 'whatsapp',
@@ -358,36 +452,18 @@ export function ContactBand({ onRequirement, onContact, onBrowse, onProject }) {
             id: 'call',
             icon: <PhoneIcon className="w-5 h-5" />,
             title: 'We call you back',
-            text: 'Share the space, your budget and the stone you have in mind. We call within a day with lots that fit.',
-            cta: 'Share your requirement',
+            text: 'Share the space, how much stone and the stone you have in mind. We call within a day with the options.',
+            cta: 'Find your Stone',
             onClick: () => onRequirement(),
             primary: true,
-        },
-        {
-            id: 'video',
-            icon: <VideoIcon className="w-5 h-5" />,
-            title: 'See the slab on video',
-            text: `A 15-minute WhatsApp video call: we show you the actual pieces in daylight and measure them while you watch. ${inr(VIDEO_CALL_FEE)}, counted towards your stone if you buy.`,
-            cta: 'Book a video call',
-            onClick: () => onContact('video'),
-        },
-        {
-            id: 'direct',
-            icon: <KeyIcon className="w-5 h-5" />,
-            title: 'Buy direct from the yard',
-            text: `Found the lot you want? Pay a one-time fee from ${inr(DIRECT_FEE.base)} for the yard's details and deal with them yourself. Open any lot and choose "Buy direct".`,
-            cta: 'Find your lot',
-            onClick: () => onBrowse(),
         },
     ];
     return (
         <section id="requirement" className="py-20 md:py-24 scroll-mt-16">
             <div className="max-w-[1320px] mx-auto px-4 md:px-8">
                 <Eyebrow>Talk to us</Eyebrow>
-                <h2 className="mt-3 font-brand text-[36px] md:text-[48px] leading-[1.02]">Five ways to work with us.</h2>
-                <p className="mt-3 text-ink-2 text-[15px] leading-relaxed max-w-[560px]">
-                    Talk to a person, or buy direct from the yard. Our team answers every day, 10 am to 8 pm.
-                </p>
+                <h2 className="mt-3 font-brand text-[36px] md:text-[48px] leading-[1.02]">Three ways to work with us.</h2>
+                <p className="mt-3 text-ink-2 text-[15px] leading-relaxed max-w-[560px]">Talk to a person. Our team answers every day, 10 am to 8 pm.</p>
                 {/* The whole-home project first: the biggest job, and not only small lots. */}
                 <div className="mt-8 rounded-[22px] bg-ink text-paper p-6 md:p-8 grid md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-6 md:gap-10 items-center">
                     <div>
@@ -417,7 +493,7 @@ export function ContactBand({ onRequirement, onContact, onBrowse, onProject }) {
                         ))}
                     </ul>
                 </div>
-                <div className="mt-4 grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+                <div className="mt-4 grid md:grid-cols-2 gap-4">
                     {ways.map((w) => (
                         <div
                             key={w.id}
@@ -434,7 +510,7 @@ export function ContactBand({ onRequirement, onContact, onBrowse, onProject }) {
                                             {QUICK_ASKS.map((q) => (
                                                 <li key={q.label}>
                                                     <button
-                                                        onClick={() => onRequirement({ space: q.space, budget: q.budget })}
+                                                        onClick={() => onRequirement({ space: q.space })}
                                                         className="w-full text-left text-[13.5px] font-semibold text-ink-2 hover:text-ink flex items-center justify-between gap-2 py-1"
                                                     >
                                                         {q.label} <Arrow className="w-3.5 h-3.5 text-ink-3 shrink-0" />
@@ -461,19 +537,82 @@ export function ContactBand({ onRequirement, onContact, onBrowse, onProject }) {
     );
 }
 
+/**
+ * Happy customers (decided 2026-11-17): stories our team adds after a
+ * purchase, each published only with the customer's permission. Nothing is
+ * made up: until the first story, the section asks for one.
+ */
+export function HappyCustomers() {
+    const stories = useStories().filter((s) => s.published && s.consent);
+    const ask = whatsappLink(`Hi ${BRAND.name}, I bought stone from you and want to share how it turned out.`);
+    return (
+        <section id="customers" className="py-20 md:py-24 scroll-mt-16 bg-paper-2/60">
+            <div className="max-w-[1320px] mx-auto px-4 md:px-8">
+                <Eyebrow>Happy customers</Eyebrow>
+                <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
+                    <h2 className="font-brand text-[36px] md:text-[48px] leading-[1.02] max-w-[640px]">
+                        {stories.length ? 'Spaces our customers finished.' : 'Our first stories are on their way.'}
+                    </h2>
+                    <div className="flex flex-wrap gap-2">
+                        <a
+                            href={ask}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="h-11 px-5 rounded-full bg-moss text-paper font-bold text-[14px] inline-flex items-center gap-2 hover:bg-moss/90"
+                        >
+                            <ChatIcon className="w-4 h-4" /> Share your story on WhatsApp
+                        </a>
+                        {GOOGLE_REVIEW_URL && (
+                            <a
+                                href={GOOGLE_REVIEW_URL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="h-11 px-5 rounded-full border border-ink/20 font-bold text-[14px] inline-flex items-center hover:border-ink"
+                            >
+                                Review us on Google
+                            </a>
+                        )}
+                    </div>
+                </div>
+                {stories.length ? (
+                    <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {stories.map((s) => (
+                            <figure key={s.id} className="rounded-[22px] overflow-hidden bg-white/80 border border-ink/10 flex flex-col">
+                                {s.photo && (
+                                    <img src={s.photo} alt={`${s.name}'s finished space`} loading="lazy" className="w-full aspect-[4/3] object-cover" />
+                                )}
+                                <blockquote className="p-5 text-[15px] leading-relaxed text-ink-2 flex-1">“{s.quote}”</blockquote>
+                                <figcaption className="px-5 pb-5 text-[13px] font-bold">
+                                    {s.name}
+                                    {s.city ? <span className="font-medium text-ink-3"> · {s.city}</span> : null}
+                                    {s.source && <span className="ml-2 rounded-md bg-paper-2 text-ink-3 text-[11px] font-bold px-1.5 py-0.5">{s.source}</span>}
+                                </figcaption>
+                            </figure>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="mt-4 text-[15px] text-ink-2 max-w-[620px]">
+                        Bought stone from us? Tell us how it went, and send a photo of the finished space if you are happy to. We only ever publish it with your
+                        permission.
+                    </p>
+                )}
+            </div>
+        </section>
+    );
+}
+
 export function ForYards({ onOpen }) {
     const points = [
         'List a lot from your phone in five minutes: photos, size, your price.',
-        // "Buy direct" (DirectSheet) only shows a yard to a buyer who has paid,
-        // and only for yards that agree to it.
-        'Your yard name and address stay private. Want direct buyers? They pay us a fee first, and only then see your details.',
+        // A buyer sees a yard's details only after paying the 2% booking advance to visit it.
+        'Your yard name and address stay private. A buyer sees them only after paying a booking advance to come and see the lot.',
         'We find the buyer, collect payment and send the pickup truck.',
     ];
     return (
         <section id="yards" className="bg-ink text-paper scroll-mt-16">
             <div className="max-w-[1320px] mx-auto px-4 md:px-8 py-20 md:py-28 grid md:grid-cols-2 gap-10 items-center">
                 <div>
-                    <p className="text-[12px] font-extrabold uppercase tracking-[0.18em] text-[#E7A27F]">For stone yards</p>
+                    <p className="text-[12px] font-extrabold uppercase tracking-[0.18em] text-[#E7A27F]">Vendor Space</p>
                     <h2 className="mt-3 font-brand text-[40px] md:text-[56px] leading-[1.02]">
                         Turn the lots in your yard
                         <br />

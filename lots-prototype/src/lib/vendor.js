@@ -37,6 +37,28 @@ export const listPriceFor = (yardPrice, margin = DEFAULT_MARGIN) => {
 export const marginLabel = (m) => (!m ? 'not set' : m.type === 'flat' ? `₹${m.value}/sq ft` : `${m.value}%`);
 
 export const FINISHES = ['Polished', 'Honed', 'Leather', 'Flamed', 'Natural'];
+// Where the stone was quarried (decided 2026-11-17): suggestions, any answer allowed.
+export const ORIGINS = [
+    'Rajasthan',
+    'Gujarat',
+    'Andhra Pradesh',
+    'Karnataka',
+    'Tamil Nadu',
+    'Madhya Pradesh',
+    'Italy',
+    'Turkey',
+    'Spain',
+    'Greece',
+    'Iran',
+    'Oman',
+    'Egypt',
+    'Vietnam',
+    'Brazil',
+];
+// Travertine is sold filled (its holes filled with resin or cement) or unfilled.
+export const TRAVERTINE_FILLING = ['Filled', 'Unfilled'];
+/** Do pieces x piece size (inches) come within 25% of the total sq ft? null when no size was given. */
+export const sizeAddsUp = (pieces, L, W, total) => (pieces && L && W && total ? Math.abs((pieces * L * W) / 144 - total) / total <= 0.25 : null);
 export const THICKNESSES = [16, 18, 20, 25, 30];
 // The catalogue's colour tags, so yard lots filter like every other lot.
 export const COLOUR_TAGS = ['White', 'Cream', 'Beige', 'Grey', 'Black', 'Brown', 'Golden', 'Green', 'Blue', 'Pink', 'Red'];
