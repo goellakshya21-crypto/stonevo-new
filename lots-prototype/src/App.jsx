@@ -11,7 +11,7 @@ import RequirementSheet from './components/RequirementSheet';
 import RoomDesigner from './components/RoomDesigner';
 import VendorPortal from './components/VendorPortal';
 import ReviewQueue from './components/ReviewQueue';
-import { ContactBand, Footer, ForYards, HappyCustomers, HowItWorks, JustListed, Nav, Regions, ShopBySpace } from './components/Sections';
+import { ContactBand, DesignersChoice, Footer, ForYards, HappyCustomers, HowItWorks, JustListed, Nav, Regions, ShopBySpace } from './components/Sections';
 import { BookingSheet, CartSheet, CreditsSheet, LocationPrompt } from './components/BuySheets';
 import { addToCart, isOpenBooking, locationLabel, useBookings, useBuyerLocation, useCart } from './lib/commerce';
 import { useSaved } from './lib/hooks';
@@ -323,6 +323,14 @@ export default function App() {
                     <HowItWorks lots={lots} />
                     <ShopBySpace lots={lots} renders={renders} onPick={(space, pin) => goGallery({ space, pin })} onOpenLot={openLot} />
                     <Regions lots={lots} onPick={(city, pin) => goGallery({ city, pin })} onOpenLot={openLot} />
+                    <DesignersChoice
+                        lots={lots}
+                        renders={renders}
+                        saved={visibleSaved}
+                        onToggleSave={saveLot}
+                        onOpen={openLot}
+                        onBrowse={() => goGallery({ picks: true })}
+                    />
                     <JustListed lots={lots} renders={renders} saved={visibleSaved} onToggleSave={saveLot} onOpen={openLot} onBrowse={() => goGallery()} />
                     <ContactBand onRequirement={openRequirement} onContact={(focus) => openContact({ focus })} onProject={() => setProject(true)} />
                     <HappyCustomers />

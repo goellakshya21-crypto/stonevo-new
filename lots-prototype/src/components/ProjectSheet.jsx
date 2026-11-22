@@ -3,7 +3,7 @@ import { Check, Chip, Close } from './ui';
 
 const KINDS = ['Whole house', 'Several rooms', 'One room', 'Office or shop'];
 const STAGES = ['Planning', 'Under construction', 'Renovating'];
-const AREAS = ['Living & dining', 'Kitchen', 'Bathrooms', 'Bedrooms', 'Pooja room', 'Staircase', 'Floors throughout', 'Outside & facade', 'Something else'];
+const AREAS = ['Living & dining', 'Kitchen', 'Bathrooms', 'Bedrooms', 'Worship room', 'Staircase', 'Floors throughout', 'Outside & facade', 'Something else'];
 const BUDGETS = ['Under ₹2 lakh', '₹2–5 lakh', '₹5–10 lakh', '₹10–25 lakh', 'Over ₹25 lakh', 'Not sure yet'];
 
 /**
@@ -51,8 +51,8 @@ export default function ProjectSheet({ onClose }) {
                     <p className="text-[12px] font-extrabold uppercase tracking-[0.18em] text-clay">Plan a whole project</p>
                     <h2 className="mt-1 font-brand text-[34px] md:text-[42px] leading-[1.02]">Stone for the whole home, planned with you.</h2>
                     <p className="mt-2 text-[14px] text-ink-2 max-w-[640px]">
-                        Tell us about the project. A project lead calls you, goes through your plans, and puts together stone for every space: full slabs and blocks as well as
-                        small lots, with samples and one delivery schedule.
+                        Tell us about the project. A project lead calls you, goes through your plans, and puts together stone for every space: full slabs and
+                        blocks as well as small lots, with samples and one delivery schedule.
                     </p>
                 </div>
 
@@ -61,8 +61,8 @@ export default function ProjectSheet({ onClose }) {
                         <div className="rounded-[20px] bg-moss-soft p-5 md:p-6 fade-up" role="status">
                             <p className="font-bold text-moss text-[16px]">Project shared (demo)</p>
                             <p className="mt-1 text-[14px] text-ink-2">
-                                {sent.kind} in {sent.city || 'your city'}, {sent.stage.toLowerCase()}: {sent.areas.join(', ').toLowerCase() || 'all spaces'}. Stone budget:{' '}
-                                {sent.budget.toLowerCase()}.{sent.files ? ` ${sent.files} ${sent.files === 1 ? 'file' : 'files'} attached.` : ''}
+                                {sent.kind} in {sent.city || 'your city'}, {sent.stage.toLowerCase()}: {sent.areas.join(', ').toLowerCase() || 'all spaces'}.
+                                Stone budget: {sent.budget.toLowerCase()}.{sent.files ? ` ${sent.files} ${sent.files === 1 ? 'file' : 'files'} attached.` : ''}
                             </p>
                             <ul className="mt-4 space-y-2 text-[13.5px] text-ink-2">
                                 {[
@@ -147,9 +147,14 @@ export default function ProjectSheet({ onClose }) {
                                         </Chip>
                                     ))}
                                 </div>
-                                {designer === 'yes' && <input placeholder="Their name or studio (optional): we can work with them directly" className={input} />}
+                                {designer === 'yes' && (
+                                    <input placeholder="Their name or studio (optional): we can work with them directly" className={input} />
+                                )}
                             </Field>
-                            <Field label="Plans, drawings or photos (optional)" hint="Floor plans, elevations, a mood board, photos of the site. Shared only with your project lead.">
+                            <Field
+                                label="Plans, drawings or photos (optional)"
+                                hint="Floor plans, elevations, a mood board, photos of the site. Shared only with your project lead."
+                            >
                                 <label className="flex items-center gap-3 rounded-xl border-2 border-dashed border-ink/20 bg-white/50 px-4 py-3 cursor-pointer hover:bg-white transition-colors">
                                     <span className="text-[22px] leading-none text-ink-3" aria-hidden="true">
                                         +
@@ -180,7 +185,14 @@ export default function ProjectSheet({ onClose }) {
                                     <span className="text-[12px] font-semibold text-ink-3">Mobile number</span>
                                     <div className="mt-1 flex h-11 rounded-xl border border-ink/15 bg-white focus-within:border-ink">
                                         <span className="px-3 grid place-items-center text-[14px] text-ink-3 border-r border-ink/10">+91</span>
-                                        <input required inputMode="numeric" pattern="[0-9]{10}" maxLength={10} title="10-digit mobile number" className="flex-1 min-w-0 px-3 text-[14px] outline-none bg-transparent" />
+                                        <input
+                                            required
+                                            inputMode="numeric"
+                                            pattern="[0-9]{10}"
+                                            maxLength={10}
+                                            title="10-digit mobile number"
+                                            className="flex-1 min-w-0 px-3 text-[14px] outline-none bg-transparent"
+                                        />
                                     </div>
                                 </label>
                                 <label className="block sm:col-span-2">
@@ -204,7 +216,10 @@ export default function ProjectSheet({ onClose }) {
                         <ul className="mt-3 space-y-3 text-[14px] text-paper/85">
                             {[
                                 ['One project lead', 'One person for the whole job, from the first call to the last delivery.'],
-                                ['Every kind of stone', 'Full slabs and blocks from our yards as well as small lots, so every space gets the right stone, not only what is left over.'],
+                                [
+                                    'Every kind of stone',
+                                    'Full slabs and blocks from our yards as well as small lots, so every space gets the right stone, not only what is left over.',
+                                ],
                                 ['A stone plan per space', 'Options for each room with prices, so the whole home works together.'],
                                 ['Samples and a site visit', 'Pieces to see in your own light, and measuring on site when it helps.'],
                                 ['One delivery schedule', 'Delivered in the order the site needs it.'],

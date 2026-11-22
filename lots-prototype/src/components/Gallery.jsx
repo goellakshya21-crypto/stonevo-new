@@ -1,7 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import LotCard from './LotCard';
-import { CITIES, costFor, FAMILIES, inr, jobFor, SORTS, SPACES, suitsSpace } from '../lib/lots';
-import { BUDGET_FILTERS, COLOUR_GROUPS } from '../lib/requirements';
+import { CITIES, designersPicks, FAMILIES, inr, jobFor, SORTS, SPACES, suitsSpace } from '../lib/lots';
+import { COLOUR_GROUPS } from '../lib/requirements';
+
+// Budget is a slider of the price a sq ft (decided 2026-11-22): ₹0 to ₹2,000+,
+// the top end meaning no limit.
+const BUDGET_MAX = 2000;
+const BUDGET_STEP = 50;
 import { Arrow, Chip, Close } from './ui';
 
 const PAGE = 24;
@@ -29,14 +34,27 @@ export default function Gallery({
 }) {
     // `pin`: the lot a home-page card was showing when it was clicked. It goes
     // first and is marked, so the stone you clicked is the first thing you see.
-    // `budget` (₹) and `size` (sq ft) come from the budget filter or a shared
-    // requirement. With a size or a space, the budget is for that much stone;
-    // otherwise it is for the whole lot.
-    const { q = '', space = '', city = '', family = '', colour = '', sort = 'newest', savedOnly = false, pin = '', budget = 0, size = 0 } = filters;
+    // `budget`: the most a buyer will pay a sq ft (null = no limit; 0 is a real ₹0). `size` (sq ft):
+    // what they need; with it, a lot's rate is what their whole slabs cost a sq
+    // ft, otherwise the whole-lot rate.
+    const {
+        q = '',
+        space = '',
+        city = '',
+        family = '',
+        colour = '',
+        sort = 'newest',
+        savedOnly = false,
+        picks = false,
+        pin = '',
+        budget = null,
+        size = 0,
+    } = filters;
     const set = (patch) => setFilters({ ...filters, ...patch });
 
     // "Show more" count belongs to one set of filters; change them and it resets.
-    const filterKey = JSON.stringify([q, space, city, family, colour, sort, savedOnly, budget, size]);
+    const filterKey = JSON.stringify([q, space, city, family, colour, sort, savedOnly, picks, budget, size]);
+    const pickIds = useMemo(() => designersPicks(lots, renders), [lots, renders]);
     const [page, setPage] = useState({ key: filterKey, n: PAGE });
     const shown = page.key === filterKey ? page.n : PAGE;
 
@@ -55,28 +73,32 @@ export default function Gallery({
     // Spaces carry no size of their own (decided 2026-11-15): the buyer types how
     // much they need. A space only says which stones may go there.
     const basis = Number(size) || 0; // sq ft the buyer needs (and the budget is for); 0 = whole lot
+    const capped = budget != null && budget !== '';
     const results = useMemo(() => {
         const needle = q.trim().toLowerCase();
-        const costOf = (l) => (basis ? costFor(l, basis) : l.lotTotal);
+        const rateOf = (l) => {
+            if (!basis) return l.price;
+            const job = jobFor(l, basis);
+            return job.cost / job.sqft;
+        };
         return (
             lots
                 .filter((l) => !needle || `${l.name} ${l.family} ${l.colors.join(' ')} ${l.city.name}`.toLowerCase().includes(needle))
                 .filter((l) => !spaceObj || suitsSpace(l, spaceObj))
                 .filter((l) => !size || l.sqft >= size)
-                .filter((l) => !budget || costOf(l) <= budget)
+                .filter((l) => !capped || rateOf(l) <= Number(budget))
                 .filter((l) => !city || l.cityKey === city)
                 .filter((l) => !family || l.family === family)
                 .filter((l) => !colourTags || l.colors.some((c) => colourTags.includes(c)))
                 // Choosing for Design a room: only stones that may go on that surface.
                 .filter((l) => !designPick || !designPick.avoid.includes(l.family))
                 .filter((l) => !savedOnly || saved.has(l.id))
+                .filter((l) => !picks || pickIds.has(l.id))
                 .sort((a, b) => (b.id === pin) - (a.id === pin) || SORTS[sort].fn(a, b))
         );
-    }, [lots, q, spaceObj, city, family, colourTags, designPick, sort, savedOnly, saved, pin, size, budget, basis]);
+    }, [lots, q, spaceObj, city, family, colourTags, designPick, sort, savedOnly, saved, picks, pickIds, pin, size, budget, capped, basis]);
 
-    const anyFilter = q || space || city || family || colour || savedOnly || budget || size;
-    // The shared-requirement budget may not be one of the filter's presets.
-    const budgetChoices = [...new Set([...BUDGET_FILTERS, ...(budget ? [budget] : [])])].sort((a, b) => a - b);
+    const anyFilter = q || space || city || family || colour || savedOnly || picks || capped || size;
 
     return (
         <section className={`pt-24 md:pt-28 max-w-[1320px] mx-auto px-4 md:px-8 ${compare.on ? 'pb-36' : 'pb-20'}`}>
@@ -224,20 +246,34 @@ export default function Gallery({
                         />
                         <span className="text-ink-3">sq ft</span>
                     </label>
-                    <select
-                        value={budget}
-                        onChange={(e) => set({ budget: Number(e.target.value) })}
-                        className={`h-9 rounded-full border px-3 text-[12.5px] font-semibold outline-none ${budget ? 'border-ink bg-ink text-paper' : 'border-ink/15 bg-white/70'}`}
-                        aria-label="Budget"
+                    <label
+                        className={`h-9 inline-flex items-center gap-2 rounded-full border pl-3 pr-3.5 text-[12.5px] font-semibold ${
+                            capped ? 'border-ink bg-white' : 'border-ink/15 bg-white/70'
+                        }`}
                     >
-                        <option value={0}>Any budget</option>
-                        {budgetChoices.map((b) => (
-                            <option key={b} value={b}>
-                                Up to {inr(b)}
-                            </option>
-                        ))}
-                    </select>
-                    {budget > 0 && <span className="text-[12px] text-ink-3 font-semibold">{basis ? `for your ${basis} sq ft` : 'for the whole lot'}</span>}
+                        <span className="text-ink-3">Budget</span>
+                        <input
+                            type="range"
+                            min="0"
+                            max={BUDGET_MAX}
+                            step={BUDGET_STEP}
+                            value={capped ? budget : BUDGET_MAX}
+                            onChange={(e) => {
+                                const v = Number(e.target.value);
+                                set({ budget: v >= BUDGET_MAX ? null : v });
+                            }}
+                            className="w-28 md:w-36 accent-[#1C1915] cursor-pointer"
+                            aria-label="Budget, rupees a square foot"
+                            aria-valuetext={capped ? `Up to ${inr(budget)} a sq ft` : `Any, ${inr(0)} to ${inr(BUDGET_MAX)} and more`}
+                        />
+                        <span className="tabular-nums whitespace-nowrap min-w-[110px]">
+                            {capped ? `Up to ${inr(budget)}` : `${inr(0)} – ${inr(BUDGET_MAX)}+`}
+                            <span className="text-ink-3"> /sq ft</span>
+                        </span>
+                    </label>
+                    <Chip active={picks} onClick={() => set({ picks: !picks })}>
+                        Designers&apos; choice
+                    </Chip>
                     <Chip active={savedOnly} onClick={() => (savedOnly || !onOpenSaved ? set({ savedOnly: !savedOnly }) : onOpenSaved())}>
                         Saved ({saved.size})
                     </Chip>
@@ -265,6 +301,7 @@ export default function Gallery({
                                 onSelect={designPick ? onDesignPick : onPickCompare}
                                 note={l.id === pin ? 'The one you picked' : ''}
                                 booked={!!bookedIds?.has(l.id)}
+                                pick={pickIds.has(l.id)}
                                 job={basis ? jobFor(l, basis) : null}
                             />
                         ))}
@@ -315,7 +352,7 @@ function RequirementNudge({ onClick }) {
         <div className="mt-12 rounded-[22px] bg-white/70 border border-ink/10 p-5 md:p-6 flex flex-wrap items-center justify-between gap-4">
             <div>
                 <p className="font-brand text-[26px] leading-tight">Not quite it?</p>
-                <p className="text-[14px] text-ink-2">Share your space and budget. We call with options, and message you when a new lot fits.</p>
+                <p className="text-[14px] text-ink-2">Share your space and how much stone. We call with options, and message you when a new lot fits.</p>
             </div>
             <button onClick={onClick} className="h-11 px-5 rounded-full bg-ink text-paper font-bold text-[14px] inline-flex items-center gap-2">
                 Find your Stone <Arrow />

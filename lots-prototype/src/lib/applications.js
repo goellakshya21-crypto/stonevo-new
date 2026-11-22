@@ -36,7 +36,11 @@ export const NOT_FOR_KITCHEN = ['Marble', 'Onyx', 'Travertine', 'Dolomite', 'San
 export const whyNot = (family, sceneOrSurfaceId) => {
     const f = family.toLowerCase();
     if (sceneOrSurfaceId === 'kitchen' || sceneOrSurfaceId === 'counter')
-        return family === 'Sandstone' ? 'sandstone soaks up kitchen spills' : family === 'Semi-precious' ? 'resin-backed slabs scorch under hot pans' : `${f} etches and stains in a kitchen`;
+        return family === 'Sandstone'
+            ? 'sandstone soaks up kitchen spills'
+            : family === 'Semi-precious'
+              ? 'resin-backed slabs scorch under hot pans'
+              : `${f} etches and stains in a kitchen`;
     if (sceneOrSurfaceId === 'balcony') return `${f} is not for outdoors`;
     if (NOT_UNDERFOOT.includes(family)) return `${f} is too soft to walk on`;
     return `not for ${f}`;
@@ -126,12 +130,14 @@ export const SCENES = {
         application: 'Feature Wall panel behind the headboard of the bed, about 8 feet wide and 5 feet high',
         slabs: 4,
     },
+    // Called Worship room on the site (decided 2026-11-22); the id stays 'pooja'
+    // so saved renders and links keep working.
     pooja: {
-        label: 'Pooja room',
-        group: 'Pooja room',
+        label: 'Worship room',
+        group: 'Worship room',
         surface: 'Back wall',
-        space: 'Pooja room',
-        hint: 'Back wall of the mandir',
+        space: 'Worship room',
+        hint: 'The wall behind the altar',
         sqft: 30,
         roomType: 'small modern Indian pooja room (home mandir) with a brass diya, a bell and marigold flowers',
         application: 'back wall of the mandir niche, about 5 feet wide',
@@ -416,7 +422,14 @@ export const roomsFor = (lot) => SCENE_IDS.filter((id) => canDo(lot, id));
 // to the stone-swap prompt (server/swapStone.js) and tells the model how to
 // find the surface in a photo it has never seen; `hint` tells the buyer.
 export const OWN_SURFACES = [
-    { id: 'floor', label: 'Floor', hint: 'All the floor you can see', where: 'the floor: all of the visible floor area of the room', slabs: 4, avoid: NOT_UNDERFOOT },
+    {
+        id: 'floor',
+        label: 'Floor',
+        hint: 'All the floor you can see',
+        where: 'the floor: all of the visible floor area of the room',
+        slabs: 4,
+        avoid: NOT_UNDERFOOT,
+    },
     {
         id: 'wall',
         label: 'Feature wall',
@@ -432,10 +445,35 @@ export const OWN_SURFACES = [
         slabs: 1,
         avoid: NOT_FOR_KITCHEN,
     },
-    { id: 'vanity', label: 'Vanity top', hint: 'The counter around the basin', where: 'the bathroom vanity counter top around the basin, including its front edge', slabs: 1 },
-    { id: 'bathwalls', label: 'Bathroom walls', hint: 'Every wall in the bathroom', where: 'the bathroom walls: every visible wall surface in the bathroom', slabs: 4 },
-    { id: 'table', label: 'Table top', hint: 'The top of the main table', where: 'the top of the main table, including its edges (and its legs if they are the same material)', slabs: 1 },
-    { id: 'stairs', label: 'Staircase', hint: 'Every step and riser', where: 'the staircase: every visible tread and riser of the steps', slabs: 1, avoid: NOT_UNDERFOOT },
+    {
+        id: 'vanity',
+        label: 'Vanity top',
+        hint: 'The counter around the basin',
+        where: 'the bathroom vanity counter top around the basin, including its front edge',
+        slabs: 1,
+    },
+    {
+        id: 'bathwalls',
+        label: 'Bathroom walls',
+        hint: 'Every wall in the bathroom',
+        where: 'the bathroom walls: every visible wall surface in the bathroom',
+        slabs: 4,
+    },
+    {
+        id: 'table',
+        label: 'Table top',
+        hint: 'The top of the main table',
+        where: 'the top of the main table, including its edges (and its legs if they are the same material)',
+        slabs: 1,
+    },
+    {
+        id: 'stairs',
+        label: 'Staircase',
+        hint: 'Every step and riser',
+        where: 'the staircase: every visible tread and riser of the steps',
+        slabs: 1,
+        avoid: NOT_UNDERFOOT,
+    },
 ];
 
 export const ownSurfacesFor = (lot) => OWN_SURFACES.filter((s) => !s.avoid?.includes(lot.family));

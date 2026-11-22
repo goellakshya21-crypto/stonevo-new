@@ -14,7 +14,7 @@ const IDEAS = [
     { id: 'photo', label: 'A photo' },
     { id: 'colour', label: 'Its colour' },
 ];
-// Requirements in one share (a vanity top, a kitchen counter, a pooja room…).
+// Requirements in one share (a vanity top, a kitchen counter, a worship room…).
 const MAX_ITEMS = 5;
 
 // One requirement. A new one starts on a space the buyer has not picked yet.

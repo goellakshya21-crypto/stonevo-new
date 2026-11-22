@@ -247,6 +247,20 @@ export const compactInr = (n) => {
 
 export const fitsSpaces = (lot) => SPACES.filter((s) => fitsSpace(lot, s));
 
+/**
+ * "India's top designers' choice" (Highlights & selection). Decided 2026-11-22:
+ * RANDOM lots for now, until the team chooses real ones: the same 8 on every
+ * visit (shuffled by a hash of each lot's id), lots with room pictures first.
+ * @returns {Set<string>} lot ids
+ */
+export function designersPicks(lots, renders = {}, n = 8) {
+    const key = (l) => rand(l.id, 22);
+    const pictured = lots.filter((l) => Object.keys(renders[l.id] || {}).some((k) => k !== 'name'));
+    const rest = lots.filter((l) => !pictured.includes(l));
+    const order = [...pictured.sort((a, b) => key(a) - key(b)), ...rest.sort((a, b) => key(a) - key(b))];
+    return new Set(order.slice(0, n).map((l) => l.id));
+}
+
 export const FAMILIES = ['Marble', 'Onyx', 'Travertine', 'Granite', 'Dolomite', 'Sandstone', 'Semi-precious'];
 
 export const SORTS = {

@@ -92,8 +92,8 @@ export default function Hero({ lots, renders, tour = [], totalLots, onOpenLot, p
                 <em className="text-clay">at half the price.</em>
             </h1>
             <p className="mt-4 max-w-[400px] text-[15px] md:text-[16px] leading-relaxed text-ink-2">
-                Stone yards across India are left with lots too small to sell. We bring them to you for bathrooms, kitchens, TV walls, staircases and
-                pooja rooms, at up to 60% under market.
+                Stone yards across India are left with lots too small to sell. We bring them to you for bathrooms, kitchens, TV walls, staircases and worship
+                rooms, at up to 60% under market.
             </p>
         </div>
     );
@@ -154,7 +154,8 @@ export default function Hero({ lots, renders, tour = [], totalLots, onOpenLot, p
                                 <span className="text-[15px] text-ink-3 line-through decoration-1">{inr(market)}</span>
                             </div>
                             <p className="mt-1.5 text-[13px] text-ink-2">
-                                <b className="text-moss">You save {inr(market - total)}</b> · {whole ? `whole lot at ${inr(lot.price)}/sq ft` : `${inr(lot.partRate)}/sq ft for part of the lot`}
+                                <b className="text-moss">You save {inr(market - total)}</b> ·{' '}
+                                {whole ? `whole lot at ${inr(lot.price)}/sq ft` : `${inr(lot.partRate)}/sq ft for part of the lot`}
                             </p>
                             <p className="mt-2 inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[12px] font-semibold bg-moss-soft text-moss">
                                 <Check className="w-3.5 h-3.5" />
@@ -177,7 +178,11 @@ export default function Hero({ lots, renders, tour = [], totalLots, onOpenLot, p
                         >
                             <Arrow dir="left" />
                         </button>
-                        <button aria-label="Next stone" onClick={() => go(1)} className="w-11 h-11 rounded-full border border-ink/15 grid place-items-center hover:border-ink/50">
+                        <button
+                            aria-label="Next stone"
+                            onClick={() => go(1)}
+                            className="w-11 h-11 rounded-full border border-ink/15 grid place-items-center hover:border-ink/50"
+                        >
                             <Arrow />
                         </button>
                         <DownloadButton
@@ -249,7 +254,11 @@ export default function Hero({ lots, renders, tour = [], totalLots, onOpenLot, p
         return (
             <section className="pt-20">
                 <div className="px-4 pb-5">{headline}</div>
-                <div className="relative h-[56svh] min-h-[340px] max-h-[540px] overflow-hidden bg-paper-3" onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+                <div
+                    className="relative h-[56svh] min-h-[340px] max-h-[540px] overflow-hidden bg-paper-3"
+                    onPointerDown={onPointerDown}
+                    onPointerUp={onPointerUp}
+                >
                     {photo}
                     <div className="absolute right-3 top-3">{controls}</div>
                 </div>

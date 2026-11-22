@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import LotCard from './LotCard';
-import { CITIES, compactInr, inr, SPACES, suitsSpace } from '../lib/lots';
+import { CITIES, compactInr, designersPicks, inr, SPACES, suitsSpace } from '../lib/lots';
 import { Arrow, Brand, ChatIcon, Check, Heart, PhoneIcon, Pin } from './ui';
 import { GOOGLE_REVIEW_URL, whatsappLink } from '../lib/contact';
 import { useStories } from '../lib/commerce';
@@ -154,7 +154,7 @@ export function HowItWorks({ lots }) {
         ],
         [
             'You get premium stone for a small space',
-            'A bathroom wall, a TV wall, a dining table, a staircase, a pooja room. The spaces where a small lot is all you need.',
+            'A bathroom wall, a TV wall, a dining table, a staircase, a worship room. The spaces where a small lot is all you need.',
         ],
     ];
 
@@ -402,6 +402,36 @@ export function Regions({ lots, onPick, onOpenLot }) {
     );
 }
 
+/** Highlights & selection: India's top designers' choice (random picks for now, see designersPicks). */
+export function DesignersChoice({ lots, renders, saved, onToggleSave, onOpen, onBrowse }) {
+    const picks = useMemo(() => {
+        const ids = designersPicks(lots, renders);
+        return lots.filter((l) => ids.has(l.id));
+    }, [lots, renders]);
+    if (!picks.length) return null;
+    return (
+        <section id="highlights" className="py-20 md:py-28 scroll-mt-16">
+            <div className="max-w-[1320px] mx-auto px-4 md:px-8">
+                <Eyebrow>Highlights &amp; selection</Eyebrow>
+                <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
+                    <h2 className="font-brand text-[40px] md:text-[54px] leading-[1.02] max-w-[640px]">India&apos;s top designers&apos; choice.</h2>
+                    <button
+                        onClick={onBrowse}
+                        className="inline-flex items-center gap-2 h-11 px-5 rounded-full border border-ink/20 font-bold text-[14px] hover:border-ink"
+                    >
+                        See all {picks.length} picks <Arrow />
+                    </button>
+                </div>
+                <div className="mt-10 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-4 md:gap-x-6 gap-y-8">
+                    {picks.map((l) => (
+                        <LotCard key={l.id} lot={l} renders={renders} saved={saved.has(l.id)} onToggleSave={onToggleSave} onOpen={onOpen} pick />
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+
 export function JustListed({ lots, renders, saved, onToggleSave, onOpen, onBrowse }) {
     const fresh = useMemo(() => [...lots].sort((a, b) => a.listedDaysAgo - b.listedDaysAgo).slice(0, 8), [lots]);
     return (
@@ -429,7 +459,7 @@ export function JustListed({ lots, renders, saved, onToggleSave, onOpen, onBrows
 const QUICK_ASKS = [
     { space: 'bathroom', label: 'A bathroom wall' },
     { space: 'kitchen', label: 'A kitchen counter' },
-    { space: 'pooja', label: 'A pooja room' },
+    { space: 'pooja', label: 'A worship room' },
     { space: 'dining', label: 'A dining table' },
 ];
 
