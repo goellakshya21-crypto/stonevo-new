@@ -4,10 +4,13 @@ import { RENDER_SCENES, ROOM_TABS } from '../lib/renders';
 import { SCENE_IDS, suits } from '../lib/applications';
 import { Check, Heart, Pin } from './ui';
 
-// Hover is pure CSS, so it is instant: only where a pointer can hover (not on
-// phones, where a tap would leave it stuck).
-const ON_HOVER_HIDE = '[@media(hover:hover)]:group-hover:opacity-0';
-const ON_HOVER_SHOW = 'opacity-0 [@media(hover:hover)]:group-hover:opacity-100';
+// Hover is pure CSS: it starts the moment the cursor arrives, and only where a
+// pointer can hover (not on phones, where a tap would leave it stuck). A short
+// crossfade (decided 2026-11-22: an instant swap felt abrupt) that starts at
+// once, so it is smooth without feeling slow; the slab photo is already loaded.
+const FADE = 'transition-opacity duration-[350ms] ease-in-out motion-reduce:transition-none';
+const ON_HOVER_HIDE = `${FADE} [@media(hover:hover)]:group-hover:opacity-0`;
+const ON_HOVER_SHOW = `${FADE} opacity-0 [@media(hover:hover)]:group-hover:opacity-100`;
 
 // In compare mode (`selectable`) a card is a choice, not a doorway: clicking it
 // picks the lot instead of opening it, as on the live site.
@@ -18,8 +21,8 @@ const ON_HOVER_SHOW = 'opacity-0 [@media(hover:hover)]:group-hover:opacity-100';
 // `pick`: on our designers' choice (Highlights).
 //
 // Pictures (decided 2026-11-22): the card shows the stone in a room; the
-// moment the cursor is on it, the slab photo shows instead. Both pictures load
-// together, so the swap needs no loading and no fade. A lot with no room
+// moment the cursor is on it, the slab photo fades in. Both pictures load
+// together, so the swap never waits for a download. A lot with no room
 // picture yet shows its slab photo.
 export default function LotCard({ lot, renders, saved, onToggleSave, onOpen, selectable, selected, onSelect, note, job, booked, pick }) {
     const roomId = [...new Set([...ROOM_TABS, ...SCENE_IDS])].find((id) => renders?.[lot.id]?.[id] && suits(lot, id));
